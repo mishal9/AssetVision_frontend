@@ -4,7 +4,6 @@ import "../styles/tailwind.css";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/redux-provider";
 import { cn } from "@/utils";
-import { Header } from "@/components/dashboard/header";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -28,7 +27,6 @@ export default function RootLayout({
         geist.variable
       )}>
         <ReduxProvider>
-          <Header />
           <main>{children}</main>
         </ReduxProvider>
       </body>
