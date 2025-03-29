@@ -107,21 +107,30 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
       setPlaidLoading(true);
       setPlaidError(null);
       
-      // Exchange public token for access token
+      console.log('Processing Plaid success callback with metadata:', {
+        institution: metadata.institution?.name || 'Unknown',
+        accounts: metadata.accounts?.length || 0
+      });
+      
+      // Step 1: Exchange public token for access token
       try {
         await plaidApi.exchangePublicToken(publicToken);
-      } catch (exchangeError) {
-        console.error('Error exchanging public token:', exchangeError);
-        throw new Error('Failed to exchange token with your bank. Please try again.');
+      } catch (error) {
+        console.error('Error exchanging public token:', error);
+        throw new Error(
+          'Failed to exchange token with your bank. Please try again or contact support if the issue persists.'
+        );
       }
       
-      // Get investment holdings from Plaid
+      // Step 2: Get investment holdings from Plaid
       let holdings;
       try {
         holdings = await plaidApi.getInvestmentHoldings();
-      } catch (holdingsError) {
-        console.error('Error fetching holdings:', holdingsError);
-        throw new Error('Unable to fetch your investment holdings. The server may be experiencing issues.');
+      } catch (error) {
+        console.error('Error retrieving investment holdings:', error);
+        throw new Error(
+          'Unable to retrieve your investment holdings. The server may be experiencing issues. Please try again later.'
+        );
       }
       
       if (!holdings || holdings.length === 0) {
@@ -134,14 +143,13 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
         shares: String(holding.shares)
       }));
       
-      // Update the form with the Plaid holdings
+      // Update the form with holdings
       setPlaidHoldings(formattedHoldings);
       replace(formattedHoldings);
       
     } catch (error: any) {
-      console.error('Error importing from Plaid:', error);
-      setPlaidError(error.message || 'Unable to connect to your bank. Please try again later or use manual input.');
-      // Reset to manual input if Plaid fails
+      console.error('Error in Plaid flow:', error);
+      setPlaidError(error.message || 'An error occurred connecting to your bank. Please try again later or use manual input.');
       setInputMethod('manual');
     } finally {
       setPlaidLoading(false);

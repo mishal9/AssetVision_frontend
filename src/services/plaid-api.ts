@@ -79,33 +79,29 @@ export const plaidApi = {
    * Calls the Django backend to exchange the public token for an access token
    */
   exchangePublicToken: async (publicToken: string) => {
-    try {
-      const response = await fetchWithAuth(`${PLAID_API_BASE}/exchange-token/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ public_token: publicToken }),
-      });
-      
-      if (!response.access_token) {
-        throw new Error('No access token received from server');
-      }
-      
-      // Store the access token in session storage for later use
-      // In a production app, you might handle this differently
-      sessionStorage.setItem('plaid_access_token', response.access_token);
-      
-      return { 
-        success: true, 
-        accessToken: response.access_token,
-        itemId: response.item_id 
-      };
-    } catch (error) {
-      console.error('Error exchanging public token:', error);
-      throw error;
+    console.log('Attempting to exchange public token...');
+    const response = await fetchWithAuth(`${PLAID_API_BASE}/exchange-token/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ public_token: publicToken }),
+    });
+    
+    if (!response.access_token) {
+      throw new Error('No access token received from server');
     }
+    
+    console.log('Successfully exchanged token');
+    // Store the access token in session storage for later use
+    sessionStorage.setItem('plaid_access_token', response.access_token);
+    
+    return { 
+      success: true, 
+      accessToken: response.access_token,
+      itemId: response.item_id 
+    };
   },
   
   /**
@@ -113,46 +109,35 @@ export const plaidApi = {
    * Calls the Django backend to fetch investment holdings using the stored access token
    */
   getInvestmentHoldings: async (): Promise<HoldingInput[]> => {
-    try {
-      // Get the access token from session storage
-      const accessToken = sessionStorage.getItem('plaid_access_token');
-      
-      if (!accessToken) {
-        throw new Error('No Plaid access token available');
-      }
-      
-      try {
-        const response = await fetchWithAuth(`${PLAID_API_BASE}/get-holdings/`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: JSON.stringify({ access_token: accessToken }),
-        });
-        
-        if (!response.holdings || !Array.isArray(response.holdings)) {
-          throw new Error('Invalid holdings data received from server');
-        }
-        
-        // Map the response to the expected format
-        return response.holdings.map((holding: any) => ({
-          symbol: holding.symbol,
-          shares: holding.shares,
-          purchasePrice: holding.purchase_price || 0,
-          assetClass: holding.asset_class || 'stocks'
-        }));
-      } catch (apiError) {
-        console.error('API error getting investment holdings:', apiError);
-        
-        // If server returns an error, use fallback data
-        console.warn('Server error occurred. Using fallback sample data.');
-        return FALLBACK_MOCK_HOLDINGS;
-      }
-    } catch (error) {
-      console.error('Error in getInvestmentHoldings:', error);
-      throw error;
+    // Get the access token from session storage
+    const accessToken = sessionStorage.getItem('plaid_access_token');
+    
+    if (!accessToken) {
+      throw new Error('No Plaid access token available');
     }
+    
+    console.log('Attempting to fetch holdings from API...');
+    const response = await fetchWithAuth(`${PLAID_API_BASE}/get-holdings/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ access_token: accessToken }),
+    });
+    
+    if (!response.holdings || !Array.isArray(response.holdings)) {
+      throw new Error('Invalid holdings data format received from server');
+    }
+    
+    console.log('Successfully fetched holdings from API');
+    // Map the response to the expected format
+    return response.holdings.map((holding: any) => ({
+      symbol: holding.symbol,
+      shares: holding.shares,
+      purchasePrice: holding.purchase_price || 0,
+      assetClass: holding.asset_class || 'stocks'
+    }));
   },
   
   /**
