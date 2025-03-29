@@ -1,0 +1,107 @@
+# Coding guidelines
+
+- My project's programming language is TypeScript
+- Always add documentation when creating new functions and classes
+- Use Tailwind CSS for styling
+- Use Shadcn UI for components
+- Use Redux for state management
+- Use Socket.io for real-time communication
+- Use ESLint for code quality
+- Use Next.js for server-side rendering
+
+# Project structure
+
+/src
+├── /components
+│ ├── /ui (shadcn base components)
+│ ├── /dashboard
+│ ├── /portfolio
+│ ├── /alerts
+│ └── /charts
+├── /pages
+│ ├── Dashboard.tsx
+│ ├── PortfolioDetail.tsx
+│ ├── AlertsPage.tsx
+│ └── TaxHarvesting.tsx
+├── /services
+│ ├── api.ts
+│ ├── websocket.ts
+│ └── auth.ts
+├── /store
+│ ├── index.ts
+│ ├── portfolioSlice.ts
+│ ├── alertsSlice.ts
+│ └── userSlice.ts
+├── /hooks
+│ ├── useWebSocket.ts
+│ └── usePortfolioData.ts
+└── /utils
+├── formatters.ts
+└── calculations.ts
+
+# Authentication Flow
+
+- Create login/signup pages
+- Implement JWT token management
+- Set up protected routes
+- Handle token refresh mechanisms
+- Integrate with backend authentication system
+
+## Key Components
+- Login form
+- Registration form
+- Password reset flow
+- Token storage (secure HTTP-only cookies)
+
+# WebSocket Integration
+- Real-Time Update Channels
+- Portfolio performance
+- Individual stock prices
+- Dividend updates
+- Drift alerts
+- Tax harvesting opportunities
+
+## Implementation Strategy
+- Establish secure WebSocket connection
+- Create event listeners for different data streams
+- Update Redux store on incoming messages
+- Implement reconnection logic
+- Add connection status indicators
+
+# Dashboard Development
+
+## Modular Component Approach
+- Draggable/resizable widgets
+- Configurable layout
+- Independent data refresh
+
+## Core Widgets
+- Portfolio Overview
+- Performance Metrics
+- Asset Allocation
+- Dividend Forecast
+- Tax Harvesting Opportunities
+- Market News
+- Performance Optimization
+
+## Implementation Strategy
+- Implement code splitting
+- Use React.memo and useMemo
+- Optimize WebSocket payload
+- Implement lazy loading
+- Add error boundaries
+- Create loading skeletons
+
+## State Management
+- Redux Toolkit Slices
+- User authentication
+- Portfolio data
+- Performance metrics
+- Alerts and notifications
+- Tax harvesting opportunities
+
+## Responsive Design
+- Mobile-first approach
+- Tailwind responsive utilities
+- Adaptive layouts
+- Touch-friendly interactions
