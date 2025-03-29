@@ -41,6 +41,7 @@
 
 # Authentication Flow
 
+## Implementation Strategy
 - Create login/signup pages
 - Implement JWT token management
 - Set up protected routes

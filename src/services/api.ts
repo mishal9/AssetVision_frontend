@@ -14,8 +14,22 @@ async function fetchWithAuth<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
-  // Get the JWT token from storage
-  const token = localStorage.getItem('auth_token');
+  // Get the JWT token from cookies or localStorage
+  let token;
+  
+  // Try to get from cookies first
+  if (typeof document !== 'undefined') {
+    const cookies = document.cookie.split(';');
+    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
+    if (tokenCookie) {
+      token = tokenCookie.split('=')[1];
+    }
+  }
+  
+  // Fall back to localStorage
+  if (!token && typeof localStorage !== 'undefined') {
+    token = localStorage.getItem('auth_token');
+  }
   
   const headers = {
     'Content-Type': 'application/json',
@@ -64,6 +78,23 @@ export const portfolioApi = {
    */
   getAssetAllocation: () => 
     fetchWithAuth<AssetAllocation[]>('/portfolio/allocation'),
+    
+  /**
+   * Create a new portfolio with holdings
+   */
+  createPortfolio: (data: { holdings: HoldingInput[] }) => 
+    fetchWithAuth<void>('/portfolio', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    
+  /**
+   * Check if user has a portfolio
+   */
+  hasPortfolio: () => 
+    fetchWithAuth<{ hasPortfolio: boolean }>('/portfolio/status')
+      .then(response => response.hasPortfolio)
+      .catch(() => false),
 };
 
 /**
@@ -132,6 +163,15 @@ export const authApi = {
     fetchWithAuth<AuthResponse>('/auth/refresh', {
       method: 'POST',
     }),
+    
+  /**
+   * Request password reset
+   */
+  requestPasswordReset: (email: string) => 
+    fetchWithAuth<void>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
 };
 
 // Type definitions
@@ -153,6 +193,13 @@ export interface AssetAllocation {
   category: string;
   percentage: number;
   value: number;
+}
+
+export interface HoldingInput {
+  symbol: string;
+  shares: number;
+  purchasePrice: number;
+  assetClass: string;
 }
 
 export interface Alert {
