@@ -137,11 +137,22 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
         throw new Error('No investment holdings found in your account. Please try another account or use manual input.');
       }
       
-      // Convert to form values
-      const formattedHoldings = holdings.map(holding => ({
-        symbol: holding.symbol,
-        shares: String(holding.shares)
-      }));
+      // Log the raw holdings data
+      console.log('Raw holdings data received:', holdings);
+      
+      // Convert to form values - ensure all values are properly converted to strings
+      const formattedHoldings = holdings.map(holding => {
+        // Log each holding as we process it
+        console.log('Processing holding for form:', holding);
+        
+        return {
+          symbol: holding.symbol || '',
+          shares: holding.shares ? String(holding.shares) : ''
+        };
+      });
+      
+      // Log the formatted holdings
+      console.log('Formatted holdings for form:', formattedHoldings);
       
       // Update the form with holdings
       setPlaidHoldings(formattedHoldings);

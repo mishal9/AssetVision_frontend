@@ -9,14 +9,7 @@ import { HoldingInput } from './api';
 // Base URL for Plaid API endpoints
 const PLAID_API_BASE = `${process.env.NEXT_PUBLIC_API_URL || ''}/plaid`;
 
-// Fallback mock data in case API is unavailable
-const FALLBACK_MOCK_HOLDINGS = [
-  { symbol: 'AAPL', shares: 10, purchasePrice: 150, assetClass: 'stocks' },
-  { symbol: 'MSFT', shares: 5, purchasePrice: 280, assetClass: 'stocks' },
-  { symbol: 'GOOGL', shares: 2, purchasePrice: 2800, assetClass: 'stocks' },
-  { symbol: 'AMZN', shares: 3, purchasePrice: 3300, assetClass: 'stocks' },
-  { symbol: 'TSLA', shares: 8, purchasePrice: 900, assetClass: 'stocks' },
-];
+// No mock data - API must provide real data
 
 export interface PlaidAccount {
   id: string;
@@ -126,18 +119,64 @@ export const plaidApi = {
       body: JSON.stringify({ access_token: accessToken }),
     });
     
+    // Log the response structure to help debug
+    console.log('Response structure:', Object.keys(response));
+    
+    // Check for the complete structure returned by Django
     if (!response.holdings || !Array.isArray(response.holdings)) {
       throw new Error('Invalid holdings data format received from server');
     }
     
+    // Also log the securities to help with debugging
+    if (response.securities) {
+      console.log(`Found ${response.securities.length} securities`);
+    }
+    
     console.log('Successfully fetched holdings from API');
-    // Map the response to the expected format
-    return response.holdings.map((holding: any) => ({
-      symbol: holding.symbol,
-      shares: holding.shares,
-      purchasePrice: holding.purchase_price || 0,
-      assetClass: holding.asset_class || 'stocks'
-    }));
+    // Full response dump for debugging
+    console.log('Full response:', JSON.stringify(response, null, 2));
+    
+    if (response.holdings.length > 0) {
+      // Sample holding object structure
+      console.log('Sample holding structure:', JSON.stringify(response.holdings[0], null, 2));
+    }
+    
+    if (response.securities && response.securities.length > 0) {
+      // Sample security object structure
+      console.log('Sample security structure:', JSON.stringify(response.securities[0], null, 2));
+    }
+    
+    // Map the holdings to the expected format
+    return response.holdings.map((holding: any) => {
+      // Find the corresponding security to get the symbol
+      const security = response.securities?.find(
+        (s: any) => s.security_id === holding.security_id
+      );
+      
+      // Debug this specific holding
+      console.log('Processing holding:', { 
+        security_id: holding.security_id,
+        quantity: holding.quantity,
+        shares: holding.shares,
+        institution_value: holding.institution_value,
+        cost_basis: holding.cost_basis,
+        security: security ? { 
+          ticker_symbol: security.ticker_symbol,
+          name: security.name,
+          type: security.type 
+        } : 'No matching security'
+      });
+      
+      // Convert quantity to string for the form
+      const sharesValue = String(holding.quantity || holding.shares || 0);
+      
+      return {
+        symbol: security?.ticker_symbol || holding.symbol || 'UNKNOWN',
+        shares: sharesValue,
+        purchasePrice: holding.cost_basis || holding.purchase_price || 0,
+        assetClass: security?.type || holding.asset_class || 'stocks'
+      };
+    });
   },
   
   /**
