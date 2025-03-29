@@ -3,7 +3,7 @@ import { Geist } from "next/font/google";
 import "../styles/tailwind.css";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/redux-provider";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils";
 import { Header } from "@/components/dashboard/header";
 
 const geist = Geist({

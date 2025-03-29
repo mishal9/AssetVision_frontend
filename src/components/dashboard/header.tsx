@@ -1,7 +1,7 @@
 'use client';
 
-import { useAppDispatch, useAppSelector } from '@/lib/store';
-import { toggleTheme } from '@/lib/features/appSlice';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { toggleTheme } from '@/store/appSlice';
 import { Moon, Sun } from 'lucide-react';
 import { useEffect } from 'react';
 

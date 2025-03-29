@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { socketService } from '@/lib/socket';
+import { socketService } from '@/services/websocket';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { BarChart3, Users, ShoppingCart, Activity } from 'lucide-react';
 
