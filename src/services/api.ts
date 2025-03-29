@@ -78,6 +78,23 @@ export const portfolioApi = {
    */
   getAssetAllocation: () => 
     fetchWithAuth<AssetAllocation[]>('/portfolio/allocation'),
+    
+  /**
+   * Create a new portfolio with holdings
+   */
+  createPortfolio: (data: { holdings: HoldingInput[] }) => 
+    fetchWithAuth<void>('/portfolio', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    
+  /**
+   * Check if user has a portfolio
+   */
+  hasPortfolio: () => 
+    fetchWithAuth<{ hasPortfolio: boolean }>('/portfolio/status')
+      .then(response => response.hasPortfolio)
+      .catch(() => false),
 };
 
 /**
@@ -176,6 +193,13 @@ export interface AssetAllocation {
   category: string;
   percentage: number;
   value: number;
+}
+
+export interface HoldingInput {
+  symbol: string;
+  shares: number;
+  purchasePrice: number;
+  assetClass: string;
 }
 
 export interface Alert {
