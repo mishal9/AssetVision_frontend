@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Inter } from "next/font/google";
 import "../styles/tailwind.css";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/redux-provider";
 import { cn } from "@/utils";
 
-const geist = Geist({
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
 });
@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={cn(
         "min-h-screen bg-background text-foreground font-sans antialiased",
-        geist.variable
+        inter.variable
       )}>
         <ReduxProvider>
           <main>{children}</main>
@@ -32,3 +32,4 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
