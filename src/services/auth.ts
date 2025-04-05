@@ -39,6 +39,10 @@ class AuthService {
           response.tokens.refresh_expires_in
         );
         this.setupTokenRefresh(response.tokens.access_expires_in);
+        
+        // Update Redux state with user info
+        // Note: This requires importing the function in the module that uses this method
+        // to avoid circular dependencies
       }
       
       return response;
@@ -119,6 +123,10 @@ class AuthService {
         clearTimeout(this.tokenRefreshTimer);
         this.tokenRefreshTimer = null;
       }
+      
+      // Clear Redux state
+      // Note: This requires importing the function in the module that uses this method
+      // to avoid circular dependencies
     }
   }
 
