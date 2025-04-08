@@ -67,13 +67,31 @@ export function PlaidLinkButton({
     }
   }, [linkToken, generateLinkToken, isGeneratingToken, error]);
 
-  const config = {
-    token: linkToken,
-    onSuccess: onPlaidSuccess,
-    onExit: onPlaidExit,
-  };
+  // Initialize with a null configuration to prevent SSR issues
+  const [config, setConfig] = useState<any>(null);
+  
+  // Set up the Plaid Link configuration only on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined' && linkToken) {
+      setConfig({
+        token: linkToken,
+        onSuccess: onPlaidSuccess,
+        onExit: onPlaidExit,
+        env: 'sandbox', // Change to 'development' or 'production' as needed
+        // Don't specify the receivedRedirectUri - let Plaid handle this
+        // Instead we'll ensure the redirect works correctly with proper OAuth state
+        overlay: {
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+          unstyled: false, // Use Plaid's default styling
+        }
+      });
+    }
+  }, [linkToken, onPlaidSuccess, onPlaidExit]);
+  
+  // Don't initialize Plaid Link until we're in the browser
+  const { open, ready } = usePlaidLink(config || { token: null });
 
-  const { open, ready } = usePlaidLink(config);
+
 
   const handleClick = useCallback(() => {
     if (error) {

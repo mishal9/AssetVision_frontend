@@ -3,7 +3,7 @@
  * Handles communication with Django backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { API_BASE_URL } from '@/config/api';
 
 /**
  * Generic fetch wrapper with error handling
@@ -13,9 +13,15 @@ export async function fetchWithAuth<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
-  // Make sure endpoint starts with a slash
-  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${API_BASE_URL}${normalizedEndpoint}`;
+  // Check if the endpoint is already a full URL (starts with http:// or https://)
+  const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+  
+  // If it's a full URL, use it directly; otherwise, append it to the API base URL
+  const url = isFullUrl ? endpoint : (
+    endpoint.startsWith('/') 
+      ? `${API_BASE_URL}${endpoint}` 
+      : `${API_BASE_URL}/${endpoint}`
+  );
   
   // Get the JWT token from cookies or localStorage
   let token;

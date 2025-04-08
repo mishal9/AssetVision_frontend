@@ -5,9 +5,7 @@
 
 import { fetchWithAuth } from './api-utils';
 import { HoldingInput } from './api';
-
-// Base URL for Plaid API endpoints
-const PLAID_API_BASE = `${process.env.NEXT_PUBLIC_API_URL || ''}/plaid`;
+import { PLAID_ENDPOINTS } from '@/config/api';
 
 // No mock data - API must provide real data
 
@@ -44,16 +42,23 @@ export const plaidApi = {
   /**
    * Create a Plaid Link token
    * Calls the Django backend to generate a link token for Plaid Link initialization
+   * @param userId User ID to associate with the link token
+   * @param forUpdate Whether this is for updating an existing account (true) or creating a new one (false)
+   * @param accountId Optional account ID if updating an existing account
    */
-  createLinkToken: async (userId: string = 'default_user_id'): Promise<string> => {
+  createLinkToken: async (userId: string = 'default_user_id', forUpdate: boolean = false, accountId?: string): Promise<string> => {
     try {
-      const response = await fetchWithAuth(`${PLAID_API_BASE}/create-link-token/`, {
+      const response = await fetchWithAuth(PLAID_ENDPOINTS.CREATE_LINK_TOKEN, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: JSON.stringify({ user_id: userId }),
+        body: JSON.stringify({ 
+          user_id: userId,
+          update_mode: forUpdate,
+          account_id: accountId
+        }),
       });
       
       if (!response.link_token) {
@@ -73,7 +78,7 @@ export const plaidApi = {
    */
   exchangePublicToken: async (publicToken: string) => {
     console.log('Attempting to exchange public token...');
-    const response = await fetchWithAuth(`${PLAID_API_BASE}/exchange-token/`, {
+    const response = await fetchWithAuth(PLAID_ENDPOINTS.EXCHANGE_TOKEN, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -100,23 +105,24 @@ export const plaidApi = {
   /**
    * Get investment holdings from Plaid
    * Calls the Django backend to fetch investment holdings using the stored access token
+   * @param accessToken Optional access token to use for a specific account. If not provided, uses the one from session storage.
    */
-  getInvestmentHoldings: async (): Promise<HoldingInput[]> => {
-    // Get the access token from session storage
-    const accessToken = sessionStorage.getItem('plaid_access_token');
+  getInvestmentHoldings: async (accessToken?: string): Promise<HoldingInput[]> => {
+    // Get the access token from parameter or session storage
+    const token = accessToken || sessionStorage.getItem('plaid_access_token');
     
-    if (!accessToken) {
+    if (!token) {
       throw new Error('No Plaid access token available');
     }
     
     console.log('Attempting to fetch holdings from API...');
-    const response = await fetchWithAuth(`${PLAID_API_BASE}/get-holdings/`, {
+    const response = await fetchWithAuth(PLAID_ENDPOINTS.GET_HOLDINGS, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ access_token: accessToken }),
+      body: JSON.stringify({ access_token: token }),
     });
     
     // Log the response structure to help debug
@@ -182,23 +188,73 @@ export const plaidApi = {
   /**
    * Create a portfolio from Plaid data
    * Fetches holdings from Plaid and creates a portfolio using the API
+   * @param accessToken Optional access token for specific account. If not provided, uses the one from session storage.
+   * @param portfolioName Optional name for the portfolio. If not provided, will use a default name.
    */
-  createPortfolioFromPlaid: async () => {
+  createPortfolioFromPlaid: async (accessToken?: string, portfolioName?: string) => {
     try {
       // Get holdings from Plaid API
-      const holdings = await plaidApi.getInvestmentHoldings();
+      const holdings = await plaidApi.getInvestmentHoldings(accessToken);
       
       if (!holdings || holdings.length === 0) {
         throw new Error('No holdings data available from Plaid');
       }
       
       // Create portfolio with the holdings
-      return fetchWithAuth<void>('/portfolio', {
+      return fetchWithAuth<void>(PLAID_ENDPOINTS.CREATE_PORTFOLIO, {
         method: 'POST',
-        body: JSON.stringify({ holdings }),
+        body: JSON.stringify({ 
+          holdings,
+          name: portfolioName || 'Imported Portfolio'
+        }),
       });
     } catch (error) {
       console.error('Error creating portfolio from Plaid:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get all linked accounts for the current user
+   */
+  getLinkedAccounts: async () => {
+    try {
+      const response = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+      return response.accounts || [];
+    } catch (error) {
+      console.error('Error fetching linked accounts:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Disconnect a linked account
+   * @param accountId The ID of the account to disconnect
+   */
+  disconnectAccount: async (accountId: string) => {
+    try {
+      await fetchWithAuth(PLAID_ENDPOINTS.DISCONNECT_ACCOUNT(accountId), {
+        method: 'POST',
+        body: JSON.stringify({ account_id: accountId }),
+      });
+      return { success: true };
+    } catch (error) {
+      console.error('Error disconnecting account:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Update account connection if it's broken or requires re-authentication
+   * @param accountId The ID of the account to update
+   */
+  updateAccountConnection: async (accountId: string) => {
+    try {
+      // First get a link token for update mode
+      const linkToken = await plaidApi.createLinkToken('default_user_id', true, accountId);
+      return { success: true, linkToken };
+    } catch (error) {
+      console.error('Error preparing account update:', error);
       throw error;
     }
   },

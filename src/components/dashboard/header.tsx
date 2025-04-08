@@ -3,7 +3,7 @@
 import { useAppDispatch, useAppSelector } from '@/store';
 import { toggleTheme } from '@/store/appSlice';
 import { clearUser, fetchUserInfo } from '@/store/userSlice';
-import { LogOut, Moon, Sun, User, Settings } from 'lucide-react';
+import { LogOut, Moon, Sun, User, Settings, Building2 } from 'lucide-react';
 import { useEffect } from 'react';
 import Image from 'next/image';
 import { authService } from '@/services/auth';
@@ -43,10 +43,10 @@ export function Header() {
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-semibold">Asset Vision</h1>
           <nav className="hidden md:flex items-center space-x-4">
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Overview</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Customers</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Products</a>
-            <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">Settings</a>
+            <a href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Overview</a>
+            <a href="/portfolios" className="text-muted-foreground hover:text-foreground transition-colors">Portfolios</a>
+            <a href="/dashboard/connected-accounts" className="text-muted-foreground hover:text-foreground transition-colors">Connected Accounts</a>
+            <a href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</a>
           </nav>
         </div>
         <div className="flex items-center space-x-4">
@@ -91,6 +91,10 @@ export function Header() {
                   )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push('/dashboard/connected-accounts')}>
+                  <Building2 className="mr-2 h-4 w-4" />
+                  <span>Brokerage Accounts</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
