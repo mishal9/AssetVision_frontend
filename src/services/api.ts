@@ -88,18 +88,20 @@ export const alertsApi = {
 export const authApi = {
   /**
    * Login user
+   * @param username Username or email
+   * @param password User password
    */
-  login: (email: string, password: string) => 
-    fetchWithAuth<AuthResponse>('/auth/login', {
+  login: (username: string, password: string) => 
+    fetchWithAuth<AuthResponse>('/auth/login/', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ username, password }),
     }),
   
   /**
    * Register new user
    */
   register: (userData: RegisterInput) => 
-    fetchWithAuth<AuthResponse>('/auth/register', {
+    fetchWithAuth<AuthResponse>('/auth/register/', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
@@ -107,9 +109,10 @@ export const authApi = {
   /**
    * Refresh authentication token
    */
-  refreshToken: () => 
-    fetchWithAuth<AuthResponse>('/auth/refresh', {
+  refreshToken: (refreshToken: string) => 
+    fetchWithAuth<TokenRefreshResponse>('/auth/refresh/', {
       method: 'POST',
+      body: JSON.stringify({ refresh: refreshToken }),
     }),
     
   /**
@@ -119,6 +122,20 @@ export const authApi = {
     fetchWithAuth<void>('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
+    }),
+    
+  /**
+   * Get current user information
+   */
+  getUserInfo: () => 
+    fetchWithAuth<UserInfoResponse>('/auth/user/'),
+    
+  /**
+   * Logout user
+   */
+  logout: () => 
+    fetchWithAuth<{ success: boolean }>('/auth/logout/', {
+      method: 'POST',
     }),
 };
 
@@ -167,17 +184,37 @@ export interface AlertInput {
 }
 
 export interface AuthResponse {
-  token: string;
-  refreshToken: string;
+  success: boolean;
   user: {
-    id: string;
+    id: number;
+    username: string;
     email: string;
-    name: string;
+  };
+  tokens: {
+    access: string;
+    refresh: string;
+    access_expires_in: number;
+    refresh_expires_in: number;
+  };
+}
+
+export interface TokenRefreshResponse {
+  success: boolean;
+  access: string;
+  access_expires_in: number;
+}
+
+export interface UserInfoResponse {
+  authenticated: boolean;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
   };
 }
 
 export interface RegisterInput {
+  username: string;
   email: string;
   password: string;
-  name: string;
 }

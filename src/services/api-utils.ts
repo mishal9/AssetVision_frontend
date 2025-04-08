@@ -1,17 +1,21 @@
 /**
  * API utilities for Asset Vision
+ * Handles communication with Django backend
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 /**
  * Generic fetch wrapper with error handling
+ * Automatically adds authentication headers and handles errors
  */
 export async function fetchWithAuth<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
+  // Make sure endpoint starts with a slash
+  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${normalizedEndpoint}`;
   
   // Get the JWT token from cookies or localStorage
   let token;
@@ -32,6 +36,7 @@ export async function fetchWithAuth<T>(
   
   const headers = {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
     ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
@@ -39,17 +44,30 @@ export async function fetchWithAuth<T>(
   const config = {
     ...options,
     headers,
-  };
+    credentials: 'include', // Include cookies in cross-origin requests
+  } as RequestInit;
 
   try {
     const response = await fetch(url, config);
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `API error: ${response.status}`);
+    // For 204 No Content responses
+    if (response.status === 204) {
+      return {} as T;
     }
     
-    return await response.json();
+    // Handle errors
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({
+        error: `HTTP error ${response.status}`,
+        message: response.statusText
+      }));
+      
+      throw new Error(errorData.error || errorData.message || `API error: ${response.status}`);
+    }
+    
+    // Parse JSON response
+    const data = await response.json();
+    return data as T;
   } catch (error) {
     console.error('API request failed:', error);
     throw error;
