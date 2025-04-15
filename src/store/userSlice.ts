@@ -95,7 +95,7 @@ export const linkBrokerageAccount = createAsyncThunk(
   'user/linkBrokerageAccount',
   async ({ publicToken, metadata }: { publicToken: string, metadata: any }, { rejectWithValue }) => {
     try {
-      const result = await plaidApi.exchangePublicToken(publicToken);
+      const result = await plaidApi.exchangePublicToken(publicToken, metadata);
       
       if (!result.success) {
         throw new Error('Failed to exchange public token');
