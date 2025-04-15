@@ -38,10 +38,10 @@ export const PLAID_ENDPOINTS = {
   CREATE_LINK_TOKEN: `${API_HOST}/api/plaid/create-link-token/`,
   EXCHANGE_TOKEN: `${API_HOST}/api/plaid/exchange-token/`,
   GET_HOLDINGS: `${API_HOST}/api/plaid/get-holdings/`,
-  LINKED_ACCOUNTS: `${API_HOST}/api/plaid/linked-accounts/`,
-  DISCONNECT_ACCOUNT: (id: string) => `${API_HOST}/api/plaid/disconnect-account/`,
-  UPDATE_CONNECTION: (id: string) => `${API_HOST}/api/plaid/update-connection/`,
-  CREATE_PORTFOLIO: `${API_HOST}/api/portfolio`,
+  LINKED_ACCOUNTS: `${API_HOST}/api/plaid/list-connections/`,
+  DISCONNECT_ACCOUNT: (id: string) => `${API_HOST}/api/plaid/disconnect-account/${id}/`,
+  UPDATE_CONNECTION: (id: string) => `${API_HOST}/api/plaid/update-connection/${id}/`,
+  CREATE_PORTFOLIO: `${API_HOST}/api/portfolio/`,
 };
 
 // WebSocket endpoints

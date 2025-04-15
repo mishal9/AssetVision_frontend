@@ -78,12 +78,8 @@ export function PlaidLinkButton({
         onSuccess: onPlaidSuccess,
         onExit: onPlaidExit,
         env: 'sandbox', // Change to 'development' or 'production' as needed
-        // Don't specify the receivedRedirectUri - let Plaid handle this
-        // Instead we'll ensure the redirect works correctly with proper OAuth state
-        overlay: {
-          backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-          unstyled: false, // Use Plaid's default styling
-        }
+        // Modern Plaid Link configuration options
+        // The 'overlay' property is not valid in the current version
       });
     }
   }, [linkToken, onPlaidSuccess, onPlaidExit]);

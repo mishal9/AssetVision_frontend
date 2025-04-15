@@ -176,7 +176,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Linked Brokerage Accounts</h2>
         {/* Only show the connect button in the header when not on the Connected Accounts page */}
-        {linkedAccounts.length > 0 && (
+        {linkedAccounts && linkedAccounts.length > 0 && (
           <PlaidLinkButton 
             onSuccess={handlePlaidSuccess}
             variant="default"
@@ -185,12 +185,12 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
         )}
       </div>
       
-      {accountsLoading && linkedAccounts.length === 0 ? (
+      {accountsLoading && (!linkedAccounts || linkedAccounts.length === 0) ? (
         <div className="space-y-3">
           <Skeleton className="h-[150px] w-full rounded-lg" />
           <Skeleton className="h-[150px] w-full rounded-lg" />
         </div>
-      ) : linkedAccounts.length === 0 ? (
+      ) : !linkedAccounts || linkedAccounts.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="pt-6 text-center">
             <div className="flex flex-col items-center justify-center space-y-3 py-8">
@@ -211,7 +211,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {linkedAccounts.map((account) => (
+          {linkedAccounts && linkedAccounts.map((account) => (
             <Card 
               key={account.id} 
               className={`overflow-hidden ${onSelectAccount ? 'cursor-pointer hover:border-primary' : ''}`}
