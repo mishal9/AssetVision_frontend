@@ -4,6 +4,7 @@ import "../styles/tailwind.css";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/redux-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { PlaidLinkProvider } from "@/context/PlaidLinkContext";
 import { cn } from "@/utils";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -30,8 +31,10 @@ export default function RootLayout({
       )}>
         <ReduxProvider>
           <ThemeProvider>
-            <Toaster position="top-right" />
-            <main>{children}</main>
+            <PlaidLinkProvider>
+              <Toaster position="top-right" />
+              <main>{children}</main>
+            </PlaidLinkProvider>
           </ThemeProvider>
         </ReduxProvider>
       </body>
