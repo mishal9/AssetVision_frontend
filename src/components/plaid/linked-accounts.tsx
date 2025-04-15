@@ -74,9 +74,17 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
 
   // Handle successful Plaid link
   const handlePlaidSuccess = async (publicToken: string, metadata: Record<string, unknown>) => {
+    console.log('Plaid Link Success in LinkedAccounts:', { publicToken, metadata });
     try {
       // Dispatch action to link the account
-      await dispatch(linkBrokerageAccount({ publicToken, metadata })).unwrap();
+      console.log('Dispatching linkBrokerageAccount action...');
+      const result = await dispatch(linkBrokerageAccount({ publicToken, metadata })).unwrap();
+      console.log('Account linking result:', result);
+      
+      // Force a refresh of the linked accounts
+      console.log('Refreshing linked accounts...');
+      dispatch(fetchLinkedAccounts());
+      
       toast.success("Account Linked Successfully", {
         description: `Successfully linked your ${metadata.institution.name} account.`,
       });

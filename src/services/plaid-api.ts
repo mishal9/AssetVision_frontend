@@ -111,59 +111,84 @@ export const plaidApi = {
    * Supports multiple linked institutions
    */
   exchangePublicToken: async (publicToken: string, metadata:any) => {
-    console.log('Attempting to exchange public token...');
+    console.log('Attempting to exchange public token...', { publicToken, metadata });
     
-    // Prepare the request data - no need to send user_id as it will be extracted from JWT
+    // Prepare the request data with all necessary information for the backend
     const requestData = {
       public_token: publicToken,
       metadata: metadata, // Add metadata from Plaid link
       institution_id: metadata?.institution?.id,
-      institution_name: metadata?.institution?.name
+      institution_name: metadata?.institution?.name,
+      // Include account details for more reliable backend storage
+      accounts: metadata?.accounts || []
     };
     
     console.log('Exchange token request data:', requestData);
     
-    const response = await fetchWithAuth(PLAID_ENDPOINTS.EXCHANGE_TOKEN, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: JSON.stringify(requestData),
-    });
-    
-    if (!response.access_token) {
-      throw new Error('No access token received from server');
+    try {
+      // Make sure to set credentials: 'include' to send cookies with the request
+      const response = await fetchWithAuth(PLAID_ENDPOINTS.EXCHANGE_TOKEN, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(requestData),
+        credentials: 'include' // Ensure cookies are sent with request
+      });
+      
+      console.log('Exchange token response:', response);
+      
+      if (!response.access_token) {
+        console.error('No access_token in response:', response);
+        throw new Error('No access token received from server');
+      }
+      
+      if (!response.success) {
+        console.error('Server indicated failure:', response);
+        throw new Error(response.message || 'Failed to store connection on server');
+      }
+      
+      console.log('Successfully exchanged token and saved on server');
+      
+      // Retrieve existing linked accounts or initialize empty object
+      const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
+      
+      // Add new token with institution ID as key
+      const institutionId = metadata?.institution?.id || 'unknown_institution';
+      existingTokens[institutionId] = {
+        accessToken: response.access_token,
+        itemId: response.item_id,
+        institutionName: metadata?.institution?.name || 'Unknown Institution',
+        accounts: metadata?.accounts || [],
+        lastUpdated: new Date().toISOString(),
+        connectionId: response.connection_id || response.id || null // Save server-side connection ID
+      };
+      
+      console.log('Saving token to session storage:', { institutionId, token: response.access_token });
+      
+      // Save back to session storage
+      sessionStorage.setItem('plaid_access_tokens', JSON.stringify(existingTokens));
+      
+      // For backward compatibility
+      sessionStorage.setItem('plaid_access_token', response.access_token);
+      
+      const result = { 
+        success: true, 
+        accessToken: response.access_token,
+        itemId: response.item_id,
+        institutionId: institutionId,
+        institutionName: metadata?.institution?.name || 'Unknown Institution',
+        connectionId: response.connection_id || response.id || null,
+        accountIds: response.account_ids || []
+      };
+      
+      console.log('Exchange token result:', result);
+      return result;
+    } catch (error) {
+      console.error('Error in exchangePublicToken:', error);
+      throw error;
     }
-    
-    console.log('Successfully exchanged token');
-    
-    // Retrieve existing linked accounts or initialize empty object
-    const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
-    
-    // Add new token with institution ID as key
-    const institutionId = metadata?.institution?.id || 'unknown_institution';
-    existingTokens[institutionId] = {
-      accessToken: response.access_token,
-      itemId: response.item_id,
-      institutionName: metadata?.institution?.name || 'Unknown Institution',
-      accounts: metadata?.accounts || [],
-      lastUpdated: new Date().toISOString()
-    };
-    
-    // Save back to session storage
-    sessionStorage.setItem('plaid_access_tokens', JSON.stringify(existingTokens));
-    
-    // For backward compatibility
-    sessionStorage.setItem('plaid_access_token', response.access_token);
-    
-    return { 
-      success: true, 
-      accessToken: response.access_token,
-      itemId: response.item_id,
-      institutionId: institutionId,
-      institutionName: metadata?.institution?.name || 'Unknown Institution'
-    };
   },
   
   /**

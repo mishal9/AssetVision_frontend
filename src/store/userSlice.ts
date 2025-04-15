@@ -3,6 +3,7 @@ import { authService } from '@/services/auth';
 import { type UserInfoResponse } from '@/services/api';
 import { plaidApi, PlaidInstitution } from '@/services/plaid-api';
 import { PLAID_ENDPOINTS } from '@/config/api';
+import { fetchWithAuth } from '@/services/api-utils';
 
 /**
  * Linked account interface representing a connected brokerage account
@@ -67,22 +68,40 @@ export const fetchUserInfo = createAsyncThunk(
 /**
  * Async thunk to fetch linked accounts
  */
+/**
+ * Fetch linked accounts from the backend
+ */
 export const fetchLinkedAccounts = createAsyncThunk(
   'user/fetchLinkedAccounts',
   async (_, { rejectWithValue }) => {
     try {
-      // Using centralized API configuration
-      const response = await fetch(PLAID_ENDPOINTS.LINKED_ACCOUNTS, {
-        credentials: 'include',
-      });
+      // Using centralized API configuration and enhanced fetchWithAuth
+      console.log('Fetching linked accounts from:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+      const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch linked accounts');
-      }
+      console.log('Linked accounts response:', data);
       
-      const data = await response.json();
-      return data.accounts;
+      // Process accounts data to match our LinkedAccount interface
+      const accounts = data.accounts || [];
+      
+      // Map backend response to our frontend model
+      return accounts.map((account: any) => ({
+        id: account.id || account.account_id || '',
+        institutionId: account.institution_id || '',
+        institutionName: account.institution_name || 'Unknown Institution',
+        accountName: account.name || account.account_name || 'Account',
+        accountMask: account.mask || account.account_mask || '****',
+        accountType: account.type || account.account_type || 'unknown',
+        accessToken: account.access_token,
+        lastUpdated: account.last_updated ? new Date(account.last_updated) : new Date(),
+        status: account.status || 'active',
+        balance: {
+          available: account.balances?.available || account.available_balance || 0,
+          current: account.balances?.current || account.current_balance || 0
+        }
+      }));
     } catch (error) {
+      console.error('Error fetching linked accounts:', error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch linked accounts');
     }
   }
@@ -91,36 +110,62 @@ export const fetchLinkedAccounts = createAsyncThunk(
 /**
  * Async thunk to link a new brokerage account
  */
+/**
+ * Link a new brokerage account with Plaid
+ */
 export const linkBrokerageAccount = createAsyncThunk(
   'user/linkBrokerageAccount',
-  async ({ publicToken, metadata }: { publicToken: string, metadata: any }, { rejectWithValue }) => {
+  async ({ publicToken, metadata }: { publicToken: string, metadata: any }, { rejectWithValue, dispatch }) => {
     try {
+      console.log('Linking brokerage account with publicToken and metadata:', { metadata });
+      
+      // Exchange the public token for an access token and store connection on backend
       const result = await plaidApi.exchangePublicToken(publicToken, metadata);
       
       if (!result.success) {
         throw new Error('Failed to exchange public token');
       }
       
-      // Create a new linked account object
-      const linkedAccount: LinkedAccount = {
-        id: metadata.accounts[0].id,
-        institutionId: metadata.institution.id,
-        institutionName: metadata.institution.name,
-        accountName: metadata.accounts[0].name,
-        accountMask: metadata.accounts[0].mask,
-        accountType: metadata.accounts[0].type,
-        accessToken: result.accessToken, // Note: In production, this should only be stored on backend
-        lastUpdated: new Date(),
-        status: 'active',
-        balance: {
-          available: metadata.accounts[0].balances?.available || 0,
-          current: metadata.accounts[0].balances?.current || 0
-        }
-      };
+      console.log('Token exchange successful:', result);
       
-      // In a real implementation, you would save this linked account to your backend
-      // For now, we'll just return it to be added to the Redux store
-      return linkedAccount;
+      // Handle multiple accounts if provided in metadata
+      const accounts = Array.isArray(metadata.accounts) ? metadata.accounts : [metadata.accounts];
+      
+      if (!accounts.length) {
+        throw new Error('No accounts found in Plaid metadata');
+      }
+      
+      // Map Plaid accounts to our internal format
+      const linkedAccounts = accounts.map((account: any) => {
+        return {
+          id: account.id,
+          institutionId: metadata.institution.id,
+          institutionName: metadata.institution.name,
+          accountName: account.name,
+          accountMask: account.mask,
+          accountType: account.type || account.subtype || 'unknown',
+          accessToken: result.accessToken, // Note: In production, this should only be stored on backend
+          lastUpdated: new Date(),
+          status: 'active',
+          balance: {
+            available: account.balances?.available || 0,
+            current: account.balances?.current || 0
+          },
+          connectionId: result.connectionId || null // Store the backend connection ID
+        } as LinkedAccount;
+      });
+      
+      console.log('Created linked accounts:', linkedAccounts);
+      
+      // After linking, fetch all accounts to ensure we have the latest data from the backend
+      // Increased timeout to give backend more time to process
+      setTimeout(() => {
+        console.log('Fetching updated linked accounts list after account linking');
+        dispatch(fetchLinkedAccounts());
+      }, 2000); // Increased from 1000ms to 2000ms
+      
+      // Return all linked accounts instead of just the first one
+      return linkedAccounts;
     } catch (error) {
       console.error('Error linking account:', error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to link account');
@@ -193,7 +238,13 @@ export const userSlice = createSlice({
       })
       .addCase(fetchLinkedAccounts.fulfilled, (state, action) => {
         state.accountsLoading = false;
-        state.linkedAccounts = action.payload;
+        // Ensure we have valid accounts data
+        if (Array.isArray(action.payload)) {
+          state.linkedAccounts = action.payload;
+          console.log('Updated linkedAccounts in Redux store:', action.payload);
+        } else {
+          console.error('Invalid accounts data received:', action.payload);
+        }
       })
       .addCase(fetchLinkedAccounts.rejected, (state, action) => {
         state.accountsLoading = false;
@@ -206,8 +257,19 @@ export const userSlice = createSlice({
       })
       .addCase(linkBrokerageAccount.fulfilled, (state, action) => {
         state.accountsLoading = false;
-        // Add the new linked account to the array
-        state.linkedAccounts.push(action.payload);
+        // Add the new linked account to the array if it doesn't already exist
+        if (action.payload) {
+          const existingIndex = state.linkedAccounts.findIndex(acc => acc.id === action.payload.id);
+          if (existingIndex >= 0) {
+            // Update existing account
+            state.linkedAccounts[existingIndex] = action.payload;
+            console.log('Updated existing account in Redux store:', action.payload);
+          } else {
+            // Add new account
+            state.linkedAccounts.push(action.payload);
+            console.log('Added new account to Redux store:', action.payload);
+          }
+        }
       })
       .addCase(linkBrokerageAccount.rejected, (state, action) => {
         state.accountsLoading = false;

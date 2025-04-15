@@ -54,25 +54,52 @@ export async function fetchWithAuth<T>(
   } as RequestInit;
 
   try {
+    console.log(`API Request to ${url}:`, { 
+      method: config.method || 'GET',
+      hasAuthToken: !!token,
+      bodySize: config.body ? JSON.stringify(config.body).length : 0
+    });
+    
     const response = await fetch(url, config);
     
     // For 204 No Content responses
     if (response.status === 204) {
+      console.log(`API Response from ${url}: [204 No Content]`);
       return {} as T;
     }
     
     // Handle errors
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP error ${response.status}`,
-        message: response.statusText
-      }));
+      console.error(`API Error ${response.status} from ${url}`);
+      let errorData;
+      try {
+        errorData = await response.json();
+        console.error('API Error details:', errorData);
+      } catch (e) {
+        const errorText = await response.text();
+        console.error('API Error response text:', errorText);
+        errorData = {
+          error: `HTTP error ${response.status}`,
+          message: response.statusText,
+          responseText: errorText
+        };
+      }
       
       throw new Error(errorData.error || errorData.message || `API error: ${response.status}`);
     }
     
     // Parse JSON response
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+      console.log(`API Response from ${url}:`, data);
+    } catch (e) {
+      console.error(`Error parsing JSON from ${url}:`, e);
+      const responseText = await response.text();
+      console.log('Response as text:', responseText);
+      throw new Error(`Failed to parse JSON response: ${e.message}`);
+    }
+    
     return data as T;
   } catch (error) {
     console.error('API request failed:', error);
