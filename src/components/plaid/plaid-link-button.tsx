@@ -84,10 +84,10 @@ export function PlaidLinkButton({
     }
   }, [linkToken, onPlaidSuccess, onPlaidExit]);
   
-  // Don't initialize Plaid Link until we're in the browser
-  const { open, ready } = usePlaidLink(config || { token: null });
-
-
+  // Don't initialize Plaid Link until we're in the browser and only when we have a valid config
+  // This prevents multiple Plaid Link initializations on the same page
+  const { open, ready } = usePlaidLink(linkToken ? config : { token: null });
+  
 
   const handleClick = useCallback(() => {
     if (error) {
