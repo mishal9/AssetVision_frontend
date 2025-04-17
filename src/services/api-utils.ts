@@ -68,41 +68,40 @@ export async function fetchWithAuth<T>(
       return {} as T;
     }
     
-    // Handle errors
-    if (!response.ok) {
-      console.error(`API Error ${response.status} from ${url}`);
-      let errorData;
-      try {
-        errorData = await response.json();
-        console.error('API Error details:', errorData);
-      } catch (e) {
-        const errorText = await response.text();
-        console.error('API Error response text:', errorText);
-        errorData = {
-          error: `HTTP error ${response.status}`,
-          message: response.statusText,
-          responseText: errorText
-        };
-      }
-      
-      throw new Error(errorData.error || errorData.message || `API error: ${response.status}`);
-    }
-    
-    // Parse JSON response
+    // Parse JSON response - only parse once to avoid 'body stream already read' error
     let data;
     try {
       data = await response.json();
-      console.log(`API Response from ${url}:`, data);
+      
+      // For successful responses, just log the data
+      if (response.ok) {
+        console.log(`API Response from ${url}:`, data);
+        return data as T;
+      }
+      
+      // Handle error responses with JSON bodies
+      const errorMessage = data.error || data.message || `API error: ${response.status}`;
+      console.error(`API Error ${response.status} from ${url}: ${errorMessage}`);
+      throw new Error(errorMessage);
     } catch (e) {
+      // Handle parse errors or non-JSON error responses
+      if (!response.ok) {
+        // Only try to read the error text if we couldn't parse JSON
+        const errorText = await response.text().catch(() => response.statusText);
+        const errorMessage = `HTTP error ${response.status}: ${errorText || response.statusText}`;
+        console.error(`API Error from ${url}: ${errorMessage}`);
+        throw new Error(errorMessage);
+      }
+      
+      // JSON parsing error for a successful response
       console.error(`Error parsing JSON from ${url}:`, e);
-      const responseText = await response.text();
-      console.log('Response as text:', responseText);
       throw new Error(`Failed to parse JSON response: ${e.message}`);
     }
-    
-    return data as T;
   } catch (error) {
-    console.error('API request failed:', error);
+    // Only log the error once at this level - don't duplicate logs
+    if (!(error instanceof Error)) {
+      console.error('API request failed with unknown error type');
+    }
     throw error;
   }
 }

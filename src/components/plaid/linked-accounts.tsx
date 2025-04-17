@@ -74,22 +74,44 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
 
   // Handle successful Plaid link
   const handlePlaidSuccess = async (publicToken: string, metadata: Record<string, unknown>) => {
-    console.log('Plaid Link Success in LinkedAccounts:', { publicToken, metadata });
+    console.log('LinkedAccounts: handlePlaidSuccess called with token', publicToken.substring(0, 5) + '...');
+    console.log('LinkedAccounts: Plaid metadata:', JSON.stringify(metadata).substring(0, 100) + '...');
+    
     try {
+      // Validate inputs before proceeding
+      if (!publicToken) {
+        console.error('LinkedAccounts: Missing publicToken');
+        throw new Error('Missing public token');
+      }
+      
+      if (!metadata) {
+        console.error('LinkedAccounts: Missing metadata');
+        throw new Error('Missing metadata');
+      }
+      
       // Dispatch action to link the account
-      console.log('Dispatching linkBrokerageAccount action...');
-      const result = await dispatch(linkBrokerageAccount({ publicToken, metadata })).unwrap();
-      console.log('Account linking result:', result);
+      console.log('LinkedAccounts: Dispatching linkBrokerageAccount action...');
       
-      // Force a refresh of the linked accounts
-      console.log('Refreshing linked accounts...');
-      dispatch(fetchLinkedAccounts());
-      
-      toast.success("Account Linked Successfully", {
-        description: `Successfully linked your ${metadata.institution.name} account.`,
-      });
+      try {
+        const actionResult = dispatch(linkBrokerageAccount({ publicToken, metadata }));
+        console.log('LinkedAccounts: Action dispatched successfully, awaiting result...');
+        
+        const result = await actionResult.unwrap();
+        console.log('LinkedAccounts: Account linking result:', result);
+        
+        // Force a refresh of the linked accounts
+        console.log('LinkedAccounts: Refreshing linked accounts...');
+        dispatch(fetchLinkedAccounts());
+        
+        toast.success("Account Linked Successfully", {
+          description: `Successfully linked your ${metadata.institution?.name || 'brokerage'} account.`,
+        });
+      } catch (dispatchError) {
+        console.error('LinkedAccounts: Error in dispatch or unwrap:', dispatchError);
+        throw dispatchError;
+      }
     } catch (error) {
-      console.error('Error linking account:', error);
+      console.error('LinkedAccounts: Error linking account:', error);
       toast.error("Error Linking Account", {
         description: error instanceof Error ? error.message : "An unknown error occurred",
       });

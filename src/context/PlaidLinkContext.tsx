@@ -6,7 +6,8 @@ import {
   useState, 
   useCallback, 
   useEffect, 
-  ReactNode 
+  ReactNode,
+  useRef
 } from 'react';
 import { usePlaidLink, PlaidLinkOptions, PlaidLinkOnSuccess } from 'react-plaid-link';
 import { plaidApi } from '@/services/plaid-api';
@@ -57,25 +58,35 @@ export const PlaidLinkProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [isGeneratingToken]);
 
-  // Keep track of current handlers
-  const [successHandler, setSuccessHandler] = useState<((publicToken: string, metadata: any) => void) | null>(null);
-  const [exitHandler, setExitHandler] = useState<(() => void) | null>(null);
+  // Keep track of current handlers with useRef to prevent stale closures
+  const successHandlerRef = useRef<((publicToken: string, metadata: any) => void) | null>(null);
+  const exitHandlerRef = useRef<(() => void) | null>(null);
 
   // Only initialize Plaid Link when we have a token
   const plaidConfig: PlaidLinkOptions = {
     token: linkToken || '',
     onSuccess: ((publicToken, metadata) => {
       console.log('Plaid Link success from context');
+      console.log('Public token received:', publicToken.substring(0, 5) + '...');
+      console.log('Metadata received:', JSON.stringify(metadata).substring(0, 100) + '...');
+      
       // Call the component handler if provided
-      if (successHandler) {
-        successHandler(publicToken, metadata);
+      if (successHandlerRef.current) {
+        console.log('Success handler exists, calling it now...');
+        try {
+          successHandlerRef.current(publicToken, metadata);
+        } catch (error) {
+          console.error('Error in success handler:', error);
+        }
+      } else {
+        console.warn('No success handler registered');
       }
     }) as PlaidLinkOnSuccess,
     onExit: () => {
       console.log('Plaid Link exit from context');
       // Call the component handler if provided
-      if (exitHandler) {
-        exitHandler();
+      if (exitHandlerRef.current) {
+        exitHandlerRef.current();
       }
     },
     onLoad: () => {
@@ -90,9 +101,17 @@ export const PlaidLinkProvider = ({ children }: { children: ReactNode }) => {
   
   // Wrap the open function to accept handlers
   const open = useCallback((onSuccess?: (publicToken: string, metadata: any) => void, onExit?: () => void) => {
-    // Set the handlers before opening
-    if (onSuccess) setSuccessHandler(() => onSuccess);
-    if (onExit) setExitHandler(() => onExit);
+    console.log('PlaidLink open called with handlers:', !!onSuccess, !!onExit);
+    
+    // Store handlers in refs to avoid stale closures
+    if (onSuccess) {
+      console.log('Setting success handler');
+      successHandlerRef.current = onSuccess;
+    }
+    
+    if (onExit) {
+      exitHandlerRef.current = onExit;
+    }
     
     // Call the original open function
     openPlaid();

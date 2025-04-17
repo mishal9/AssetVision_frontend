@@ -64,10 +64,6 @@ export const plaidApi = {
             
             // Look for user ID in common JWT claim locations
             authenticatedUserId = decoded.username;
- 
-            if (authenticatedUserId) {
-              console.log('Extracted user ID from JWT:', authenticatedUserId);
-            }
           } catch (decodeError) {
             console.error('Failed to decode JWT token:', decodeError);
           }
@@ -75,10 +71,6 @@ export const plaidApi = {
       } catch (error) {
         console.error('Error extracting user ID from JWT:', error);
       }
-    }
-    
-    if (!authenticatedUserId) {
-      console.warn('No user ID available for Plaid Link token creation');
     }
     try {
       const response = await fetchWithAuth(PLAID_ENDPOINTS.CREATE_LINK_TOKEN, {
@@ -111,7 +103,15 @@ export const plaidApi = {
    * Supports multiple linked institutions
    */
   exchangePublicToken: async (publicToken: string, metadata:any) => {
-    console.log('Attempting to exchange public token...', { publicToken, metadata });
+    // Check for required parameters
+    if (!publicToken) {
+      throw new Error('Missing public token');
+    }
+    
+    // Validate metadata
+    if (!metadata) {
+      throw new Error('Missing metadata');
+    }
     
     // Prepare the request data with all necessary information for the backend
     const requestData = {
@@ -122,8 +122,6 @@ export const plaidApi = {
       // Include account details for more reliable backend storage
       accounts: metadata?.accounts || []
     };
-    
-    console.log('Exchange token request data:', requestData);
     
     try {
       // Make sure to set credentials: 'include' to send cookies with the request
@@ -137,19 +135,13 @@ export const plaidApi = {
         credentials: 'include' // Ensure cookies are sent with request
       });
       
-      console.log('Exchange token response:', response);
-      
       if (!response.access_token) {
-        console.error('No access_token in response:', response);
         throw new Error('No access token received from server');
       }
       
       if (!response.success) {
-        console.error('Server indicated failure:', response);
         throw new Error(response.message || 'Failed to store connection on server');
       }
-      
-      console.log('Successfully exchanged token and saved on server');
       
       // Retrieve existing linked accounts or initialize empty object
       const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
@@ -164,8 +156,6 @@ export const plaidApi = {
         lastUpdated: new Date().toISOString(),
         connectionId: response.connection_id || response.id || null // Save server-side connection ID
       };
-      
-      console.log('Saving token to session storage:', { institutionId, token: response.access_token });
       
       // Save back to session storage
       sessionStorage.setItem('plaid_access_tokens', JSON.stringify(existingTokens));
@@ -183,10 +173,10 @@ export const plaidApi = {
         accountIds: response.account_ids || []
       };
       
-      console.log('Exchange token result:', result);
       return result;
     } catch (error) {
-      console.error('Error in exchangePublicToken:', error);
+      // Only log once at this level, don't duplicate the error logs
+      // The error will be logged by fetchWithAuth and passed up the chain
       throw error;
     }
   },
@@ -200,24 +190,29 @@ export const plaidApi = {
   getInvestmentHoldings: async (accessToken?: string, institutionId?: string): Promise<HoldingInput[]> => {
     let token = accessToken;
     
-    // If no token provided, check if we need to retrieve by institution ID
-    if (!token && institutionId) {
-      const tokenData = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
-      if (tokenData[institutionId]) {
-        token = tokenData[institutionId].accessToken;
+    // If no access token provided, try to get it from session storage
+    if (!token) {
+      try {
+        // Use institutionId if provided to get a specific token
+        if (institutionId) {
+          const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
+          const institutionData = existingTokens[institutionId];
+          if (institutionData && institutionData.accessToken) {
+            token = institutionData.accessToken;
+          }
+        } else {
+          // Otherwise fallback to the generic token
+          token = sessionStorage.getItem('plaid_access_token');
+        }
+      } catch (error) {
+        console.error('Error getting access token from storage:', error);
       }
     }
     
-    // Fallback to legacy storage if no token found
     if (!token) {
-      token = sessionStorage.getItem('plaid_access_token');
+      throw new Error('No access token available to fetch holdings');
     }
     
-    if (!token) {
-      throw new Error('No Plaid access token available');
-    }
-    
-    console.log('Attempting to fetch holdings from API...');
     const response = await fetchWithAuth(PLAID_ENDPOINTS.GET_HOLDINGS, {
       method: 'POST',
       headers: {
@@ -227,37 +222,15 @@ export const plaidApi = {
       body: JSON.stringify({ 
         access_token: token,
         metadata: {
-          institution: response.institution,
-          accounts: response.accounts
+          institution: response?.institution,
+          accounts: response?.accounts
         }
       }),
     });
     
-    // Log the response structure to help debug
-    console.log('Response structure:', Object.keys(response));
-    
     // Check for the complete structure returned by Django
     if (!response.holdings || !Array.isArray(response.holdings)) {
       throw new Error('Invalid holdings data format received from server');
-    }
-    
-    // Also log the securities to help with debugging
-    if (response.securities) {
-      console.log(`Found ${response.securities.length} securities`);
-    }
-    
-    console.log('Successfully fetched holdings from API');
-    // Full response dump for debugging
-    console.log('Full response:', JSON.stringify(response, null, 2));
-    
-    if (response.holdings.length > 0) {
-      // Sample holding object structure
-      console.log('Sample holding structure:', JSON.stringify(response.holdings[0], null, 2));
-    }
-    
-    if (response.securities && response.securities.length > 0) {
-      // Sample security object structure
-      console.log('Sample security structure:', JSON.stringify(response.securities[0], null, 2));
     }
     
     // Map the holdings to the expected format
@@ -267,19 +240,7 @@ export const plaidApi = {
         (s: any) => s.security_id === holding.security_id
       );
       
-      // Debug this specific holding
-      console.log('Processing holding:', { 
-        security_id: holding.security_id,
-        quantity: holding.quantity,
-        shares: holding.shares,
-        institution_value: holding.institution_value,
-        cost_basis: holding.cost_basis,
-        security: security ? { 
-          ticker_symbol: security.ticker_symbol,
-          name: security.name,
-          type: security.type 
-        } : 'No matching security'
-      });
+
       
       // Convert quantity to string for the form
       const sharesValue = String(holding.quantity || holding.shares || 0);
@@ -329,10 +290,8 @@ export const plaidApi = {
    */
   getLinkedAccounts: async () => {
     try {
-      console.log('Fetching linked accounts from endpoint:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       // Get accounts from backend
       const response = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
-      console.log('Linked accounts response:', response);
       
       // Check response structure
       let backendAccounts = [];
@@ -342,7 +301,8 @@ export const plaidApi = {
         // Handle case where response is the array directly
         backendAccounts = response;
       } else {
-        console.log('Unexpected response structure for linked accounts', response);
+        // Unexpected response structure
+        console.warn('Unexpected response structure for linked accounts');
       }
       
       // Get local accounts from session storage

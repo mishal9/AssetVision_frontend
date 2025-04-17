@@ -43,10 +43,23 @@ export function PlaidLinkButton({
     ready 
   } = usePlaidLinkContext();
 
-  // Customize the onSuccess handler
+  // Customize the onSuccess handler with more detailed logging
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
-    console.log('Plaid Link success');
-    onSuccess(publicToken, metadata);
+    console.log('PlaidLinkButton: onPlaidSuccess called with token', publicToken.substring(0, 5) + '...');
+    console.log('PlaidLinkButton: metadata:', JSON.stringify(metadata).substring(0, 100) + '...');
+    
+    // Explicitly check for the callback before calling
+    if (typeof onSuccess === 'function') {
+      console.log('PlaidLinkButton: Calling parent onSuccess callback...');
+      try {
+        onSuccess(publicToken, metadata);
+        console.log('PlaidLinkButton: Parent onSuccess callback completed');
+      } catch (error) {
+        console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
+      }
+    } else {
+      console.error('PlaidLinkButton: onSuccess is not a function!', typeof onSuccess);
+    }
   }, [onSuccess]);
 
   // Handle Plaid exit
@@ -66,15 +79,22 @@ export function PlaidLinkButton({
   }, [linkToken, generateLinkToken, isGeneratingToken, userId, forUpdate, accountId]);
 
   const handleClick = useCallback(() => {
+    console.log('PlaidLinkButton: Button clicked');
+    
     if (error) {
       // If there was an error, retry generating the token
+      console.log('PlaidLinkButton: Regenerating token due to error');
       generateLinkToken(userId, forUpdate, accountId);
     } else if (linkToken && ready) {
       // If we have a token and Plaid is ready, open Plaid Link
+      console.log('PlaidLinkButton: Opening Plaid Link with token', linkToken.substring(0, 10) + '...');
+      console.log('PlaidLinkButton: Success handler is a', typeof onPlaidSuccess);
+      
       // Pass the handlers directly to the open function
       open(onPlaidSuccess, onPlaidExit);
     } else if (!isGeneratingToken) {
       // If we don't have a token and aren't already generating one, generate it
+      console.log('PlaidLinkButton: Generating new link token');
       generateLinkToken(userId, forUpdate, accountId);
     }
   }, [linkToken, open, generateLinkToken, isGeneratingToken, error, userId, forUpdate, accountId, ready, onPlaidSuccess, onPlaidExit]);

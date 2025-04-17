@@ -117,8 +117,6 @@ export const linkBrokerageAccount = createAsyncThunk(
   'user/linkBrokerageAccount',
   async ({ publicToken, metadata }: { publicToken: string, metadata: any }, { rejectWithValue, dispatch }) => {
     try {
-      console.log('Linking brokerage account with publicToken and metadata:', { metadata });
-      
       // Exchange the public token for an access token and store connection on backend
       const result = await plaidApi.exchangePublicToken(publicToken, metadata);
       
@@ -126,11 +124,11 @@ export const linkBrokerageAccount = createAsyncThunk(
         throw new Error('Failed to exchange public token');
       }
       
-      console.log('Token exchange successful:', result);
-      
+      console.log('Account successfully linked with institution:', result.institutionName);
+    
       // Handle multiple accounts if provided in metadata
       const accounts = Array.isArray(metadata.accounts) ? metadata.accounts : [metadata.accounts];
-      
+    
       if (!accounts.length) {
         throw new Error('No accounts found in Plaid metadata');
       }
@@ -155,19 +153,16 @@ export const linkBrokerageAccount = createAsyncThunk(
         } as LinkedAccount;
       });
       
-      console.log('Created linked accounts:', linkedAccounts);
-      
       // After linking, fetch all accounts to ensure we have the latest data from the backend
       // Increased timeout to give backend more time to process
       setTimeout(() => {
-        console.log('Fetching updated linked accounts list after account linking');
         dispatch(fetchLinkedAccounts());
       }, 2000); // Increased from 1000ms to 2000ms
       
-      // Return all linked accounts instead of just the first one
+      // Return all linked accounts
       return linkedAccounts;
     } catch (error) {
-      console.error('Error linking account:', error);
+      // Don't duplicate the error log - fetchWithAuth already logs it
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to link account');
     }
   }
