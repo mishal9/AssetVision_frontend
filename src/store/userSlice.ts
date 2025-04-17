@@ -80,26 +80,80 @@ export const fetchLinkedAccounts = createAsyncThunk(
       const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       
       console.log('Linked accounts response:', data);
+      console.log('Response type:', typeof data);
+      console.log('Is array?', Array.isArray(data));
       
-      // Process accounts data to match our LinkedAccount interface
-      const accounts = data.accounts || [];
+      if (typeof data === 'object' && data !== null) {
+        console.log('Keys:', Object.keys(data));
+      }
+      
+      // Handle different response structures
+      let accountsToProcess = [];
+      
+      if (Array.isArray(data)) {
+        // Direct array response
+        accountsToProcess = data;
+        console.log('Processing array response with', data.length, 'accounts');
+      } else if (data && typeof data === 'object') {
+        if (data.accounts && Array.isArray(data.accounts)) {
+          // Object with accounts array
+          accountsToProcess = data.accounts;
+          console.log('Processing object.accounts with', data.accounts.length, 'accounts');
+        } else if (data.connections && Array.isArray(data.connections)) {
+          // Object with connections array
+          accountsToProcess = data.connections;
+          console.log('Processing object.connections with', data.connections.length, 'accounts');
+        } else if (data.data && Array.isArray(data.data)) {
+          // Object with data array (common API pattern)
+          accountsToProcess = data.data;
+          console.log('Processing object.data with', data.data.length, 'accounts');
+        } else {
+          // Try to extract any array property
+          const arrayProps = Object.entries(data)
+            .filter(([_, value]) => Array.isArray(value))
+            .map(([key, value]) => ({ key, length: (value as any[]).length }));
+          
+          console.log('Found array properties:', arrayProps);
+          
+          if (arrayProps.length > 0) {
+            // Use the longest array property
+            const longestArrayProp = arrayProps.reduce((prev, current) => 
+              prev.length > current.length ? prev : current);
+            
+            accountsToProcess = data[longestArrayProp.key] as any[];
+            console.log(`Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
+          } else {
+            console.log('No array properties found in response');
+          }
+        }
+      }
+      
+      console.log('Final accounts to process:', accountsToProcess);
+      
+      if (!accountsToProcess.length) {
+        console.warn('No accounts found in API response');
+        return [];
+      }
       
       // Map backend response to our frontend model
-      return accounts.map((account: any) => ({
-        id: account.id || account.account_id || '',
-        institutionId: account.institution_id || '',
-        institutionName: account.institution_name || 'Unknown Institution',
-        accountName: account.name || account.account_name || 'Account',
-        accountMask: account.mask || account.account_mask || '****',
-        accountType: account.type || account.account_type || 'unknown',
-        connectionId: account.connection_id,
-        lastUpdated: account.last_updated ? new Date(account.last_updated).toISOString() : new Date().toISOString(),
-        status: account.status || 'active',
-        balance: {
-          available: account.balances?.available || account.available_balance || 0,
-          current: account.balances?.current || account.current_balance || 0
-        }
-      }));
+      return accountsToProcess.map((account: any) => {
+        console.log('Processing account:', account);
+        return {
+          id: account.id || account.account_id || '',
+          institutionId: account.institution_id || '',
+          institutionName: account.institution_name || 'Unknown Institution',
+          accountName: account.name || account.account_name || 'Account',
+          accountMask: account.mask || account.account_mask || '****',
+          accountType: account.type || account.account_type || 'unknown',
+          connectionId: account.connection_id,
+          lastUpdated: account.last_updated ? new Date(account.last_updated).toISOString() : new Date().toISOString(),
+          status: account.status || 'active',
+          balance: {
+            available: account.balances?.available || account.available_balance || 0,
+            current: account.balances?.current || account.current_balance || 0
+          }
+        };
+      });
     } catch (error) {
       console.error('Error fetching linked accounts:', error);
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch linked accounts');

@@ -275,18 +275,51 @@ export const plaidApi = {
   getLinkedAccounts: async () => {
     try {
       // Get accounts from backend
+      console.log('Calling list-connections endpoint:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       const response = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+      
+      console.log('Plaid API - Raw response from list-connections:', response);
+      console.log('Plaid API - Response type:', typeof response);
+      console.log('Plaid API - Is array?', Array.isArray(response));
+      
+      if (typeof response === 'object' && response !== null) {
+        console.log('Plaid API - Response keys:', Object.keys(response));
+      }
       
       // Check response structure
       let backendAccounts = [];
       if (response.accounts) {
+        console.log('Plaid API - Found accounts property with', response.accounts.length, 'items');
         backendAccounts = response.accounts;
+      } else if (response.connections) {
+        console.log('Plaid API - Found connections property with', response.connections.length, 'items');
+        backendAccounts = response.connections;
+      } else if (response.data) {
+        console.log('Plaid API - Found data property with', response.data.length, 'items');
+        backendAccounts = response.data;
       } else if (Array.isArray(response)) {
         // Handle case where response is the array directly
+        console.log('Plaid API - Response is direct array with', response.length, 'items');
         backendAccounts = response;
       } else {
-        // Unexpected response structure
-        console.warn('Unexpected response structure for linked accounts');
+        // Try to find any array property
+        const arrayProps = Object.entries(response || {})
+          .filter(([_, value]) => Array.isArray(value))
+          .map(([key, value]) => ({ key, length: (value as any[]).length }));
+        
+        console.log('Plaid API - Found array properties:', arrayProps);
+        
+        if (arrayProps.length > 0) {
+          // Use the longest array property
+          const longestArrayProp = arrayProps.reduce((prev, current) => 
+            prev.length > current.length ? prev : current);
+          
+          backendAccounts = response[longestArrayProp.key] as any[];
+          console.log(`Plaid API - Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
+        } else {
+          // Unexpected response structure
+          console.warn('Plaid API - Unexpected response structure for linked accounts');
+        }
       }
       
       // Get local accounts from session storage

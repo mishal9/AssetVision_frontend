@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authService } from "@/services/auth"
+import { useDispatch } from "react-redux"
+import { fetchLinkedAccounts } from "@/store/userSlice"
 
 export function LoginForm({
   className,
@@ -24,6 +26,7 @@ export function LoginForm({
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
+  const dispatch = useDispatch()
   const router = useRouter()
 
   /**
@@ -50,6 +53,9 @@ export function LoginForm({
 
       // Call the authentication service to login
       await authService.login(email, password)
+      
+      // Fetch linked accounts after successful login
+      dispatch(fetchLinkedAccounts())
       
       // Redirect to dashboard on successful login
       router.push('/')
