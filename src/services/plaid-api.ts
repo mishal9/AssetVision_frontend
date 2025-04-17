@@ -135,41 +135,34 @@ export const plaidApi = {
         credentials: 'include' // Ensure cookies are sent with request
       });
       
-      if (!response.access_token) {
-        throw new Error('No access token received from server');
-      }
-      
       if (!response.success) {
         throw new Error(response.message || 'Failed to store connection on server');
       }
       
-      // Retrieve existing linked accounts or initialize empty object
-      const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
+      if (!response.connection_id) {
+        throw new Error('No connection ID received from server');
+      }
       
-      // Add new token with institution ID as key
+      // Retrieve existing connections or initialize empty object
+      const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
+      
+      // Add new connection with institution ID as key
       const institutionId = metadata?.institution?.id || 'unknown_institution';
-      existingTokens[institutionId] = {
-        accessToken: response.access_token,
-        itemId: response.item_id,
+      existingConnections[institutionId] = {
+        connectionId: response.connection_id,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
         accounts: metadata?.accounts || [],
-        lastUpdated: new Date().toISOString(),
-        connectionId: response.connection_id || response.id || null // Save server-side connection ID
+        lastUpdated: new Date().toISOString()
       };
       
       // Save back to session storage
-      sessionStorage.setItem('plaid_access_tokens', JSON.stringify(existingTokens));
-      
-      // For backward compatibility
-      sessionStorage.setItem('plaid_access_token', response.access_token);
+      sessionStorage.setItem('plaid_connections', JSON.stringify(existingConnections));
       
       const result = { 
         success: true, 
-        accessToken: response.access_token,
-        itemId: response.item_id,
         institutionId: institutionId,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
-        connectionId: response.connection_id || response.id || null,
+        connectionId: response.connection_id,
         accountIds: response.account_ids || []
       };
       
@@ -187,30 +180,25 @@ export const plaidApi = {
    * @param accessToken Optional access token to use for a specific account. If not provided, uses the one from session storage.
    * @param institutionId Optional institution ID to fetch holdings for a specific institution.
    */
-  getInvestmentHoldings: async (accessToken?: string, institutionId?: string): Promise<HoldingInput[]> => {
-    let token = accessToken;
+  getInvestmentHoldings: async (connectionId?: string, institutionId?: string): Promise<HoldingInput[]> => {
+    let connection_id = connectionId;
     
-    // If no access token provided, try to get it from session storage
-    if (!token) {
+    // If no connection ID provided, try to get it from session storage
+    if (!connection_id && institutionId) {
       try {
-        // Use institutionId if provided to get a specific token
-        if (institutionId) {
-          const existingTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
-          const institutionData = existingTokens[institutionId];
-          if (institutionData && institutionData.accessToken) {
-            token = institutionData.accessToken;
-          }
-        } else {
-          // Otherwise fallback to the generic token
-          token = sessionStorage.getItem('plaid_access_token');
+        // Use institutionId to get a specific connection
+        const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
+        const institutionData = existingConnections[institutionId];
+        if (institutionData && institutionData.connectionId) {
+          connection_id = institutionData.connectionId;
         }
       } catch (error) {
-        console.error('Error getting access token from storage:', error);
+        console.error('Error getting connection ID from storage:', error);
       }
     }
     
-    if (!token) {
-      throw new Error('No access token available to fetch holdings');
+    if (!connection_id) {
+      throw new Error('No connection ID available to fetch holdings');
     }
     
     const response = await fetchWithAuth(PLAID_ENDPOINTS.GET_HOLDINGS, {
@@ -220,11 +208,7 @@ export const plaidApi = {
         'Accept': 'application/json',
       },
       body: JSON.stringify({ 
-        access_token: token,
-        metadata: {
-          institution: response?.institution,
-          accounts: response?.accounts
-        }
+        connection_id: connection_id
       }),
     });
     
@@ -261,7 +245,7 @@ export const plaidApi = {
    * @param portfolioName Optional name for the portfolio. If not provided, will use a default name.
    * @param institutionId Optional institution ID to create portfolio from a specific institution.
    */
-  createPortfolioFromPlaid: async (accessToken?: string, portfolioName?: string, institutionId?: string) => {
+  createPortfolioFromPlaid: async (connectionId?: string, portfolioName?: string, institutionId?: string) => {
     try {
       // Get holdings from Plaid API
       const holdings = await plaidApi.getInvestmentHoldings(accessToken, institutionId);
@@ -306,9 +290,9 @@ export const plaidApi = {
       }
       
       // Get local accounts from session storage
-      const localTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
-      const localAccounts = Object.entries(localTokens).map(([institutionId, data]: [string, any]) => ({
-        id: data.itemId,
+      const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
+      const localAccounts = Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
+        id: data.connectionId,
         institution_id: institutionId,
         institution_name: data.institutionName,
         accounts: data.accounts,
@@ -340,9 +324,9 @@ export const plaidApi = {
       
       // Fallback to local accounts if backend request fails
       try {
-        const localTokens = JSON.parse(sessionStorage.getItem('plaid_access_tokens') || '{}');
-        return Object.entries(localTokens).map(([institutionId, data]: [string, any]) => ({
-          id: data.itemId,
+        const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
+        return Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
+          id: data.connectionId,
           institution_id: institutionId,
           institution_name: data.institutionName,
           accounts: data.accounts,

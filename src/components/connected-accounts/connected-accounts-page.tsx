@@ -50,15 +50,14 @@ export function ConnectedAccountsPage() {
     try {
       setIsCreatingPortfolio(true);
       
-      // Access token is needed, and should be stored on the backend
-      // For this example, we're assuming it's retrieved as part of the account
-      if (!selectedAccount.accessToken) {
-        throw new Error("Access token not available for this account");
+      // Connection ID is needed to identify the account on the backend
+      if (!selectedAccount.connectionId) {
+        throw new Error("Connection ID not available for this account");
       }
       
-      // Create portfolio using the account's access token
+      // Create portfolio using the account's connection ID
       await plaidApi.createPortfolioFromPlaid(
-        selectedAccount.accessToken, 
+        selectedAccount.connectionId, 
         `${selectedAccount.institutionName} Portfolio`
       );
       

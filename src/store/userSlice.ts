@@ -15,8 +15,8 @@ export interface LinkedAccount {
   accountName: string;
   accountMask: string;
   accountType: string;
-  accessToken?: string;
-  lastUpdated: Date;
+  connectionId?: string;
+  lastUpdated: string;
   status: 'active' | 'error' | 'disconnected';
   balance?: {
     available: number;
@@ -92,8 +92,8 @@ export const fetchLinkedAccounts = createAsyncThunk(
         accountName: account.name || account.account_name || 'Account',
         accountMask: account.mask || account.account_mask || '****',
         accountType: account.type || account.account_type || 'unknown',
-        accessToken: account.access_token,
-        lastUpdated: account.last_updated ? new Date(account.last_updated) : new Date(),
+        connectionId: account.connection_id,
+        lastUpdated: account.last_updated ? new Date(account.last_updated).toISOString() : new Date().toISOString(),
         status: account.status || 'active',
         balance: {
           available: account.balances?.available || account.available_balance || 0,
@@ -142,8 +142,8 @@ export const linkBrokerageAccount = createAsyncThunk(
           accountName: account.name,
           accountMask: account.mask,
           accountType: account.type || account.subtype || 'unknown',
-          accessToken: result.accessToken, // Note: In production, this should only be stored on backend
-          lastUpdated: new Date(),
+          connectionId: result.connectionId,
+          lastUpdated: new Date().toISOString(),
           status: 'active',
           balance: {
             available: account.balances?.available || 0,
@@ -189,7 +189,7 @@ export const userSlice = createSlice({
       const account = state.linkedAccounts.find(acc => acc.id === accountId);
       if (account) {
         account.status = status;
-        account.lastUpdated = new Date();
+        account.lastUpdated = new Date().toISOString();
       }
     },
     removeLinkedAccount: (state, action) => {
