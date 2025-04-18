@@ -2,14 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  fetchLinkedAccounts, 
-  linkBrokerageAccount, 
-  removeLinkedAccount, 
-  updateAccountStatus, 
-  LinkedAccount 
+import {
+  fetchLinkedAccounts,
+  linkBrokerageAccount,
+  removeLinkedAccount,
+  updateAccountStatus,
+  LinkedAccount
 } from '@/store/userSlice';
 import { AppDispatch, RootState } from '@/store';
+import { fetchHoldingsAndBalance } from '@/store/portfolioSlice';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { PlaidLinkButton } from './plaid-link-button';
 import { plaidApi } from '@/services/plaid-api';
 import { 
@@ -58,12 +60,28 @@ interface LinkedAccountsProps {
  * - Update account connections
  * - Create portfolios from specific accounts
  */
+/**
+ * Linked Accounts Component
+ * 
+ * This component displays all linked brokerage accounts and allows users to:
+ * - View their connected accounts
+ * - Add new accounts
+ * - Remove existing accounts
+ * - Update account connections
+ * - Create portfolios from specific accounts
+ * - Fetch and display holdings and total balance for each linked account
+ */
 export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }: LinkedAccountsProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { linkedAccounts, accountsLoading, isAuthenticated } = useSelector((state: RootState) => state.user);
   const [isUpdatingAccount, setIsUpdatingAccount] = useState<string | null>(null);
   const [isRemovingAccount, setIsRemovingAccount] = useState<string | null>(null);
   const [isCreatingPortfolio, setIsCreatingPortfolio] = useState<string | null>(null);
+  // State for holdings modal
+  const [holdingsModalAccountId, setHoldingsModalAccountId] = useState<string | null>(null);
+
+  // Redux state for holdings
+  const portfolio = useSelector((state: RootState) => state.portfolio);
 
   // Fetch linked accounts when component mounts
   useEffect(() => {
@@ -205,6 +223,49 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
 
   return (
     <div className="space-y-6">
+      {/* Holdings Modal */}
+      <Dialog open={!!holdingsModalAccountId} onOpenChange={() => setHoldingsModalAccountId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Account Holdings</DialogTitle>
+            <DialogDescription asChild>
+              {portfolio.loading ? (
+                <span>Loading holdings...</span>
+              ) : portfolio.error ? (
+                <span className="text-red-500">{portfolio.error}</span>
+              ) : (
+                <div>
+                  <div className="mb-2 font-semibold">
+                    Total Balance: <span className="text-primary">${portfolio.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-sm">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="px-2 py-1 text-left">Symbol</th>
+                          <th className="px-2 py-1 text-left">Shares</th>
+                          <th className="px-2 py-1 text-left">Purchase Price</th>
+                          <th className="px-2 py-1 text-left">Asset Class</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {portfolio.holdings.map((h, i) => (
+                          <tr key={i} className="border-b last:border-0">
+                            <td className="px-2 py-1">{h.symbol}</td>
+                            <td className="px-2 py-1">{h.shares}</td>
+                            <td className="px-2 py-1">${h.purchasePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td className="px-2 py-1">{h.assetClass}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Linked Brokerage Accounts</h2>
         {/* Only show the connect button in the header when not on the Connected Accounts page */}
@@ -310,6 +371,23 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
               </CardContent>
               <CardFooter className="border-t bg-muted/50 px-6 py-3">
                 <div className="flex justify-between items-center w-full">
+                  {/* Button to fetch and display holdings for this account */}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="text-xs mr-2"
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (account.connectionId) {
+                        dispatch(fetchHoldingsAndBalance(account.connectionId));
+                        setHoldingsModalAccountId(account.id);
+                      }
+                    }}
+                    disabled={!account.connectionId || portfolio.loading}
+                    aria-label="View Holdings"
+                  >
+                    View Holdings
+                  </Button>
                   {account.status === 'error' ? (
                     <Button
                       size="sm"
@@ -322,15 +400,15 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                       disabled={isUpdatingAccount === account.id}
                     >
                       {isUpdatingAccount === account.id ? (
-                        <>
+                        <div>
                           <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                           Updating...
-                        </>
+                        </div>
                       ) : (
-                        <>
+                        <div>
                           <RefreshCw className="h-3 w-3 mr-1" />
                           Update
-                        </>
+                        </div>
                       )}
                     </Button>
                   ) : showCreatePortfolio ? (
@@ -350,15 +428,15 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                         title={account.connectionId ? "Create a portfolio from this account" : "Cannot create portfolio: missing connection ID. Please re-link this account."}
                       >
                         {isCreatingPortfolio === account.id ? (
-                          <>
+                          <span className="flex items-center">
                             <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                             Creating...
-                          </>
+                          </span>
                         ) : (
-                          <>
+                          <span className="flex items-center">
                             <Plus className="h-3 w-3 mr-1" />
                             Create Portfolio
-                          </>
+                          </span>
                         )}
                       </Button>
                       {!account.connectionId && (
