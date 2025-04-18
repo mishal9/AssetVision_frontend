@@ -268,14 +268,6 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
       </Dialog>
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Linked Brokerage Accounts</h2>
-        {/* Only show the connect button in the header when not on the Connected Accounts page */}
-        {linkedAccounts && linkedAccounts.length > 0 && (
-          <PlaidLinkButton 
-            onSuccess={handlePlaidSuccess}
-            variant="default"
-            className="flex gap-2 items-center"
-          />
-        )}
       </div>
            {/* Stepper for onboarding if < 2 accounts */}
       {linkedAccounts && linkedAccounts.length < 2 && !accountsLoading && (
@@ -350,32 +342,18 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Available</p>
-                    <p className="font-medium">
-                      ${account.balance?.available?.toLocaleString() || '0.00'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Current</p>
-                    <p className="font-medium">
-                      ${account.balance?.current?.toLocaleString() || '0.00'}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-3">
-                  Last updated {account.lastUpdated ? new Date(account.lastUpdated).toLocaleString() : 'unknown'}
-                </p>
-              </CardContent>
-              <CardFooter className="border-t bg-muted/50 px-6 py-3">
-                <div className="flex justify-between items-center w-full">
+              <CardContent className="pt-1 pb-2 flex flex-col gap-1">
+  <p className="text-xs text-muted-foreground">
+    Last updated {account.lastUpdated ? new Date(account.lastUpdated).toLocaleString() : 'unknown'}
+  </p>
+</CardContent>
+              <CardFooter className="border-t bg-muted/50 px-4 py-2">
+  <div className="flex flex-col sm:flex-row gap-2 justify-center items-center w-full">
                   {/* Button to fetch and display holdings for this account */}
                   <Button
                     size="sm"
                     variant="secondary"
-                    className="text-xs mr-2"
+                    className="text-xs ml-2 sm:ml-0 mr-2"
                     onClick={async (e) => {
                       e.stopPropagation();
                       if (account.connectionId) {

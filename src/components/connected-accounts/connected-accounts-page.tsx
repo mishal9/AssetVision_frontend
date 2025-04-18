@@ -153,12 +153,7 @@ export function ConnectedAccountsPage() {
                             {selectedAccount.accountType} •••• {selectedAccount.accountMask}
                           </p>
                         </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Balance</p>
-                          <p className="font-medium">
-                            ${selectedAccount.balance?.current?.toLocaleString() || '0.00'}
-                          </p>
-                        </div>
+                        
                         <div>
                           <p className="text-sm text-muted-foreground">Status</p>
                           <p className="font-medium capitalize">{selectedAccount.status}</p>
