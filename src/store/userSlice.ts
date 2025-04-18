@@ -145,7 +145,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
           accountName: account.name || account.account_name || 'Account',
           accountMask: account.mask || account.account_mask || '****',
           accountType: account.type || account.account_type || 'unknown',
-          connectionId: account.connection_id,
+          connectionId: account.connection_id || account.connectionId,
           lastUpdated: account.last_updated ? new Date(account.last_updated).toISOString() : new Date().toISOString(),
           status: account.status || 'active',
           balance: {

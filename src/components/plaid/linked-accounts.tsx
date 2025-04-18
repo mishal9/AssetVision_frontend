@@ -200,6 +200,9 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
     }
   };
 
+  // Calculate total balance across all linked accounts
+  const totalBalance = linkedAccounts.reduce((sum, acc) => sum + (acc.balance?.current || 0), 0);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -213,17 +216,24 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
           />
         )}
       </div>
-      
+           {/* Stepper for onboarding if < 2 accounts */}
+      {linkedAccounts && linkedAccounts.length < 2 && !accountsLoading && (
+        <div className="flex items-center mb-4" aria-label="Onboarding Progress">
+          <div className={`flex items-center gap-2 ${linkedAccounts.length === 0 ? 'font-bold text-primary' : ''}`}>1. Connect your first account</div>
+          <div className="mx-2 h-1 w-8 bg-muted rounded-full" />
+          <div className={`flex items-center gap-2 ${linkedAccounts.length === 1 ? 'font-bold text-primary' : 'text-muted-foreground'}`}>2. Add another account</div>
+        </div>
+      )}
       {accountsLoading && (!linkedAccounts || linkedAccounts.length === 0) ? (
         <div className="space-y-3">
           <Skeleton className="h-[150px] w-full rounded-lg" />
           <Skeleton className="h-[150px] w-full rounded-lg" />
         </div>
       ) : !linkedAccounts || linkedAccounts.length === 0 ? (
-        <Card className="border-dashed">
+        <Card className="border-dashed animate-fade-in">
           <CardContent className="pt-6 text-center">
             <div className="flex flex-col items-center justify-center space-y-3 py-8">
-              <Building2 className="h-12 w-12 text-muted-foreground" />
+              <Building2 className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
               <div className="space-y-1">
                 <h3 className="text-xl font-semibold">No linked accounts</h3>
                 <p className="text-sm text-muted-foreground">
@@ -234,24 +244,35 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                 onSuccess={handlePlaidSuccess} 
                 variant="default"
                 className="mt-4"
+                aria-label="Connect brokerage account"
               />
             </div>
           </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {linkedAccounts && linkedAccounts.map((account) => (
+          {linkedAccounts && linkedAccounts.map((account, idx) => (
             <Card 
               key={account.id} 
-              className={`overflow-hidden ${onSelectAccount ? 'cursor-pointer hover:border-primary' : ''}`}
+              className={`overflow-hidden animate-fade-in ${onSelectAccount ? 'cursor-pointer hover:border-primary' : ''}`}
               onClick={onSelectAccount ? () => handleSelectAccount(account) : undefined}
+              tabIndex={0}
+              aria-label={`Linked account: ${account.institutionName}`}
+              style={{ animationDelay: `${idx * 60}ms` }}
             >
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5" />
+                      {/* Institution logo if available, fallback to icon */}
+                      {account.institutionLogoUrl ? (
+                        <img src={account.institutionLogoUrl} alt={account.institutionName + ' logo'} className="h-5 w-5 rounded-full border bg-white" />
+                      ) : (
+                        <Building2 className="h-5 w-5" aria-hidden="true" />
+                      )}
                       {account.institutionName}
+                      {/* Status dot */}
+                      <span className={`ml-2 inline-block h-2 w-2 rounded-full ${account.status === 'active' ? 'bg-green-500' : account.status === 'error' ? 'bg-red-500' : 'bg-gray-300'}`} aria-label={`Status: ${account.status}`}></span>
                     </CardTitle>
                     <CardDescription>
                       {account.accountType} •••• {account.accountMask}
@@ -284,7 +305,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-3">
-                  Last updated {new Date(account.lastUpdated).toLocaleDateString()}
+                  Last updated {account.lastUpdated ? new Date(account.lastUpdated).toLocaleString() : 'unknown'}
                 </p>
               </CardContent>
               <CardFooter className="border-t bg-muted/50 px-6 py-3">
@@ -313,28 +334,39 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                       )}
                     </Button>
                   ) : showCreatePortfolio ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs mr-1"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCreatePortfolio(account);
-                      }}
-                      disabled={isCreatingPortfolio === account.id}
-                    >
-                      {isCreatingPortfolio === account.id ? (
-                        <>
-                          <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                          Creating...
-                        </>
-                      ) : (
-                        <>
-                          <Plus className="h-3 w-3 mr-1" />
-                          Create Portfolio
-                        </>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant={account.connectionId ? "outline" : "destructive"}
+                        className="text-xs mr-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (account.connectionId) handleCreatePortfolio(account);
+                        }}
+                        disabled={isCreatingPortfolio === account.id || !account.connectionId}
+                        aria-disabled={!account.connectionId}
+                        aria-label={account.connectionId ? "Create Portfolio" : "Create Portfolio (disabled: missing connection)"}
+                        tabIndex={account.connectionId ? 0 : -1}
+                        title={account.connectionId ? "Create a portfolio from this account" : "Cannot create portfolio: missing connection ID. Please re-link this account."}
+                      >
+                        {isCreatingPortfolio === account.id ? (
+                          <>
+                            <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <Plus className="h-3 w-3 mr-1" />
+                            Create Portfolio
+                          </>
+                        )}
+                      </Button>
+                      {!account.connectionId && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-destructive/10 text-destructive text-xs font-medium border border-destructive/20" title="Missing connection ID. Please re-link this account to enable portfolio creation.">
+                          Missing Connection
+                        </span>
                       )}
-                    </Button>
+                    </div>
                   ) : (
                     <Button
                       size="sm"
@@ -391,13 +423,12 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
               </CardFooter>
             </Card>
           ))}
-          
-          {/* Add another account card */}
-          <Card className="border-dashed">
+                   {/* Add another account card with animation and accessibility */}
+          <Card className="border-dashed animate-fade-in" tabIndex={0} aria-label="Add another account" role="button">
             <CardContent className="flex flex-col items-center justify-center h-full py-12">
               <div className="flex flex-col items-center text-center space-y-3">
                 <div className="p-3 rounded-full bg-muted">
-                  <Plus className="h-6 w-6 text-muted-foreground" />
+                  <Plus className="h-6 w-6 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <h3 className="text-lg font-medium">Add another account</h3>
                 <p className="text-sm text-muted-foreground max-w-[15rem]">
@@ -407,6 +438,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                   onSuccess={handlePlaidSuccess} 
                   variant="outline"
                   className="mt-2"
+                  aria-label="Connect another brokerage account"
                 />
               </div>
             </CardContent>

@@ -248,7 +248,7 @@ export const plaidApi = {
   createPortfolioFromPlaid: async (connectionId?: string, portfolioName?: string, institutionId?: string) => {
     try {
       // Get holdings from Plaid API
-      const holdings = await plaidApi.getInvestmentHoldings(accessToken, institutionId);
+      const holdings = await plaidApi.getInvestmentHoldings(connectionId, institutionId);
       
       if (!holdings || holdings.length === 0) {
         throw new Error('No holdings data available from Plaid');
