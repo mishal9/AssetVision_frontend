@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authService } from "@/services/auth"
+import { useDispatch } from "react-redux"
+import { fetchLinkedAccounts } from "@/store/userSlice"
 
 export function LoginForm({
   className,
@@ -24,6 +26,7 @@ export function LoginForm({
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
+  const dispatch = useDispatch()
   const router = useRouter()
 
   /**
@@ -35,14 +38,38 @@ export function LoginForm({
     setError(null)
 
     try {
+      // Validate input fields first
+      if (!email.trim()) {
+        setError('Email is required')
+        setIsLoading(false)
+        return
+      }
+
+      if (!password) {
+        setError('Password is required')
+        setIsLoading(false)
+        return
+      }
+
       // Call the authentication service to login
       await authService.login(email, password)
       
+      // Fetch linked accounts after successful login
+      dispatch(fetchLinkedAccounts())
+      
       // Redirect to dashboard on successful login
       router.push('/')
-    } catch (err) {
-      console.error('Login failed:', err)
-      setError('Invalid email or password. Please try again.')
+    } catch (err: any) {
+      // Use the enhanced error messages from the auth service if available
+      if (err.authErrorMessage) {
+        setError(err.authErrorMessage)
+      } else if (err.message && err.message.includes('401')) {
+        setError('Invalid email or password. Please try again.')
+      } else if (err.message && err.message.includes('network')) {
+        setError('Unable to connect to the server. Please check your internet connection.')
+      } else {
+        setError('An error occurred during login. Please try again later.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -101,8 +128,13 @@ export function LoginForm({
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="bg-destructive/15 text-destructive mb-4 rounded-md p-3 text-sm">
-              {error}
+            <div className="bg-destructive/15 text-destructive mb-4 rounded-md p-3 text-sm flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              <span>{error}</span>
             </div>
           )}
           <form onSubmit={handleSubmit}>

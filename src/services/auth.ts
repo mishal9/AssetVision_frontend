@@ -23,6 +23,17 @@ class AuthService {
   }
 
   /**
+   * Error types for authentication
+   */
+  readonly AuthErrorType = {
+    INVALID_CREDENTIALS: 'invalid_credentials',
+    ACCOUNT_LOCKED: 'account_locked',
+    SERVER_ERROR: 'server_error',
+    NETWORK_ERROR: 'network_error',
+    UNKNOWN_ERROR: 'unknown_error'
+  };
+
+  /**
    * Login user and store authentication tokens
    * @param username Username or email
    * @param password User password
@@ -39,15 +50,36 @@ class AuthService {
           response.tokens.refresh_expires_in
         );
         this.setupTokenRefresh(response.tokens.access_expires_in);
-        
-        // Update Redux state with user info
-        // Note: This requires importing the function in the module that uses this method
-        // to avoid circular dependencies
       }
       
       return response;
-    } catch (error) {
-      console.error('Login failed:', error);
+    } catch (error: any) {
+      // Create a structured error object with type and message
+      const authError: { type: string; message: string } = {
+        type: this.AuthErrorType.UNKNOWN_ERROR,
+        message: 'An unexpected error occurred during login.'
+      };
+      
+      // Check if it's a response error with status code
+      if (error.status === 401 || (error.message && error.message.includes('401'))) {
+        authError.type = this.AuthErrorType.INVALID_CREDENTIALS;
+        authError.message = 'Invalid email or password. Please check your credentials and try again.';
+      } else if (error.status === 403 || (error.message && error.message.includes('locked'))) {
+        authError.type = this.AuthErrorType.ACCOUNT_LOCKED;
+        authError.message = 'Your account has been locked due to too many failed attempts. Please reset your password or contact support.';
+      } else if (error.status >= 500 || (error.message && error.message.includes('server'))) {
+        authError.type = this.AuthErrorType.SERVER_ERROR;
+        authError.message = 'The server is currently unavailable. Please try again later.';
+      } else if (error.message && (error.message.includes('network') || error.message.includes('fetch'))) {
+        authError.type = this.AuthErrorType.NETWORK_ERROR;
+        authError.message = 'Unable to connect to the server. Please check your internet connection and try again.';
+      }
+      
+      // Attach the error type and enhanced message to the original error
+      error.authErrorType = authError.type;
+      error.authErrorMessage = authError.message;
+      
+      console.error('Login failed:', authError.type, authError.message);
       throw error;
     }
   }

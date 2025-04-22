@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { usePlaidLink } from 'react-plaid-link';
+import { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Building2, AlertCircle } from 'lucide-react';
-import { plaidApi } from '@/services/plaid-api';
+import { usePlaidLinkContext } from '@/context/PlaidLinkContext';
 
 interface PlaidLinkButtonProps {
   onSuccess: (publicToken: string, metadata: any) => void;
@@ -12,6 +11,9 @@ interface PlaidLinkButtonProps {
   isLoading?: boolean;
   className?: string;
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+  forUpdate?: boolean;
+  accountId?: string;
+  userId?: string;
 }
 
 /**
@@ -26,68 +28,76 @@ export function PlaidLinkButton({
   onExit,
   isLoading = false,
   className = '',
-  variant = 'outline'
+  variant = 'outline',
+  forUpdate = false,
+  accountId,
+  userId
 }: PlaidLinkButtonProps) {
-  const [linkToken, setLinkToken] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
+  // Use the shared Plaid Link context instead of local state
+  const { 
+    linkToken, 
+    error, 
+    isGeneratingToken, 
+    generateLinkToken, 
+    open, 
+    ready 
+  } = usePlaidLinkContext();
 
-  // Fetch a link token from the backend
-  const generateLinkToken = useCallback(async () => {
-    try {
-      setIsGeneratingToken(true);
-      setError(null);
-      
-      // Call the backend to create a link token
-      const token = await plaidApi.createLinkToken();
-      setLinkToken(token);
-    } catch (error) {
-      console.error('Error generating link token:', error);
-      setError('Unable to connect to Plaid. Please try again later.');
-      if (onExit) onExit();
-    } finally {
-      setIsGeneratingToken(false);
-    }
-  }, [onExit]);
-
+  // Customize the onSuccess handler with more detailed logging
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
-    console.log('Plaid Link success');
-    onSuccess(publicToken, metadata);
+    console.log('PlaidLinkButton: onPlaidSuccess called with token', publicToken.substring(0, 5) + '...');
+    console.log('PlaidLinkButton: metadata:', JSON.stringify(metadata).substring(0, 100) + '...');
+    
+    // Explicitly check for the callback before calling
+    if (typeof onSuccess === 'function') {
+      console.log('PlaidLinkButton: Calling parent onSuccess callback...');
+      try {
+        onSuccess(publicToken, metadata);
+        console.log('PlaidLinkButton: Parent onSuccess callback completed');
+      } catch (error) {
+        console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
+      }
+    } else {
+      console.error('PlaidLinkButton: onSuccess is not a function!', typeof onSuccess);
+    }
   }, [onSuccess]);
 
+  // Handle Plaid exit
   const onPlaidExit = useCallback(() => {
     console.log('User exited Plaid Link');
     if (onExit) onExit();
   }, [onExit]);
   
+  // We no longer need to set up global event handlers here
+  // as the PlaidLinkContext now handles this internally
+  
   // Generate link token on component mount
   useEffect(() => {
-    if (!linkToken && !isGeneratingToken && !error) {
-      generateLinkToken();
+    if (!linkToken && !isGeneratingToken) {
+      generateLinkToken(userId, forUpdate, accountId);
     }
-  }, [linkToken, generateLinkToken, isGeneratingToken, error]);
-
-  const config = {
-    token: linkToken,
-    onSuccess: onPlaidSuccess,
-    onExit: onPlaidExit,
-  };
-
-  const { open, ready } = usePlaidLink(config);
+  }, [linkToken, generateLinkToken, isGeneratingToken, userId, forUpdate, accountId]);
 
   const handleClick = useCallback(() => {
+    console.log('PlaidLinkButton: Button clicked');
+    
     if (error) {
       // If there was an error, retry generating the token
-      setError(null);
-      generateLinkToken();
-    } else if (linkToken) {
-      // If we have a token, open Plaid Link
-      open();
+      console.log('PlaidLinkButton: Regenerating token due to error');
+      generateLinkToken(userId, forUpdate, accountId);
+    } else if (linkToken && ready) {
+      // If we have a token and Plaid is ready, open Plaid Link
+      console.log('PlaidLinkButton: Opening Plaid Link with token', linkToken.substring(0, 10) + '...');
+      console.log('PlaidLinkButton: Success handler is a', typeof onPlaidSuccess);
+      
+      // Pass the handlers directly to the open function
+      open(onPlaidSuccess, onPlaidExit);
     } else if (!isGeneratingToken) {
       // If we don't have a token and aren't already generating one, generate it
-      generateLinkToken();
+      console.log('PlaidLinkButton: Generating new link token');
+      generateLinkToken(userId, forUpdate, accountId);
     }
-  }, [linkToken, open, generateLinkToken, isGeneratingToken, error]);
+  }, [linkToken, open, generateLinkToken, isGeneratingToken, error, userId, forUpdate, accountId, ready, onPlaidSuccess, onPlaidExit]);
 
   return (
     <div className="flex flex-col">
@@ -105,7 +115,7 @@ export function PlaidLinkButton({
         ) : (
           <>
             <Building2 className="mr-2 h-4 w-4" />
-            Connect Bank Account
+            {forUpdate ? 'Update Bank Connection' : 'Connect Bank Account'}
           </>
         )}
       </Button>

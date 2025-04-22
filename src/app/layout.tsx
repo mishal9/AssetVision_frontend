@@ -3,7 +3,10 @@ import { Inter } from "next/font/google";
 import "../styles/tailwind.css";
 import "./globals.css";
 import { ReduxProvider } from "@/providers/redux-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { PlaidLinkProvider } from "@/context/PlaidLinkContext";
 import { cn } from "@/utils";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -27,7 +30,12 @@ export default function RootLayout({
         inter.variable
       )}>
         <ReduxProvider>
-          <main>{children}</main>
+          <ThemeProvider>
+            <PlaidLinkProvider>
+              <Toaster position="top-right" />
+              <main>{children}</main>
+            </PlaidLinkProvider>
+          </ThemeProvider>
         </ReduxProvider>
       </body>
     </html>

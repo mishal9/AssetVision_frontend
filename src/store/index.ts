@@ -2,11 +2,13 @@ import { configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector, type TypedUseSelectorHook } from 'react-redux';
 import appReducer from './appSlice';
 import userReducer from './userSlice';
+import portfolioReducer from './portfolioSlice';
 
 export const store = configureStore({
   reducer: {
     app: appReducer,
     user: userReducer,
+    portfolio: portfolioReducer,
   },
 });
 

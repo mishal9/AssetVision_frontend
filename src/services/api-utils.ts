@@ -3,7 +3,7 @@
  * Handles communication with Django backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+import { API_BASE_URL } from '@/config/api';
 
 /**
  * Generic fetch wrapper with error handling
@@ -13,9 +13,15 @@ export async function fetchWithAuth<T>(
   endpoint: string, 
   options: RequestInit = {}
 ): Promise<T> {
-  // Make sure endpoint starts with a slash
-  const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-  const url = `${API_BASE_URL}${normalizedEndpoint}`;
+  // Check if the endpoint is already a full URL (starts with http:// or https://)
+  const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
+  
+  // If it's a full URL, use it directly; otherwise, append it to the API base URL
+  const url = isFullUrl ? endpoint : (
+    endpoint.startsWith('/') 
+      ? `${API_BASE_URL}${endpoint}` 
+      : `${API_BASE_URL}/${endpoint}`
+  );
   
   // Get the JWT token from cookies or localStorage
   let token;
@@ -48,28 +54,54 @@ export async function fetchWithAuth<T>(
   } as RequestInit;
 
   try {
+    console.log(`API Request to ${url}:`, { 
+      method: config.method || 'GET',
+      hasAuthToken: !!token,
+      bodySize: config.body ? JSON.stringify(config.body).length : 0
+    });
+    
     const response = await fetch(url, config);
     
     // For 204 No Content responses
     if (response.status === 204) {
+      console.log(`API Response from ${url}: [204 No Content]`);
       return {} as T;
     }
     
-    // Handle errors
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({
-        error: `HTTP error ${response.status}`,
-        message: response.statusText
-      }));
+    // Parse JSON response - only parse once to avoid 'body stream already read' error
+    let data;
+    try {
+      data = await response.json();
       
-      throw new Error(errorData.error || errorData.message || `API error: ${response.status}`);
+      // For successful responses, just log the data
+      if (response.ok) {
+        console.log(`API Response from ${url}:`, data);
+        return data as T;
+      }
+      
+      // Handle error responses with JSON bodies
+      const errorMessage = data.error || data.message || `API error: ${response.status}`;
+      console.error(`API Error ${response.status} from ${url}: ${errorMessage}`);
+      throw new Error(errorMessage);
+    } catch (e) {
+      // Handle parse errors or non-JSON error responses
+      if (!response.ok) {
+        // Only try to read the error text if we couldn't parse JSON
+        const errorText = await response.text().catch(() => response.statusText);
+        const errorMessage = `HTTP error ${response.status}: ${errorText || response.statusText}`;
+        console.error(`API Error from ${url}: ${errorMessage}`);
+        throw new Error(errorMessage);
+      }
+      
+      // JSON parsing error for a successful response
+      console.error(`Error parsing JSON from ${url}:`, e);
+      throw new Error(`Failed to parse JSON response: ${e.message}`);
     }
-    
-    // Parse JSON response
-    const data = await response.json();
-    return data as T;
   } catch (error) {
-    console.error('API request failed:', error);
+    // Only log the error once at this level - don't duplicate logs
+    if (!(error instanceof Error)) {
+      console.error('API request failed with unknown error type');
+    }
     throw error;
   }
 }
