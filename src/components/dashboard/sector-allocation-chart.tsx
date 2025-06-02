@@ -49,35 +49,23 @@ const CustomTooltip = ({ active, payload }: any) => {
  * Custom legend component for the sector allocation chart
  */
 const CustomLegend = ({ payload }: any) => {
-  return (
-    <div className="grid grid-cols-2 gap-2 mt-2">
-      {payload.map((entry: any, index: number) => (
-        <div key={`legend-${index}`} className="flex items-center">
-          <div 
-            className="w-3 h-3 rounded-full mr-2" 
-            style={{ backgroundColor: entry.color }}
-          />
-          <span className="text-xs truncate">{entry.value}</span>
-        </div>
-      ))}
-    </div>
-  );
+  return null; // Disable the built-in legend as we'll use our custom list below
 };
 
-// Color palette for the pie chart sectors
+// Color palette for the pie chart sectors with more distinct colors
 const COLORS = [
-  'hsl(var(--primary))',
-  'hsl(var(--primary) / 0.8)',
-  'hsl(var(--primary) / 0.6)',
-  'hsl(var(--primary) / 0.4)',
-  '#3b82f6', // blue-500
-  '#8b5cf6', // violet-500
-  '#ec4899', // pink-500
-  '#f97316', // orange-500
-  '#84cc16', // lime-500
-  '#06b6d4', // cyan-500
-  '#14b8a6', // teal-500
-  '#f43f5e', // rose-500
+  '#000000', // Black for Consumer Cyclical (largest sector)
+  '#3b82f6', // Blue for Technology
+  '#8b5cf6', // Violet for Utilities
+  '#ec4899', // Pink for Consumer Defensive
+  '#f97316', // Orange for Other
+  '#84cc16', // Lime for Healthcare
+  '#06b6d4', // Cyan for Communication Services
+  '#ef4444', // Red for Energy
+  '#14b8a6', // Teal
+  '#f43f5e', // Rose
+  '#a3e635', // Lime-400
+  '#fbbf24', // Amber-400
 ];
 
 /**
@@ -103,65 +91,64 @@ export function SectorAllocationChart({ data, className }: SectorAllocationChart
   
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="h-64 w-full">
-        {chartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                innerRadius={40}
-                fill="hsl(var(--primary))"
-                dataKey="value"
-                nameKey="category"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={COLORS[index % COLORS.length]} 
-                  />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-              <Legend content={<CustomLegend />} />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="h-full flex items-center justify-center">
-            <p className="text-muted-foreground">No allocation data available</p>
+      {chartData.length > 0 ? (
+        <div className="flex flex-col md:flex-row">
+          <div className="w-full md:w-1/2 h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={chartData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  innerRadius={40}
+                  fill="hsl(var(--primary))"
+                  dataKey="value"
+                  nameKey="category"
+                  paddingAngle={1}
+                  cornerRadius={0}
+                >
+                  {chartData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={COLORS[index % COLORS.length]} 
+                    />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend content={<CustomLegend />} />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
-        )}
-      </div>
-      
-      {chartData.length > 0 && (
-        <div className="mt-4">
-          <div className="grid grid-cols-1 gap-2">
-            {chartData.slice(0, 5).map((item, index) => (
-              <div key={index} className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-2" 
-                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                  />
-                  <span className="text-sm">{item.category}</span>
+          
+          <div className="w-full md:w-1/2 md:pl-6 mt-4 md:mt-0">
+            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2">
+              {chartData.map((item, index) => (
+                <div key={index} className="flex justify-between items-center">
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 mr-2" 
+                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                    />
+                    <span className="text-sm">{item.category}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-medium">
+                      {formatCurrency(item.value)}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {item.percentage.toFixed(1)}%
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium">{formatCurrency(item.value)}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {item.percentage.toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-            ))}
-            {chartData.length > 5 && (
-              <div className="text-xs text-muted-foreground text-right mt-1">
-                +{chartData.length - 5} more sectors
-              </div>
-            )}
+              ))}
+            </div>
           </div>
+        </div>
+      ) : (
+        <div className="h-64 flex items-center justify-center">
+          <p className="text-muted-foreground">No allocation data available</p>
         </div>
       )}
     </div>
