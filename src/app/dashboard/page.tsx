@@ -99,16 +99,6 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="px-4 py-2 rounded-lg border border-border bg-background"
-            />
-            <button className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 transition-opacity">
-              Download
-            </button>
-          </div>
         </div>
 
         {/* Portfolio Summary Stats */}
