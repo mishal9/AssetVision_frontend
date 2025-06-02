@@ -91,7 +91,7 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
     const filtered = chartData.filter(item => new Date(item.date) >= startDate);
     
     // Ensure we have at least 2 data points for proper line rendering
-    if ((period === '1D' || period === '1W') && filtered.length <= 1) {
+    if ((period === '1D' || period === '1W' || period === '1M') && filtered.length <= 1) {
       // If we have one data point, create additional interpolated points
       if (filtered.length === 1) {
         const existingPoint = filtered[0];
@@ -157,6 +157,59 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
               result.unshift(midWeekPoint);
             }
           }
+          
+          return result;
+        } else if (period === '1M') {
+          // For 1M view, create points throughout the month
+          const result = [existingPoint];
+          
+          // Create a point for the beginning of the month (30 days ago)
+          const monthStartDate = new Date(now);
+          monthStartDate.setDate(now.getDate() - 30);
+          
+          // Create points for week 1, week 2, and week 3 of the month
+          const week1Date = new Date(now);
+          week1Date.setDate(now.getDate() - 23); // ~1 week after start
+          
+          const week2Date = new Date(now);
+          week2Date.setDate(now.getDate() - 15); // ~2 weeks after start
+          
+          const week3Date = new Date(now);
+          week3Date.setDate(now.getDate() - 7); // ~3 weeks after start
+          
+          // Add beginning of month point if not too close to existing point
+          if (Math.abs(monthStartDate.getTime() - existingDate.getTime()) > 86400000 * 2) {
+            result.unshift({
+              date: monthStartDate.toISOString(),
+              value: existingPoint.value * 0.98 // Slightly lower value for start of month
+            });
+          }
+          
+          // Add weekly points if they're not too close to existing point
+          const weeklyPoints = [
+            { date: week1Date, value: existingPoint.value * 0.99 },
+            { date: week2Date, value: existingPoint.value * (existingDate.getTime() < week2Date.getTime() ? 0.995 : 1.005) },
+            { date: week3Date, value: existingPoint.value * (existingDate.getTime() < week3Date.getTime() ? 1.01 : 0.99) }
+          ];
+          
+          weeklyPoints.forEach(point => {
+            if (Math.abs(point.date.getTime() - existingDate.getTime()) > 86400000 * 2) {
+              const formattedPoint = {
+                date: point.date.toISOString(),
+                value: point.value
+              };
+              
+              // Insert at the correct position based on timestamp
+              if (existingDate.getTime() < point.date.getTime()) {
+                result.push(formattedPoint);
+              } else {
+                result.unshift(formattedPoint);
+              }
+            }
+          });
+          
+          // Sort the result array by date
+          result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
           
           return result;
         }
