@@ -52,7 +52,7 @@ export function Sidebar() {
   return (
     <div 
       className={cn(
-        "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-card border-r border-border transition-all duration-300 z-20",
+        "fixed left-0 top-16 h-[calc(100vh-4rem)] bg-card transition-all duration-300 z-20 shadow-sm",
         expanded ? "w-64" : "w-16"
       )}
     >
