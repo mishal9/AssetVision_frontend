@@ -25,7 +25,13 @@ export const portfolioApi = {
    * Get asset allocation
    */
   getAssetAllocation: () => 
-    fetchWithAuth<AssetAllocation[]>('/portfolio/allocation'),
+    fetchWithAuth<AllocationResponse>('/portfolio/allocation'),
+    
+  /**
+   * Get portfolio dividend yield
+   */
+  getDividendYield: () => 
+    fetchWithAuth<{ yield: number }>('/portfolio/dividend-yield'),
     
   /**
    * Create a new portfolio with holdings
@@ -158,6 +164,11 @@ export interface AssetAllocation {
   category: string;
   percentage: number;
   value: number;
+}
+
+export interface AllocationResponse {
+  asset_allocation: AssetAllocation[];
+  sector_allocation: AssetAllocation[];
 }
 
 export interface HoldingInput {

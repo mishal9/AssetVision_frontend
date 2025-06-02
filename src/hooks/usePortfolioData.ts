@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { portfolioApi, PortfolioSummary, PerformanceData, AssetAllocation } from '@/services/api';
+import { portfolioApi, PortfolioSummary, PerformanceData, AssetAllocation, AllocationResponse } from '@/services/api';
 import { alertsApi, Alert } from '@/services/api';
 
 /**
@@ -21,9 +21,15 @@ export function usePortfolioData() {
   const [performanceError, setPerformanceError] = useState<string | null>(null);
   
   // Asset allocation data
-  const [allocation, setAllocation] = useState<AssetAllocation[]>([]);
+  const [assetAllocation, setAssetAllocation] = useState<AssetAllocation[]>([]);
+  const [sectorAllocation, setSectorAllocation] = useState<AssetAllocation[]>([]);
   const [allocationLoading, setAllocationLoading] = useState<boolean>(true);
   const [allocationError, setAllocationError] = useState<string | null>(null);
+  
+  // Dividend yield
+  const [dividendYield, setDividendYield] = useState<number | null>(null);
+  const [dividendYieldLoading, setDividendYieldLoading] = useState<boolean>(true);
+  const [dividendYieldError, setDividendYieldError] = useState<string | null>(null);
   
   // Alerts data
   const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -74,7 +80,8 @@ export function usePortfolioData() {
       try {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
-        setAllocation(data);
+        setAssetAllocation(data.asset_allocation);
+        setSectorAllocation(data.sector_allocation);
         setAllocationError(null);
       } catch (error) {
         console.error('Error fetching asset allocation:', error);
@@ -85,6 +92,25 @@ export function usePortfolioData() {
     }
     
     fetchAllocation();
+  }, []);
+  
+  // Fetch dividend yield
+  useEffect(() => {
+    async function fetchDividendYield() {
+      try {
+        setDividendYieldLoading(true);
+        const data = await portfolioApi.getDividendYield();
+        setDividendYield(data.yield);
+        setDividendYieldError(null);
+      } catch (error) {
+        console.error('Error fetching dividend yield:', error);
+        setDividendYieldError('Failed to load dividend yield');
+      } finally {
+        setDividendYieldLoading(false);
+      }
+    }
+    
+    fetchDividendYield();
   }, []);
   
   // Fetch alerts
@@ -136,13 +162,24 @@ export function usePortfolioData() {
     });
     
     portfolioApi.getAssetAllocation().then(data => {
-      setAllocation(data);
+      setAssetAllocation(data.asset_allocation);
+      setSectorAllocation(data.sector_allocation);
       setAllocationError(null);
     }).catch(error => {
       console.error('Error refreshing asset allocation:', error);
       setAllocationError('Failed to refresh asset allocation');
     }).finally(() => {
       setAllocationLoading(false);
+    });
+    
+    portfolioApi.getDividendYield().then(data => {
+      setDividendYield(data.yield);
+      setDividendYieldError(null);
+    }).catch(error => {
+      console.error('Error refreshing dividend yield:', error);
+      setDividendYieldError('Failed to refresh dividend yield');
+    }).finally(() => {
+      setDividendYieldLoading(false);
     });
     
     alertsApi.getAlerts().then(data => {
@@ -163,14 +200,18 @@ export function usePortfolioData() {
     performance,
     performanceLoading,
     performanceError,
-    allocation,
+    assetAllocation,
+    sectorAllocation,
     allocationLoading,
     allocationError,
+    dividendYield,
+    dividendYieldLoading,
+    dividendYieldError,
     alerts,
     alertsLoading,
     alertsError,
     refreshData,
-    isLoading: summaryLoading || performanceLoading || allocationLoading || alertsLoading,
-    hasError: !!summaryError || !!performanceError || !!allocationError || !!alertsError
+    isLoading: summaryLoading || performanceLoading || allocationLoading || dividendYieldLoading || alertsLoading,
+    hasError: !!summaryError || !!performanceError || !!allocationError || !!dividendYieldError || !!alertsError
   };
 }
