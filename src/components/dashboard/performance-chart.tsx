@@ -53,7 +53,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
  * Displays portfolio value over time with period selection
  */
 export function PerformanceChart({ data, className }: PerformanceChartProps) {
-  const [period, setPeriod] = useState<TimePeriod>('1M');
+  const [period, setPeriod] = useState<TimePeriod>('5Y');
   
   // Format data for chart display
   const chartData = data.map(item => ({
@@ -90,40 +90,78 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
     
     const filtered = chartData.filter(item => new Date(item.date) >= startDate);
     
-    // Special handling for 1D view - ensure we have at least 2 data points
-    if (period === '1D' && filtered.length <= 1) {
+    // Ensure we have at least 2 data points for proper line rendering
+    if ((period === '1D' || period === '1W') && filtered.length <= 1) {
       // If we have one data point, create additional interpolated points
       if (filtered.length === 1) {
         const existingPoint = filtered[0];
         const existingDate = new Date(existingPoint.date);
         
-        // Create a morning and afternoon point if we only have one point
-        const morningDate = new Date(existingDate);
-        morningDate.setHours(9, 30, 0); // Market opening
-        
-        const afternoonDate = new Date(existingDate);
-        afternoonDate.setHours(16, 0, 0); // Market closing
-        
-        // Only add points if they're different from our existing point
-        const result = [existingPoint];
-        
-        if (morningDate.getTime() !== existingDate.getTime()) {
-          result.unshift({
-            date: morningDate.toISOString().split('T')[0],
-            value: existingPoint.value * 0.995 // Slightly lower value for visual effect
-          });
+        if (period === '1D') {
+          // Create a morning and afternoon point if we only have one point for 1D
+          const morningDate = new Date(existingDate);
+          morningDate.setHours(9, 30, 0); // Market opening
+          
+          const afternoonDate = new Date(existingDate);
+          afternoonDate.setHours(16, 0, 0); // Market closing
+          
+          // Only add points if they're different from our existing point
+          const result = [existingPoint];
+          
+          if (morningDate.getTime() !== existingDate.getTime()) {
+            result.unshift({
+              date: morningDate.toISOString(),
+              value: existingPoint.value * 0.995 // Slightly lower value for visual effect
+            });
+          }
+          
+          if (afternoonDate.getTime() !== existingDate.getTime()) {
+            result.push({
+              date: afternoonDate.toISOString(),
+              value: existingPoint.value * 1.005 // Slightly higher value for visual effect
+            });
+          }
+          
+          return result;
+        } else if (period === '1W') {
+          // For 1W view, create points for the beginning and end of the week
+          const result = [existingPoint];
+          
+          // Create a point for the beginning of the week (7 days ago)
+          const weekStartDate = new Date(now);
+          weekStartDate.setDate(now.getDate() - 7);
+          
+          // Create a point for mid-week if our existing point is not already mid-week
+          const midWeekDate = new Date(now);
+          midWeekDate.setDate(now.getDate() - 3);
+          
+          // Add beginning of week point
+          if (Math.abs(weekStartDate.getTime() - existingDate.getTime()) > 86400000) { // If more than a day difference
+            result.unshift({
+              date: weekStartDate.toISOString(),
+              value: existingPoint.value * 0.99 // Slightly lower value
+            });
+          }
+          
+          // Add mid-week point if our existing point is not around mid-week
+          if (Math.abs(midWeekDate.getTime() - existingDate.getTime()) > 86400000) {
+            // Insert the mid-week point in the correct position
+            const midWeekPoint = {
+              date: midWeekDate.toISOString(),
+              value: existingPoint.value * (existingDate.getTime() < midWeekDate.getTime() ? 1.01 : 0.99)
+            };
+            
+            if (existingDate.getTime() < midWeekDate.getTime()) {
+              result.push(midWeekPoint);
+            } else {
+              result.unshift(midWeekPoint);
+            }
+          }
+          
+          return result;
         }
-        
-        if (afternoonDate.getTime() !== existingDate.getTime()) {
-          result.push({
-            date: afternoonDate.toISOString().split('T')[0],
-            value: existingPoint.value * 1.005 // Slightly higher value for visual effect
-          });
-        }
-        
-        return result;
       }
-      // If we have no data points for today, return empty array
+      // If we have no data points, return empty array
       return [];
     }
     
