@@ -16,7 +16,7 @@ import { cn } from '@/lib/utils';
 /**
  * Time period options for the performance chart
  */
-type TimePeriod = '1D' | '1W' | '1M' | '3M' | '1Y' | 'All';
+type TimePeriod = '1D' | '1W' | '1M' | '1Y' | '5Y';
 
 /**
  * Props for the PerformanceChart component
@@ -63,6 +63,8 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
   
   // Filter data based on selected time period
   const getFilteredData = () => {
+    if (!chartData || chartData.length === 0) return [];
+    
     const now = new Date();
     let startDate = new Date();
     
@@ -76,14 +78,12 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
       case '1M':
         startDate.setMonth(now.getMonth() - 1);
         break;
-      case '3M':
-        startDate.setMonth(now.getMonth() - 3);
-        break;
       case '1Y':
         startDate.setFullYear(now.getFullYear() - 1);
         break;
-      case 'All':
-        return chartData;
+      case '5Y':
+        startDate.setFullYear(now.getFullYear() - 5);
+        break;
       default:
         startDate.setMonth(now.getMonth() - 1);
     }
@@ -117,12 +117,12 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
           </span>
         </div>
         <div className="flex space-x-1">
-          {(['1D', '1W', '1M', '3M', '1Y', 'All'] as TimePeriod[]).map((p) => (
+          {(['1D', '1W', '1M', '1Y', '5Y'] as TimePeriod[]).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={cn(
-                "px-2 py-1 text-xs rounded-md transition-colors",
+                "px-3 py-1 text-xs rounded-md transition-colors font-medium",
                 period === p 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-muted hover:bg-muted/80"

@@ -55,7 +55,8 @@ export function usePortfolioData() {
     async function fetchPerformance() {
       try {
         setPerformanceLoading(true);
-        const data = await portfolioApi.getPerformance('month');
+        // Fetch all performance data at once to avoid reloading when changing periods
+        const data = await portfolioApi.getPerformance('all');
         setPerformance(data);
         setPerformanceError(null);
       } catch (error) {
@@ -129,7 +130,7 @@ export function usePortfolioData() {
       setSummaryLoading(false);
     });
     
-    portfolioApi.getPerformance('month').then(data => {
+    portfolioApi.getPerformance('all').then(data => {
       setPerformance(data);
       setPerformanceError(null);
     }).catch(error => {
