@@ -28,8 +28,6 @@ export default function DashboardPage() {
     assetAllocation, 
     sectorAllocation, 
     allocationLoading,
-    dividendYield,
-    dividendYieldLoading,
     alerts, 
     alertsLoading,
     refreshData
@@ -115,7 +113,7 @@ export default function DashboardPage() {
 
         {/* Portfolio Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {summaryLoading || dividendYieldLoading ? (
+          {summaryLoading ? (
             // Loading skeleton for stats cards
             <>
               {[1, 2, 3, 4, 5].map((i) => (
@@ -155,7 +153,7 @@ export default function DashboardPage() {
               />
               <StatsCard 
                 title="Dividend Yield" 
-                value={dividendYield !== null ? `${dividendYield.toFixed(2)}%` : 'N/A'} 
+                value={summary.dividend_yield !== undefined ? `${summary.dividend_yield.toFixed(2)}%` : 'N/A'} 
                 change="Annual" 
                 icon={<DollarSign className="h-5 w-5" />} 
               />

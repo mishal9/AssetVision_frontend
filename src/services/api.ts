@@ -28,12 +28,6 @@ export const portfolioApi = {
     fetchWithAuth<AllocationResponse>('/portfolio/allocation'),
     
   /**
-   * Get portfolio dividend yield
-   */
-  getDividendYield: () => 
-    fetchWithAuth<{ yield: number }>('/portfolio/dividend-yield'),
-    
-  /**
    * Create a new portfolio with holdings
    */
   createPortfolio: (data: { holdings: HoldingInput[] }) => 
@@ -153,6 +147,19 @@ export interface PortfolioSummary {
   totalGainPercentage: number;
   dayChange: number;
   dayChangePercentage: number;
+  dividend_yield: number;
+  portfolio_name?: string;
+  sector_allocation?: Record<string, number>;
+  performance?: {
+    one_year: number;
+    three_year: number;
+    five_year: number;
+    ytd: number;
+    total_return: number;
+  };
+  equity_allocation_percentage?: number;
+  total_holdings?: number;
+  last_updated?: string;
 }
 
 export interface PerformanceData {

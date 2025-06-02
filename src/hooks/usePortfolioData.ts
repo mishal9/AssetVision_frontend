@@ -26,11 +26,6 @@ export function usePortfolioData() {
   const [allocationLoading, setAllocationLoading] = useState<boolean>(true);
   const [allocationError, setAllocationError] = useState<string | null>(null);
   
-  // Dividend yield
-  const [dividendYield, setDividendYield] = useState<number | null>(null);
-  const [dividendYieldLoading, setDividendYieldLoading] = useState<boolean>(true);
-  const [dividendYieldError, setDividendYieldError] = useState<string | null>(null);
-  
   // Alerts data
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [alertsLoading, setAlertsLoading] = useState<boolean>(true);
@@ -94,24 +89,7 @@ export function usePortfolioData() {
     fetchAllocation();
   }, []);
   
-  // Fetch dividend yield
-  useEffect(() => {
-    async function fetchDividendYield() {
-      try {
-        setDividendYieldLoading(true);
-        const data = await portfolioApi.getDividendYield();
-        setDividendYield(data.yield);
-        setDividendYieldError(null);
-      } catch (error) {
-        console.error('Error fetching dividend yield:', error);
-        setDividendYieldError('Failed to load dividend yield');
-      } finally {
-        setDividendYieldLoading(false);
-      }
-    }
-    
-    fetchDividendYield();
-  }, []);
+
   
   // Fetch alerts
   useEffect(() => {
@@ -172,15 +150,7 @@ export function usePortfolioData() {
       setAllocationLoading(false);
     });
     
-    portfolioApi.getDividendYield().then(data => {
-      setDividendYield(data.yield);
-      setDividendYieldError(null);
-    }).catch(error => {
-      console.error('Error refreshing dividend yield:', error);
-      setDividendYieldError('Failed to refresh dividend yield');
-    }).finally(() => {
-      setDividendYieldLoading(false);
-    });
+
     
     alertsApi.getAlerts().then(data => {
       setAlerts(data);
@@ -204,14 +174,11 @@ export function usePortfolioData() {
     sectorAllocation,
     allocationLoading,
     allocationError,
-    dividendYield,
-    dividendYieldLoading,
-    dividendYieldError,
     alerts,
     alertsLoading,
     alertsError,
     refreshData,
-    isLoading: summaryLoading || performanceLoading || allocationLoading || dividendYieldLoading || alertsLoading,
-    hasError: !!summaryError || !!performanceError || !!allocationError || !!dividendYieldError || !!alertsError
+    isLoading: summaryLoading || performanceLoading || allocationLoading || alertsLoading,
+    hasError: !!summaryError || !!performanceError || !!allocationError || !!alertsError
   };
 }
