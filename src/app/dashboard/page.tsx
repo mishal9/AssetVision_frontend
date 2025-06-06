@@ -57,7 +57,8 @@ export default function DashboardPage() {
   }, []);
 
   // Format currency values
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) return '$0.00';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -66,7 +67,8 @@ export default function DashboardPage() {
   };
 
   // Format percentage values
-  const formatPercentage = (value: number) => {
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null) return '0.00%';
     const sign = value > 0 ? '+' : '';
     return `${sign}${value.toFixed(2)}%`;
   };
@@ -143,7 +145,7 @@ export default function DashboardPage() {
               />
               <StatsCard 
                 title="Dividend Yield" 
-                value={summary.dividend_yield !== undefined ? `${summary.dividend_yield.toFixed(2)}%` : 'N/A'} 
+                value={summary.dividendYield !== undefined ? `${summary.dividendYield.toFixed(2)}%` : '0.00%'} 
                 change="Annual" 
                 icon={<DollarSign className="h-5 w-5" />} 
               />
@@ -163,8 +165,11 @@ export default function DashboardPage() {
             // Loading skeleton for chart
             <div className="h-64 animate-pulse bg-muted rounded"></div>
           ) : performance && performance.length > 0 ? (
-            // Render the performance chart component
-            <PerformanceChart data={performance} />
+            // Render the performance chart component with current portfolio value
+            <PerformanceChart 
+              data={performance} 
+              currentValue={summary?.totalValue} 
+            />
           ) : (
             // Error or no data state
             <div className="h-64 flex items-center justify-center">

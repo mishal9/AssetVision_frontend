@@ -24,6 +24,7 @@ type TimePeriod = '1D' | '1W' | '1M' | '1Y' | '5Y';
 interface PerformanceChartProps {
   data: PerformanceData[];
   className?: string;
+  currentValue?: number; // Current portfolio value from summary
 }
 
 /**
@@ -52,14 +53,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
  * Portfolio Performance Chart Component
  * Displays portfolio value over time with period selection
  */
-export function PerformanceChart({ data, className }: PerformanceChartProps) {
+export function PerformanceChart({ data, className, currentValue }: PerformanceChartProps) {
   const [period, setPeriod] = useState<TimePeriod>('5Y');
   
-  // Format data for chart display
-  const chartData = data.map(item => ({
-    date: new Date(item.date).toISOString(),
-    value: item.value
-  }));
+  // Format data for chart display and ensure it's sorted chronologically
+  const chartData = data
+    .map(item => ({
+      date: new Date(item.date).toISOString(),
+      value: item.value
+    }))
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Filter data based on selected time period
   const getFilteredData = () => {
@@ -221,7 +224,9 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
     return filtered;
   };
   
-  const filteredData = getFilteredData();
+  const filteredData = getFilteredData()
+    // Ensure data is always sorted by date regardless of time period
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Format currency values
   const formatCurrency = (value: number) => {
@@ -234,8 +239,9 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
   
   // Calculate min and max values for Y axis domain
   const values = filteredData.map(item => item.value);
-  const minValue = Math.min(...values) * 0.95; // Add 5% padding below
-  const maxValue = Math.max(...values) * 1.05; // Add 5% padding above
+  // Handle edge cases when there are no values or identical values
+  const minValue = values.length > 0 ? Math.min(...values) * 0.95 : 0; // Add 5% padding below
+  const maxValue = values.length > 0 ? Math.max(...values) * 1.05 : 100; // Add 5% padding above
   
   return (
     <div className={cn("flex flex-col", className)}>
@@ -243,7 +249,7 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
         <div>
           <span className="text-sm text-muted-foreground">Current Value:</span>
           <span className="ml-2 font-medium">
-            {formatCurrency(data[data.length - 1]?.value || 0)}
+            {formatCurrency(currentValue !== undefined ? currentValue : (chartData.length > 0 ? chartData[chartData.length - 1].value : 0))}
           </span>
         </div>
         <div className="flex space-x-1">
@@ -289,11 +295,18 @@ export function PerformanceChart({ data, className }: PerformanceChartProps) {
                       hour: '2-digit',
                       minute: '2-digit'
                     });
+                  } else if (period === '1W' || period === '1M') {
+                    return d.toLocaleDateString(undefined, { 
+                      month: 'short', 
+                      day: 'numeric' 
+                    });
+                  } else {
+                    // For longer periods (1Y, 5Y), show month and year
+                    return d.toLocaleDateString(undefined, { 
+                      month: 'short', 
+                      year: 'numeric' 
+                    });
                   }
-                  return d.toLocaleDateString(undefined, { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  });
                 }}
                 className="text-xs text-muted-foreground"
               />
