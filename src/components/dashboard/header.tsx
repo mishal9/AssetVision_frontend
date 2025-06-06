@@ -41,13 +41,14 @@ export function Header() {
 
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-xl font-semibold">Asset Vision</h1>
-          <nav className="hidden md:flex items-center space-x-4">
-            <a href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Overview</a>
-            <a href="/portfolios" className="text-muted-foreground hover:text-foreground transition-colors">Portfolios</a>
-            <a href="/dashboard/connected-accounts" className="text-muted-foreground hover:text-foreground transition-colors">Connected Accounts</a>
-            <a href="/settings" className="text-muted-foreground hover:text-foreground transition-colors">Settings</a>
-          </nav>
+          <button
+            className="text-xl font-semibold hover:text-primary transition-colors focus:outline-none"
+            onClick={() => router.push('/dashboard')}
+            aria-label="Go to main page"
+            type="button"
+          >
+            Asset Vision
+          </button>
         </div>
         <div className="flex items-center space-x-4">
           <button

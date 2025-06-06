@@ -167,149 +167,15 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
             </div>
           </div>
           
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-base font-medium">Manual Portfolio Setup</h3>
-            <div className="text-xs text-muted-foreground">Enter your investment details manually</div>
-          </div>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(submitPortfolio)} className="space-y-6">
-              <div className="flex items-center justify-between pb-2 border-b">
-                <h3 className="text-lg font-medium">Your Assets</h3>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 px-2 text-xs"
-                    onClick={clearAllFields}
-                  >
-                    <Trash2 className="mr-1 h-3.5 w-3.5" />
-                    Clear All
-                  </Button>
-                </div>
-              </div>
-              
-              {showEmptyMessage && (
-                <div className="bg-yellow-50 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 text-sm p-3 rounded-md border border-yellow-200 dark:border-yellow-800/60">
-                  Please add at least one asset to create your portfolio.
-                </div>
-              )}
-              
-              <div className="space-y-4">
-                {/* Header row - visible only on desktop */}
-                <div className="hidden md:grid grid-cols-[1fr,1fr,50px] gap-4 px-2">
-                  <FormLabel className="text-sm font-medium">Symbol</FormLabel>
-                  <FormLabel className="text-sm font-medium">Shares</FormLabel>
-                  <div></div>
-                </div>
-                
-                <div className="divide-y divide-border/30">
-                  {fields.map((field, index) => (
-                    <div 
-                      key={field.id} 
-                      className="grid grid-cols-1 md:grid-cols-[1fr,1fr,50px] gap-4 py-3 first:pt-0 last:pb-0"
-                    >
-                      <FormField
-                        control={form.control}
-                        name={`holdings.${index}.symbol`}
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <div className="flex items-center justify-between md:hidden">
-                              <FormLabel className="text-sm font-medium">Asset Symbol</FormLabel>
-                              {fields.length > 1 && (
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-6 w-6 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                                  onClick={() => remove(index)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              )}
-                            </div>
-                            <FormControl>
-                              <Input 
-                                placeholder="AAPL" 
-                                className="h-9 focus-visible:ring-primary" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name={`holdings.${index}.shares`}
-                        render={({ field }) => (
-                          <FormItem className="space-y-1">
-                            <div className="md:hidden">
-                              <FormLabel className="text-sm font-medium">Number of Shares</FormLabel>
-                            </div>
-                            <FormControl>
-                              <Input 
-                                placeholder="10" 
-                                className="h-9 focus-visible:ring-primary" 
-                                {...field} 
-                              />
-                            </FormControl>
-                            <FormMessage className="text-xs" />
-                          </FormItem>
-                        )}
-                      />
-                      <div className="hidden md:flex items-end justify-center h-9">
-                        {fields.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-9 w-9 hover:bg-destructive/10 hover:text-destructive transition-colors"
-                            onClick={() => remove(index)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="pt-2 flex justify-center">
-                  <Button 
-                    type="button" 
-                    variant="outline"
-                    onClick={addMoreFields}
-                    className="px-5 py-2 h-10 font-medium rounded-md transition-all border-primary/20 hover:border-primary/40 hover:bg-primary/5"
-                  >
-                    <Plus className="mr-1.5 h-4 w-4" /> Add More Fields
-                  </Button>
-                </div>
-                
-                <div className="flex justify-center pt-4">
-                  <Button 
-                    type="submit"
-                    disabled={isSubmitting} 
-                    variant="outline"
-                    className="px-8 py-2 h-10 rounded-md text-sm font-medium transition-all max-w-xs w-full border-primary/30 hover:border-primary/50 hover:bg-primary/5"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                        Creating Portfolio...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="mr-2 h-4 w-4" />
-                        Create Portfolio
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </Form>
+          {/* Manual portfolio input removed. Only linking accounts is allowed. */}
+          {/* If user is not authenticated, prompt to log in to link accounts */}
+          {typeof window !== 'undefined' && !localStorage.getItem('auth_token') ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <h3 className="text-lg font-semibold mb-2">Sign in to link your accounts</h3>
+              <p className="text-sm text-muted-foreground mb-4">You must be logged in to link your investment accounts and view your portfolio.</p>
+              <Button onClick={() => router.push('/login')} variant="default" className="px-8 py-2 rounded-md">Login</Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,10 @@
  */
 
 import { fetchWithAuth } from './api-utils';
+import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput } from '@/types/portfolio';
+import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
+import { AuthResponse, AuthResponseData } from '@/types/auth';
+import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 
 /**
  * Portfolio API methods
@@ -11,21 +15,25 @@ import { fetchWithAuth } from './api-utils';
 export const portfolioApi = {
   /**
    * Get user portfolio summary
+   * Fetches the portfolio summary and transforms snake_case to camelCase
    */
   getPortfolioSummary: () => 
-    fetchWithAuth<PortfolioSummary>('/portfolio/summary'),
+    fetchWithAuth<PortfolioSummaryResponse>('/portfolio/summary')
+      .then(response => convertSnakeToCamelCase<PortfolioSummary>(response)),
   
   /**
    * Get portfolio performance over time
    */
   getPerformance: (period: 'day' | 'week' | 'month' | 'year' | 'all' = 'month') => 
-    fetchWithAuth<PerformanceData[]>(`/portfolio/performance?period=${period}`),
+    fetchWithAuth<any[]>(`/portfolio/performance?period=${period}`)
+      .then(response => convertSnakeToCamelCase<PerformanceData[]>(response)),
   
   /**
    * Get asset allocation
    */
   getAssetAllocation: () => 
-    fetchWithAuth<AssetAllocation[]>('/portfolio/allocation'),
+    fetchWithAuth<any>('/portfolio/allocation')
+      .then(response => convertSnakeToCamelCase<AllocationResponse>(response)),
     
   /**
    * Create a new portfolio with holdings
@@ -40,7 +48,8 @@ export const portfolioApi = {
    * Check if user has a portfolio
    */
   hasPortfolio: () => 
-    fetchWithAuth<{ hasPortfolio: boolean }>('/portfolio/status')
+    fetchWithAuth<{ has_portfolio: boolean }>('/portfolio/status')
+      .then(response => convertSnakeToCamelCase<{ hasPortfolio: boolean }>(response))
       .then(response => response.hasPortfolio)
       .catch(() => false),
 };
@@ -53,25 +62,28 @@ export const alertsApi = {
    * Get all user alerts
    */
   getAlerts: () => 
-    fetchWithAuth<Alert[]>('/alerts'),
+    fetchWithAuth<AlertResponse[]>('/alerts')
+      .then(response => convertSnakeToCamelCase<Alert[]>(response)),
   
   /**
    * Create a new alert
    */
   createAlert: (alertData: AlertInput) => 
-    fetchWithAuth<Alert>('/alerts', {
+    fetchWithAuth<AlertResponse>('/alerts', {
       method: 'POST',
       body: JSON.stringify(alertData),
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<Alert>(response)),
   
   /**
    * Update an existing alert
    */
   updateAlert: (alertId: string, alertData: Partial<AlertInput>) => 
-    fetchWithAuth<Alert>(`/alerts/${alertId}`, {
+    fetchWithAuth<AlertResponse>(`/alerts/${alertId}`, {
       method: 'PATCH',
       body: JSON.stringify(alertData),
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<Alert>(response)),
   
   /**
    * Delete an alert
@@ -92,28 +104,31 @@ export const authApi = {
    * @param password User password
    */
   login: (username: string, password: string) => 
-    fetchWithAuth<AuthResponse>('/auth/login/', {
+    fetchWithAuth<AuthResponseData>('/auth/login/', {
       method: 'POST',
       body: JSON.stringify({ username, password }),
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<AuthResponse>(response)),
   
   /**
    * Register new user
    */
-  register: (userData: RegisterInput) => 
-    fetchWithAuth<AuthResponse>('/auth/register/', {
+  register: (userData: any) => 
+    fetchWithAuth<AuthResponseData>('/auth/register/', {
       method: 'POST',
       body: JSON.stringify(userData),
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<AuthResponse>(response)),
   
   /**
    * Refresh authentication token
    */
   refreshToken: (refreshToken: string) => 
-    fetchWithAuth<TokenRefreshResponse>('/auth/refresh/', {
+    fetchWithAuth<any>('/auth/refresh/', {
       method: 'POST',
       body: JSON.stringify({ refresh: refreshToken }),
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<any>(response)),
     
   /**
    * Request password reset
@@ -128,93 +143,17 @@ export const authApi = {
    * Get current user information
    */
   getUserInfo: () => 
-    fetchWithAuth<UserInfoResponse>('/auth/user/'),
+    fetchWithAuth<any>('/auth/user/')
+      .then(response => convertSnakeToCamelCase<any>(response)),
     
   /**
    * Logout user
    */
   logout: () => 
-    fetchWithAuth<{ success: boolean }>('/auth/logout/', {
+    fetchWithAuth<any>('/auth/logout/', {
       method: 'POST',
-    }),
+    })
+      .then(response => convertSnakeToCamelCase<{ success: boolean }>(response)),
 };
 
-// Type definitions
-export interface PortfolioSummary {
-  totalValue: number;
-  cashBalance: number;
-  totalGain: number;
-  totalGainPercentage: number;
-  dayChange: number;
-  dayChangePercentage: number;
-}
-
-export interface PerformanceData {
-  date: string;
-  value: number;
-}
-
-export interface AssetAllocation {
-  category: string;
-  percentage: number;
-  value: number;
-}
-
-export interface HoldingInput {
-  symbol: string;
-  shares: number;
-  purchasePrice: number;
-  assetClass: string;
-}
-
-export interface Alert {
-  id: string;
-  type: 'price' | 'news' | 'dividend' | 'tax';
-  symbol?: string;
-  threshold?: number;
-  active: boolean;
-  createdAt: string;
-}
-
-export interface AlertInput {
-  type: 'price' | 'news' | 'dividend' | 'tax';
-  symbol?: string;
-  threshold?: number;
-  active?: boolean;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-  };
-  tokens: {
-    access: string;
-    refresh: string;
-    access_expires_in: number;
-    refresh_expires_in: number;
-  };
-}
-
-export interface TokenRefreshResponse {
-  success: boolean;
-  access: string;
-  access_expires_in: number;
-}
-
-export interface UserInfoResponse {
-  authenticated: boolean;
-  user?: {
-    id: number;
-    username: string;
-    email: string;
-  };
-}
-
-export interface RegisterInput {
-  username: string;
-  email: string;
-  password: string;
-}
+// End of API definitions

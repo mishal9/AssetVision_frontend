@@ -45,10 +45,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface LinkedAccountsProps {
-  onSelectAccount?: (account: LinkedAccount) => void;
-  showCreatePortfolio?: boolean;
-}
+interface LinkedAccountsProps {}
 
 /**
  * Linked Accounts Component
@@ -68,15 +65,15 @@ interface LinkedAccountsProps {
  * - Add new accounts
  * - Remove existing accounts
  * - Update account connections
- * - Create portfolios from specific accounts
  * - Fetch and display holdings and total balance for each linked account
+ * - All accounts are automatically part of the user's portfolio
  */
-export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }: LinkedAccountsProps) {
+export function LinkedAccounts({}: LinkedAccountsProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { linkedAccounts, accountsLoading, isAuthenticated } = useSelector((state: RootState) => state.user);
   const [isUpdatingAccount, setIsUpdatingAccount] = useState<string | null>(null);
   const [isRemovingAccount, setIsRemovingAccount] = useState<string | null>(null);
-  const [isCreatingPortfolio, setIsCreatingPortfolio] = useState<string | null>(null);
+
   // State for holdings modal
   const [holdingsModalAccountId, setHoldingsModalAccountId] = useState<string | null>(null);
 
@@ -182,41 +179,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
     }
   };
 
-  // Handle creating a portfolio from an account
-  const handleCreatePortfolio = async (account: LinkedAccount) => {
-    try {
-      setIsCreatingPortfolio(account.id);
-      
-      // Connection ID is needed to identify the account on the backend
-      if (!account.connectionId) {
-        throw new Error("Connection ID not available for this account");
-      }
-      
-      // Create portfolio using the account's connection ID
-      await plaidApi.createPortfolioFromPlaid(
-        account.connectionId, 
-        `${account.institutionName} Portfolio`
-      );
-      
-      toast.success("Portfolio Created", {
-        description: `Successfully created portfolio from your ${account.institutionName} account.`,
-      });
-    } catch (error) {
-      console.error('Error creating portfolio:', error);
-      toast.error("Error Creating Portfolio", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-      });
-    } finally {
-      setIsCreatingPortfolio(null);
-    }
-  };
 
-  // Select an account (if onSelectAccount is provided)
-  const handleSelectAccount = (account: LinkedAccount) => {
-    if (onSelectAccount) {
-      onSelectAccount(account);
-    }
-  };
 
   // Calculate total balance across all linked accounts
   const totalBalance = linkedAccounts.reduce((sum, acc) => sum + (acc.balance?.current || 0), 0);
@@ -307,8 +270,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
           {linkedAccounts && linkedAccounts.map((account, idx) => (
             <Card 
               key={account.id} 
-              className={`overflow-hidden animate-fade-in ${onSelectAccount ? 'cursor-pointer hover:border-primary' : ''}`}
-              onClick={onSelectAccount ? () => handleSelectAccount(account) : undefined}
+              className="overflow-hidden animate-fade-in"
               tabIndex={0}
               aria-label={`Linked account: ${account.institutionName}`}
               style={{ animationDelay: `${idx * 60}ms` }}
@@ -343,12 +305,12 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                 </div>
               </CardHeader>
               <CardContent className="pt-1 pb-2 flex flex-col gap-1">
-  <p className="text-xs text-muted-foreground">
-    Last updated {account.lastUpdated ? new Date(account.lastUpdated).toLocaleString() : 'unknown'}
-  </p>
-</CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Last updated {account.lastUpdated ? new Date(account.lastUpdated).toLocaleString() : 'unknown'}
+                </p>
+              </CardContent>
               <CardFooter className="border-t bg-muted/50 px-4 py-2">
-  <div className="flex flex-col sm:flex-row gap-2 justify-center items-center w-full">
+                <div className="flex flex-col sm:flex-row gap-2 justify-center items-center w-full">
                   {/* Button to fetch and display holdings for this account */}
                   <Button
                     size="sm"
@@ -389,56 +351,7 @@ export function LinkedAccounts({ onSelectAccount, showCreatePortfolio = false }:
                         </div>
                       )}
                     </Button>
-                  ) : showCreatePortfolio ? (
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant={account.connectionId ? "outline" : "destructive"}
-                        className="text-xs mr-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (account.connectionId) handleCreatePortfolio(account);
-                        }}
-                        disabled={isCreatingPortfolio === account.id || !account.connectionId}
-                        aria-disabled={!account.connectionId}
-                        aria-label={account.connectionId ? "Create Portfolio" : "Create Portfolio (disabled: missing connection)"}
-                        tabIndex={account.connectionId ? 0 : -1}
-                        title={account.connectionId ? "Create a portfolio from this account" : "Cannot create portfolio: missing connection ID. Please re-link this account."}
-                      >
-                        {isCreatingPortfolio === account.id ? (
-                          <span className="flex items-center">
-                            <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
-                            Creating...
-                          </span>
-                        ) : (
-                          <span className="flex items-center">
-                            <Plus className="h-3 w-3 mr-1" />
-                            Create Portfolio
-                          </span>
-                        )}
-                      </Button>
-                      {!account.connectionId && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-destructive/10 text-destructive text-xs font-medium border border-destructive/20" title="Missing connection ID. Please re-link this account to enable portfolio creation.">
-                          Missing Connection
-                        </span>
-                      )}
-                    </div>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onSelectAccount) {
-                          handleSelectAccount(account);
-                        }
-                      }}
-                    >
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                      Select
-                    </Button>
-                  )}
+                  ) : null}
                   
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
