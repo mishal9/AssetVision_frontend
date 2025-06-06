@@ -75,7 +75,6 @@ const COLORS = [
 export function SectorAllocationChart({ data, className }: SectorAllocationChartProps) {
   // Ensure we have valid data to work with
   if (!data || !Array.isArray(data) || data.length === 0) {
-    console.warn('SectorAllocationChart: Invalid data provided', data);
     return (
       <div className="h-64 flex items-center justify-center">
         <p className="text-muted-foreground">No allocation data available</p>

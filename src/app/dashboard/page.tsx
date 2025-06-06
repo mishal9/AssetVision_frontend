@@ -199,11 +199,8 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : assetAllocation && assetAllocation.length > 0 ? (
-              // Render the asset allocation chart component with debug
-              <>
-                {console.log('Asset Allocation Data:', assetAllocation)}
-                <SectorAllocationChart data={assetAllocation} />
-              </>
+              // Render the asset allocation chart component
+              <SectorAllocationChart data={assetAllocation} />
             ) : (
               // Error or no data state
               <div className="h-64 flex items-center justify-center">
@@ -232,11 +229,8 @@ export default function DashboardPage() {
                 </div>
               </div>
             ) : sectorAllocation && sectorAllocation.length > 0 ? (
-              // Render the sector allocation chart component with debug
-              <>
-                {console.log('Sector Allocation Data:', sectorAllocation)}
-                <SectorAllocationChart data={sectorAllocation} />
-              </>
+              // Render the sector allocation chart component
+              <SectorAllocationChart data={sectorAllocation} />
             ) : (
               // Error or no data state
               <div className="h-64 flex items-center justify-center">

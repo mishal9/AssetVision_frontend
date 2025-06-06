@@ -76,7 +76,6 @@ export function usePortfolioData() {
       try {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
-        console.log('Raw allocation data from API:', data);
         
         // Check the structure of the response
         if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
@@ -161,8 +160,6 @@ export function usePortfolioData() {
     });
     
     portfolioApi.getAssetAllocation().then(data => {
-      console.log('Raw allocation data from API (refresh):', data);
-      
       // Handle asset allocation
       if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
         setAssetAllocation(data.asset_allocation);
