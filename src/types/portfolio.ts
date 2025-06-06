@@ -69,7 +69,8 @@ export interface PerformanceData {
 }
 
 export interface AssetAllocation {
-  name: string;
+  category: string;
+  percentage: number;
   value: number;
   color?: string;
 }

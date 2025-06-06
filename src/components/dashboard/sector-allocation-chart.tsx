@@ -8,7 +8,7 @@ import {
   Tooltip, 
   Legend 
 } from 'recharts';
-import { AssetAllocation } from '@/services/api';
+import { AssetAllocation } from '@/types/portfolio';
 import { cn } from '@/lib/utils';
 
 /**
@@ -73,12 +73,32 @@ const COLORS = [
  * Displays portfolio sector allocation as a pie chart
  */
 export function SectorAllocationChart({ data, className }: SectorAllocationChartProps) {
+  // Ensure we have valid data to work with
+  if (!data || !Array.isArray(data) || data.length === 0) {
+    console.warn('SectorAllocationChart: Invalid data provided', data);
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <p className="text-muted-foreground">No allocation data available</p>
+      </div>
+    );
+  }
+  
   // Format data for chart display
   const chartData = data.map(item => ({
+    name: item.category, // Use category for display name
     category: item.category,
-    value: item.value,
-    percentage: item.percentage
+    value: parseFloat((item.value || 0).toString()), // Ensure value is a number
+    percentage: parseFloat((item.percentage || 0).toString()) // Ensure percentage is a number
   }));
+  
+  // If no valid data after parsing, show empty state
+  if (chartData.length === 0) {
+    return (
+      <div className="h-64 flex items-center justify-center">
+        <p className="text-muted-foreground">No allocation data available</p>
+      </div>
+    );
+  }
   
   // Format currency values
   const formatCurrency = (value: number) => {
@@ -91,66 +111,60 @@ export function SectorAllocationChart({ data, className }: SectorAllocationChart
   
   return (
     <div className={cn("flex flex-col", className)}>
-      {chartData.length > 0 ? (
-        <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/2 h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={chartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  innerRadius={40}
-                  fill="hsl(var(--primary))"
-                  dataKey="value"
-                  nameKey="category"
-                  paddingAngle={1}
-                  cornerRadius={0}
-                >
-                  {chartData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={COLORS[index % COLORS.length]} 
-                    />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-                <Legend content={<CustomLegend />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          
-          <div className="w-full md:w-1/2 md:pl-6 mt-4 md:mt-0">
-            <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2">
-              {chartData.map((item, index) => (
-                <div key={index} className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <div 
-                      className="w-3 h-3 mr-2" 
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <span className="text-sm">{item.category}</span>
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full md:w-1/2 h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={chartData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={80}
+                innerRadius={40}
+                fill="hsl(var(--primary))"
+                dataKey="value"
+                nameKey="category"
+                paddingAngle={1}
+                cornerRadius={0}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]} 
+                  />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend content={<CustomLegend />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        
+        <div className="w-full md:w-1/2 md:pl-6 mt-4 md:mt-0">
+          <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2">
+            {chartData.map((item, index) => (
+              <div key={`legend-${item.category}-${index}`} className="flex justify-between items-center">
+                <div className="flex items-center">
+                  <div 
+                    className="w-3 h-3 mr-2 rounded-sm" 
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  />
+                  <span className="text-sm font-medium">{item.category}</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm font-medium">
+                    {formatCurrency(item.value)}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {formatCurrency(item.value)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {item.percentage.toFixed(1)}%
-                    </div>
+                  <div className="text-xs text-muted-foreground">
+                    {item.percentage.toFixed(1)}%
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-      ) : (
-        <div className="h-64 flex items-center justify-center">
-          <p className="text-muted-foreground">No allocation data available</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }

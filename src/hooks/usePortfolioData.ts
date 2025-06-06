@@ -76,8 +76,28 @@ export function usePortfolioData() {
       try {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
-        setAssetAllocation(data.asset_allocation);
-        setSectorAllocation(data.sector_allocation);
+        console.log('Raw allocation data from API:', data);
+        
+        // Check the structure of the response
+        if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
+          setAssetAllocation(data.asset_allocation);
+        } else if (data && data.assetAllocation && Array.isArray(data.assetAllocation)) {
+          setAssetAllocation(data.assetAllocation);
+        } else {
+          console.error('Invalid asset_allocation data structure:', data);
+          setAssetAllocation([]);
+        }
+        
+        // Check for sector allocation
+        if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
+          setSectorAllocation(data.sector_allocation);
+        } else if (data && data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+          setSectorAllocation(data.sectorAllocation);
+        } else {
+          console.error('Invalid sector_allocation data structure:', data);
+          setSectorAllocation([]);
+        }
+        
         setAllocationError(null);
       } catch (error) {
         console.error('Error fetching asset allocation:', error);
@@ -141,8 +161,28 @@ export function usePortfolioData() {
     });
     
     portfolioApi.getAssetAllocation().then(data => {
-      setAssetAllocation(data.asset_allocation);
-      setSectorAllocation(data.sector_allocation);
+      console.log('Raw allocation data from API (refresh):', data);
+      
+      // Handle asset allocation
+      if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
+        setAssetAllocation(data.asset_allocation);
+      } else if (data && data.assetAllocation && Array.isArray(data.assetAllocation)) {
+        setAssetAllocation(data.assetAllocation);
+      } else {
+        console.error('Invalid asset_allocation data structure (refresh):', data);
+        setAssetAllocation([]);
+      }
+      
+      // Handle sector allocation
+      if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
+        setSectorAllocation(data.sector_allocation);
+      } else if (data && data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+        setSectorAllocation(data.sectorAllocation);
+      } else {
+        console.error('Invalid sector_allocation data structure (refresh):', data);
+        setSectorAllocation([]);
+      }
+      
       setAllocationError(null);
     }).catch(error => {
       console.error('Error refreshing asset allocation:', error);
