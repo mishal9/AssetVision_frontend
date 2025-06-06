@@ -23,6 +23,11 @@ export function formatPercentage(value: number, decimalPlaces = 2): string {
 }
 
 /**
+ * Alias for formatPercentage (for consistency in the codebase)
+ */
+export const formatPercent = formatPercentage;
+
+/**
  * Formats a date
  * @param date - The date to format
  * @param format - The format to use (default: 'medium')

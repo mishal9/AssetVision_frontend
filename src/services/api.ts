@@ -7,6 +7,7 @@ import { fetchWithAuth } from './api-utils';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
+import { TaxLossOpportunity, TaxLossResponse } from '@/types/tax';
 import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 
 /**
@@ -52,6 +53,14 @@ export const portfolioApi = {
       .then(response => convertSnakeToCamelCase<{ hasPortfolio: boolean }>(response))
       .then(response => response.hasPortfolio)
       .catch(() => false),
+    
+  /**
+   * Get tax loss harvesting opportunities
+   * Fetches tax-optimized recommendations for portfolio holdings
+   */
+  getTaxLossHarvestingOpportunities: () => 
+    fetchWithAuth<any>('/portfolio/tax-loss-harvesting')
+      .then(response => convertSnakeToCamelCase<TaxLossResponse>(response)),
 };
 
 /**
