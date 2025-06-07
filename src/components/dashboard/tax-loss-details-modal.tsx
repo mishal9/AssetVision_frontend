@@ -51,7 +51,7 @@ export function TaxLossDetailsModal({ opportunity, isOpen, onClose }: TaxLossDet
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-md md:max-w-lg lg:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>{opportunity.symbol}</span>
@@ -64,9 +64,9 @@ export function TaxLossDetailsModal({ opportunity, isOpen, onClose }: TaxLossDet
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-3 overflow-hidden">
           {/* Summary Section */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             <div className="p-3 bg-muted rounded-lg">
               <div className="text-sm text-muted-foreground">Unrealized Loss</div>
               <div className="text-lg font-semibold text-red-500">
@@ -101,7 +101,7 @@ export function TaxLossDetailsModal({ opportunity, isOpen, onClose }: TaxLossDet
               <CardTitle className="text-base">Position Details</CardTitle>
             </CardHeader>
             <CardContent className="py-3">
-              <dl className="grid grid-cols-2 gap-x-4 gap-y-2">
+              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-2">
                 <dt className="text-sm font-medium text-muted-foreground">Quantity</dt>
                 <dd className="text-sm">{opportunity.quantity.toFixed(2)}</dd>
                 
@@ -183,12 +183,12 @@ export function TaxLossDetailsModal({ opportunity, isOpen, onClose }: TaxLossDet
                 <p className="text-sm mb-3">
                   Consider these alternatives to maintain market exposure while avoiding wash sale rules:
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-1 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin">
                   {opportunity.similarSecurities.map((security, index) => (
-                    <div key={index} className="flex justify-between items-center p-2 border-b last:border-0">
+                    <div key={index} className="flex justify-between items-center p-2 border-b last:border-0 hover:bg-muted/30 transition-colors">
                       <div>
                         <div className="font-medium">{security.symbol}</div>
-                        <div className="text-sm text-muted-foreground truncate max-w-[250px]">{security.name}</div>
+                        <div className="text-sm text-muted-foreground truncate max-w-[120px] sm:max-w-[200px] md:max-w-[250px]">{security.name}</div>
                       </div>
                       <div className="flex items-center">
                         <TrendingDown className="h-4 w-4 text-blue-500 mr-2" />
