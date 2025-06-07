@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { ArrowDownIcon, ArrowUpIcon, InfoIcon, AlertTriangleIcon, CheckCircleIcon } from 'lucide-react';
+import { ArrowDownIcon, ArrowUpIcon, InfoIcon, AlertTriangleIcon, CheckCircleIcon, DollarSignIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TaxLossDetailsModal } from '@/components/dashboard/tax-loss-details-modal';
@@ -172,9 +172,20 @@ export default function TaxStrategiesPage() {
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <p className="text-xs text-muted-foreground">
-                Remaining: {formatCurrency(taxData.realizedLossSummary.remainingOrdinaryDeduction)}
-              </p>
+              
+              {/* Progress bar for $3,000 limit */}
+              <div className="mt-2 mb-1">
+                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-600 transition-all duration-500 ease-in-out"
+                    style={{ width: `${taxData.metadata.progressPct}%` }}
+                  ></div>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>You've harvested {formatCurrency(taxData.realizedLossSummary.appliedAgainstOrdinaryIncome)} / $3,000</span>
+                <span>{Math.round(taxData.metadata.progressPct)}% complete</span>
+              </div>
             </div>
             <div className="p-4 rounded-lg bg-muted">
               <p className="text-sm text-muted-foreground">Loss Carryover</p>
