@@ -681,27 +681,10 @@ export default function TaxStrategiesPage() {
                             </TableCell>
                             <TableCell>
                               {getPlacementBadge(holding.isOptimalPlacement)}
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <div className="flex items-center gap-1 cursor-help mt-1">
-                                      <p className="text-xs text-muted-foreground">Score: {holding.placementScore}</p>
-                                      <InfoIcon className="h-3 w-3 text-muted-foreground" />
-                                    </div>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="right" className="w-80 bg-popover text-popover-foreground border border-border shadow-md">
-                                    <div>
-                                      <h4 className="font-medium mb-1">Placement Analysis</h4>
-                                      <p className="text-sm">{holding.insights.join(" ")}</p>
-                                      <div className="mt-2 pt-2 border-t border-border">
-                                        <p className="text-xs text-muted-foreground">
-                                          Score explanation: 100 = Optimal, 80 = Good, 30 = Suboptimal
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
+                              <div title={`${holding.insights.join(" ")}\n\nScore explanation: 100 = Optimal, 80 = Good, 30 = Suboptimal`} className="flex items-center gap-1 cursor-help mt-1">
+                                <p className="text-xs text-muted-foreground">Score: {holding.placementScore}</p>
+                                <InfoIcon className="h-3 w-3 text-muted-foreground" />
+                              </div>
                             </TableCell>
                           </TableRow>
                         ))}
