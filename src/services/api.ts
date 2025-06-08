@@ -7,7 +7,7 @@ import { fetchWithAuth } from './api-utils';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
-import { TaxLossOpportunity, TaxLossResponse } from '@/types/tax';
+import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
 import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 
 /**
@@ -61,6 +61,14 @@ export const portfolioApi = {
   getTaxLossHarvestingOpportunities: () => 
     fetchWithAuth<any>('/portfolio/tax-loss-harvesting')
       .then(response => convertSnakeToCamelCase<TaxLossResponse>(response)),
+      
+  /**
+   * Get tax efficiency analysis
+   * Analyzes tax efficiency of asset placement in taxable vs tax-advantaged accounts
+   */
+  getTaxEfficiencyAnalysis: () => 
+    fetchWithAuth<any>('/portfolio/tax-efficiency-analysis')
+      .then(response => convertSnakeToCamelCase<TaxEfficiencyResponse>(response)),
 };
 
 /**
