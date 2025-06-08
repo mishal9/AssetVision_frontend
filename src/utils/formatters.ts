@@ -19,8 +19,14 @@ export function formatCurrency(value: number, locale = 'en-US', currency = 'USD'
  * @returns Formatted percentage string
  */
 export function formatPercentage(value: number, decimalPlaces = 2): string {
-  return `${(value * 100).toFixed(decimalPlaces)}%`;
+  // API already returns percentages (e.g. -20.83 for -20.83%), so don't multiply by 100
+  return `${value.toFixed(decimalPlaces)}%`;
 }
+
+/**
+ * Alias for formatPercentage (for consistency in the codebase)
+ */
+export const formatPercent = formatPercentage;
 
 /**
  * Formats a date
