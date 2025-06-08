@@ -177,6 +177,24 @@ export default function TaxStrategiesPage() {
     }
   };
 
+  const getAccountTypeDisplay = (accountType: string, isTaxAdvantaged: boolean) => {
+    return (
+      <div>
+        <Badge variant="outline" className={isTaxAdvantaged ? "bg-blue-50" : "bg-amber-50"}>
+          {accountType}
+        </Badge>
+        <p className="text-xs text-muted-foreground mt-1">
+          {isTaxAdvantaged ? "Tax-Advantaged" : "Taxable"}
+          {isTaxAdvantaged && 
+            <span className="ml-1">
+              <InfoIcon className="h-3 w-3 inline text-muted-foreground" />
+            </span>
+          }
+        </p>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -671,8 +689,16 @@ export default function TaxStrategiesPage() {
                                       <InfoIcon className="h-3 w-3 text-muted-foreground" />
                                     </div>
                                   </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-xs">{holding.insights.join(" ")}</p>
+                                  <TooltipContent side="right" className="w-80 bg-popover text-popover-foreground border border-border shadow-md">
+                                    <div>
+                                      <h4 className="font-medium mb-1">Placement Analysis</h4>
+                                      <p className="text-sm">{holding.insights.join(" ")}</p>
+                                      <div className="mt-2 pt-2 border-t border-border">
+                                        <p className="text-xs text-muted-foreground">
+                                          Score explanation: 100 = Optimal, 80 = Good, 30 = Suboptimal
+                                        </p>
+                                      </div>
+                                    </div>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
