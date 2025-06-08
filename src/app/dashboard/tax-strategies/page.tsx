@@ -661,7 +661,7 @@ export default function TaxStrategiesPage() {
                               <div>
                                 <p className="font-medium">{holding.symbol}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {formatCurrency(holding.quantity)} shares
+                                  {holding.quantity} shares
                                 </p>
                               </div>
                             </TableCell>
@@ -717,7 +717,7 @@ export default function TaxStrategiesPage() {
                               <div>
                                 <p className="font-medium">{holding.symbol}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  {formatCurrency(holding.quantity)} shares
+                                  {holding.quantity} shares
                                 </p>
                               </div>
                             </TableCell>
