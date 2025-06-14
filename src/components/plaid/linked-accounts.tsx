@@ -193,9 +193,9 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
             <DialogTitle>Account Holdings</DialogTitle>
             <DialogDescription asChild>
               {portfolio.loading ? (
-                <span>Loading holdings...</span>
+                <span key="loading-holdings">Loading holdings...</span>
               ) : portfolio.error ? (
-                <span className="text-red-500">{portfolio.error}</span>
+                <span key="error-holdings" className="text-red-500">{portfolio.error}</span>
               ) : (
                 <div>
                   <div className="mb-2 font-semibold">
@@ -241,12 +241,12 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
         </div>
       )}
       {accountsLoading && (!linkedAccounts || linkedAccounts.length === 0) ? (
-        <div className="space-y-3">
+        <div key="accounts-loading-skeleton" className="space-y-3">
           <Skeleton className="h-[150px] w-full rounded-lg" />
           <Skeleton className="h-[150px] w-full rounded-lg" />
         </div>
       ) : !linkedAccounts || linkedAccounts.length === 0 ? (
-        <Card className="border-dashed animate-fade-in">
+        <Card key="no-linked-accounts" className="border-dashed animate-fade-in">
           <CardContent className="pt-6 text-center">
             <div className="flex flex-col items-center justify-center space-y-3 py-8">
               <Building2 className="h-12 w-12 text-muted-foreground" aria-hidden="true" />
@@ -281,9 +281,9 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
                     <CardTitle className="flex items-center gap-2">
                       {/* Institution logo if available, fallback to icon */}
                       {account.institutionLogoUrl ? (
-                        <img src={account.institutionLogoUrl} alt={account.institutionName + ' logo'} className="h-5 w-5 rounded-full border bg-white" />
+                        <img key="institution-logo" src={account.institutionLogoUrl} alt={account.institutionName + ' logo'} className="h-5 w-5 rounded-full border bg-white" />
                       ) : (
-                        <Building2 className="h-5 w-5" aria-hidden="true" />
+                        <Building2 key="institution-icon" className="h-5 w-5" aria-hidden="true" />
                       )}
                       {account.institutionName}
                       {/* Status dot */}
@@ -340,12 +340,12 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
                       disabled={isUpdatingAccount === account.id}
                     >
                       {isUpdatingAccount === account.id ? (
-                        <div>
+                        <div key="updating-state">
                           <div className="mr-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
                           Updating...
                         </div>
                       ) : (
-                        <div>
+                        <div key="update-state">
                           <RefreshCw className="h-3 w-3 mr-1" />
                           Update
                         </div>

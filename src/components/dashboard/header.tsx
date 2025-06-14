@@ -96,9 +96,9 @@ export function Header() {
                   <Building2 className="mr-2 h-4 w-4" />
                   <span>Brokerage Accounts</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer" onSelect={() => router.push('/dashboard/preferences/')}>
                   <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>Preferences</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
