@@ -51,25 +51,47 @@ export default function PreferencesPage() {
     'TSX Composite'
   ];
   
-  // US states for state of residence
-  const statesOfResidence = [
-    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
-    'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
-    'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
-    'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
-    'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
-    'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
-    'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming', 'District of Columbia'
-  ];
+  // State code to name mapping
+  const stateCodeToName: Record<string, string> = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
+    'DC': 'District of Columbia'
+  };
+
+  // State name to code mapping (reverse of above)
+  const stateNameToCode: Record<string, string> = Object.entries(stateCodeToName).reduce(
+    (acc, [code, name]) => ({ ...acc, [name]: code }),
+    {}
+  );
   
-  // Tax filing status options
-  const taxFilingStatusOptions = [
-    'Single',
-    'Married Filing Jointly',
-    'Married Filing Separately',
-    'Head of Household',
-    'Qualifying Widow(er)'
-  ];
+  // Available options for state of residence dropdown (full state names)
+  const statesOfResidence = Object.values(stateCodeToName);
+  
+  // Tax filing status options with mapping to API values
+  const taxFilingStatusMapping: Record<string, string> = {
+    'SINGLE': 'Single',
+    'MARRIED_FILING_JOINTLY': 'Married Filing Jointly',
+    'MARRIED_FILING_SEPARATELY': 'Married Filing Separately',
+    'HEAD_OF_HOUSEHOLD': 'Head of Household',
+    'QUALIFYING_WIDOW': 'Qualifying Widow(er)'
+  };
+
+  // Reverse mapping for API submission
+  const taxFilingStatusReverseMapping: Record<string, string> = Object.entries(taxFilingStatusMapping).reduce(
+    (acc, [apiValue, displayValue]) => ({ ...acc, [displayValue]: apiValue }),
+    {}
+  );
+
+  // Options for the dropdown
+  const taxFilingStatusOptions = Object.values(taxFilingStatusMapping);
 
   // State for loading states and errors
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -136,11 +158,29 @@ export default function PreferencesPage() {
 
   // Handle tax form input changes
   const handleTaxChange = (field: keyof TaxSettings, value: string) => {
-    const numericValue = parseFloat(value) || 0;
-    setTaxValues(prev => ({
-      ...prev,
-      [field]: numericValue
-    }));
+    // Special handling for string fields - convert display values to API codes
+    if (field === 'stateOfResidence') {
+      // Convert state name to state code for the API
+      const stateCode = stateNameToCode[value] || value;
+      setTaxValues(prev => ({
+        ...prev,
+        [field]: stateCode
+      }));
+    } else if (field === 'taxFilingStatus') {
+      // Convert display filing status to API code
+      const filingStatusCode = taxFilingStatusReverseMapping[value] || value;
+      setTaxValues(prev => ({
+        ...prev,
+        [field]: filingStatusCode
+      }));
+    } else {
+      // Normal handling for numeric fields
+      const numericValue = parseFloat(value) || 0;
+      setTaxValues(prev => ({
+        ...prev,
+        [field]: numericValue
+      }));
+    }
   };
 
   // Simple select component helper
@@ -212,7 +252,7 @@ export default function PreferencesPage() {
                   <SimpleSelect
                     id="marketRegion"
                     label="Market Region"
-                    value={marketRegionValues.marketRegion}
+                    value={marketRegionValues?.marketRegion || ''}
                     onChange={(value) => handleMarketRegionChange('marketRegion', value)}
                     options={marketRegionOptions}
                     description="Select market region for analyzed securities"
@@ -221,7 +261,7 @@ export default function PreferencesPage() {
                   <SimpleSelect
                     id="riskFreeRate"
                     label="Risk Free Rate"
-                    value={marketRegionValues.riskFreeRate}
+                    value={marketRegionValues?.riskFreeRate || ''}
                     onChange={(value) => handleMarketRegionChange('riskFreeRate', value)}
                     options={riskFreeRateOptions}
                     description="Select risk free series for risk metrics"
@@ -230,7 +270,7 @@ export default function PreferencesPage() {
                   <SimpleSelect
                     id="inflationSeries"
                     label="Inflation Series"
-                    value={marketRegionValues.inflationSeries}
+                    value={marketRegionValues?.inflationSeries || ''}
                     onChange={(value) => handleMarketRegionChange('inflationSeries', value)}
                     options={inflationSeriesOptions}
                     description="Select inflation series for inflation adjusted returns and cashflow"
@@ -239,7 +279,7 @@ export default function PreferencesPage() {
                   <SimpleSelect
                     id="default_benchmark"
                     label="Default Benchmark"
-                    value={marketRegionValues.default_benchmark}
+                    value={marketRegionValues?.default_benchmark || ''}
                     onChange={(value) => handleMarketRegionChange('default_benchmark', value)}
                     options={benchmarkOptions}
                     description="Select default benchmark index for portfolio comparison"
@@ -267,7 +307,7 @@ export default function PreferencesPage() {
                         type="number"
                         min="0"
                         step="1000"
-                        value={taxValues.pretaxAnnualIncome.toString()}
+                        value={taxValues?.pretaxAnnualIncome?.toString() || ''}
                         onChange={(e) => handleTaxChange('pretaxAnnualIncome', e.target.value)}
                         className="pr-8 h-10"
                       />
@@ -278,7 +318,7 @@ export default function PreferencesPage() {
                   <div className="space-y-2">
                     <SimpleSelect
                       id="stateOfResidence"
-                      value={taxValues.stateOfResidence}
+                      value={stateCodeToName[taxValues?.stateOfResidence || ''] || ''}
                       onChange={(value) => handleTaxChange('stateOfResidence', value)}
                       options={statesOfResidence}
                       label="State of Residence"
@@ -289,7 +329,7 @@ export default function PreferencesPage() {
                   <div className="space-y-2">
                     <SimpleSelect
                       id="taxFilingStatus"
-                      value={taxValues.taxFilingStatus}
+                      value={taxFilingStatusMapping[taxValues?.taxFilingStatus || ''] || ''}
                       onChange={(value) => handleTaxChange('taxFilingStatus', value)}
                       options={taxFilingStatusOptions}
                       label="Tax Filing Status"
@@ -306,7 +346,7 @@ export default function PreferencesPage() {
                         min="0"
                         max="100"
                         step="0.1"
-                        value={taxValues.federalIncomeTax.toString()}
+                        value={taxValues?.federalIncomeTax?.toString() || ''}
                         onChange={(e) => handleTaxChange('federalIncomeTax', e.target.value)}
                         className="pr-8 h-10"
                       />
@@ -323,7 +363,7 @@ export default function PreferencesPage() {
                         min="0"
                         max="100"
                         step="0.1"
-                        value={taxValues.stateIncomeTax.toString()}
+                        value={taxValues?.stateIncomeTax?.toString() || ''}
                         onChange={(e) => handleTaxChange('stateIncomeTax', e.target.value)}
                         className="pr-8 h-10"
                       />
@@ -340,7 +380,7 @@ export default function PreferencesPage() {
                         min="0"
                         max="100"
                         step="0.1"
-                        value={taxValues.longTermCapitalGainsTax.toString()}
+                        value={taxValues?.longTermCapitalGainsTax?.toString() || ''}
                         onChange={(e) => handleTaxChange('longTermCapitalGainsTax', e.target.value)}
                         className="pr-8 h-10"
                       />
@@ -357,7 +397,7 @@ export default function PreferencesPage() {
                         min="0"
                         max="100"
                         step="0.1"
-                        value={taxValues.shortTermCapitalGainsTax.toString()}
+                        value={taxValues?.shortTermCapitalGainsTax?.toString() || ''}
                         onChange={(e) => handleTaxChange('shortTermCapitalGainsTax', e.target.value)}
                         className="pr-8 h-10"
                       />

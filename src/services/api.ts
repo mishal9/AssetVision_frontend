@@ -180,31 +180,76 @@ export const authApi = {
 export const preferencesApi = {
   /**
    * Get user preferences
+   * 
+   * @returns {Promise<{marketRegion: MarketRegionSettings, tax: TaxSettings}>}
+   * 
+   * API Response format:
+   * - Percentages are returned as decimal values (0.24 = 24%)
+   * - State of residence is a two-letter code (e.g., 'CA', 'NY')
+   * - Tax filing status is uppercase (e.g., 'SINGLE', 'MARRIED_FILING_JOINTLY')
    */
   getPreferences: () => 
-    fetchWithAuth<{market_region: any, tax: any}>('/preferences')
-      .then(response => ({
-        marketRegion: convertSnakeToCamelCase<MarketRegionSettings>(response.market_region),
-        tax: convertSnakeToCamelCase<TaxSettings>(response.tax)
-      })),
+    fetchWithAuth<any>('/preferences')
+      .then(response => {
+        // Convert decimal percentages to whole numbers (e.g., 0.24 to 24)
+        const convertPercentage = (value: string | number | null | undefined): number => {
+          if (value === null || value === undefined) return 0;
+          return Number(value) * 100 || 0;
+        };
+
+        // The API returns a flat structure, so we need to map it to our nested structure
+        return {
+          marketRegion: {
+            marketRegion: response.market_region || '',
+            riskFreeRate: response.risk_free_rate || '',
+            inflationSeries: response.inflation_series || '',
+            default_benchmark: response.default_benchmark || ''
+          },
+          tax: {
+            federalIncomeTax: convertPercentage(response.federal_income_tax),
+            stateIncomeTax: convertPercentage(response.state_income_tax),
+            pretaxAnnualIncome: Number(response.approximate_pre_tax_annual_income) || 0,
+            // Use exact state code from API (e.g., 'CA', 'NY')
+            stateOfResidence: response.state_of_residence || '',
+            // Normalize tax filing status (convert from uppercase to title case if needed)
+            taxFilingStatus: response.tax_filing_status || '',
+            longTermCapitalGainsTax: convertPercentage(response.long_term_capital_gains_tax),
+            shortTermCapitalGainsTax: convertPercentage(response.short_term_capital_gains_tax)
+          }
+        };
+      }),
   
   /**
    * Update user preferences
+   * 
+   * @param preferences Object containing marketRegion and tax settings
+   * @returns Promise
+   * 
+   * API Submission format:
+   * - Percentages should be sent as decimal values (e.g., 24% as 0.24)
+   * - State of residence should be a two-letter code (e.g., 'CA', 'NY')
+   * - Tax filing status should match the API's expected format
    */
   updatePreferences: (preferences: {marketRegion: MarketRegionSettings, tax: TaxSettings}) => {
-    // Convert from camelCase to snake_case for the API
+    // Helper to convert percentage values back to decimal for API (e.g., 24 to 0.24)
+    const convertToDecimalPercentage = (value: number | null | undefined): number => {
+      if (value === null || value === undefined) return 0;
+      return Number(value) / 100 || 0;
+    };
+    
+    // Convert from camelCase to snake_case for the API and format values correctly
     const data = {
         market_region: preferences.marketRegion.marketRegion,
         risk_free_rate: preferences.marketRegion.riskFreeRate,
         inflation_series: preferences.marketRegion.inflationSeries,
         default_benchmark: preferences.marketRegion.default_benchmark,
-        federal_income_tax: preferences.tax.federalIncomeTax,
-        state_income_tax: preferences.tax.stateIncomeTax,
-        pretax_annual_income: preferences.tax.pretaxAnnualIncome,
+        federal_income_tax: convertToDecimalPercentage(preferences.tax.federalIncomeTax),
+        state_income_tax: convertToDecimalPercentage(preferences.tax.stateIncomeTax),
+        approximate_pre_tax_annual_income: preferences.tax.pretaxAnnualIncome,
         state_of_residence: preferences.tax.stateOfResidence,
         tax_filing_status: preferences.tax.taxFilingStatus,
-        long_term_capital_gains_tax: preferences.tax.longTermCapitalGainsTax,
-        short_term_capital_gains_tax: preferences.tax.shortTermCapitalGainsTax
+        long_term_capital_gains_tax: convertToDecimalPercentage(preferences.tax.longTermCapitalGainsTax),
+        short_term_capital_gains_tax: convertToDecimalPercentage(preferences.tax.shortTermCapitalGainsTax)
     };
     
     return fetchWithAuth('/preferences', {
