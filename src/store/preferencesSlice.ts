@@ -7,6 +7,7 @@ export interface MarketRegionSettings {
   marketRegion: string;
   riskFreeRate: string;
   inflationSeries: string;
+  default_benchmark: string;
 }
 
 /**
@@ -35,6 +36,7 @@ const initialState: PreferencesState = {
     marketRegion: 'US',
     riskFreeRate: 'US 3 Month Treasury Bill',
     inflationSeries: 'U.S. Consumer Price Index',
+    default_benchmark: 'S&P 500',
   },
   tax: {
     federalIncomeTax: 22,

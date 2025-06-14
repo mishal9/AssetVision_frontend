@@ -39,6 +39,16 @@ export default function PreferencesPage() {
     'EU Harmonized Index of Consumer Prices',
     'Japan Consumer Price Index'
   ];
+  const benchmarkOptions = [
+    'S&P 500',
+    'Dow Jones Industrial Average',
+    'NASDAQ Composite',
+    'Russell 2000',
+    'FTSE 100',
+    'Nikkei 225',
+    'DAX',
+    'TSX Composite'
+  ];
 
   // Handle market region settings form submission
   const handleMarketRegionSubmit = (e: React.FormEvent) => {
@@ -155,6 +165,15 @@ export default function PreferencesPage() {
                     onChange={(value) => handleMarketRegionChange('inflationSeries', value)}
                     options={inflationSeriesOptions}
                     description="Select inflation series for inflation adjusted returns and cashflow"
+                  />
+
+                  <SimpleSelect
+                    id="default_benchmark"
+                    label="Default Benchmark"
+                    value={marketRegionValues.default_benchmark}
+                    onChange={(value) => handleMarketRegionChange('default_benchmark', value)}
+                    options={benchmarkOptions}
+                    description="Select default benchmark index for portfolio comparison"
                   />
                 </div>
               </CardContent>
