@@ -16,9 +16,9 @@ export interface MarketRegionSettings {
 export interface TaxSettings {
   federalIncomeTax: number;
   stateIncomeTax: number;
-  affordableCareActTax: number;
   pretaxAnnualIncome: number;
   stateOfResidence: string;
+  taxFilingStatus: string;
   longTermCapitalGainsTax: number;
   shortTermCapitalGainsTax: number;
 }
@@ -43,9 +43,9 @@ const initialState: PreferencesState = {
   tax: {
     federalIncomeTax: 22,
     stateIncomeTax: 0,
-    affordableCareActTax: 0,
     pretaxAnnualIncome: 100000,
     stateOfResidence: 'California',
+    taxFilingStatus: 'Single',
     longTermCapitalGainsTax: 15,
     shortTermCapitalGainsTax: 22,
   },
@@ -101,6 +101,7 @@ const preferencesSlice = createSlice({
 export const { 
   updateMarketRegionSettings,
   updateTaxSettings,
+  updateAllPreferences,
   setLoading,
   setError
 } = preferencesSlice.actions;

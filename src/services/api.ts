@@ -8,6 +8,7 @@ import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, Allocation
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
 import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
+import { MarketRegionSettings, TaxSettings } from '@/store/preferencesSlice';
 import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 
 /**
@@ -171,6 +172,46 @@ export const authApi = {
       method: 'POST',
     })
       .then(response => convertSnakeToCamelCase<{ success: boolean }>(response)),
+};
+
+/**
+ * Preferences API methods
+ */
+export const preferencesApi = {
+  /**
+   * Get user preferences
+   */
+  getPreferences: () => 
+    fetchWithAuth<{market_region: any, tax: any}>('/preferences')
+      .then(response => ({
+        marketRegion: convertSnakeToCamelCase<MarketRegionSettings>(response.market_region),
+        tax: convertSnakeToCamelCase<TaxSettings>(response.tax)
+      })),
+  
+  /**
+   * Update user preferences
+   */
+  updatePreferences: (preferences: {marketRegion: MarketRegionSettings, tax: TaxSettings}) => {
+    // Convert from camelCase to snake_case for the API
+    const data = {
+        market_region: preferences.marketRegion.marketRegion,
+        risk_free_rate: preferences.marketRegion.riskFreeRate,
+        inflation_series: preferences.marketRegion.inflationSeries,
+        default_benchmark: preferences.marketRegion.default_benchmark,
+        federal_income_tax: preferences.tax.federalIncomeTax,
+        state_income_tax: preferences.tax.stateIncomeTax,
+        pretax_annual_income: preferences.tax.pretaxAnnualIncome,
+        state_of_residence: preferences.tax.stateOfResidence,
+        tax_filing_status: preferences.tax.taxFilingStatus,
+        long_term_capital_gains_tax: preferences.tax.longTermCapitalGainsTax,
+        short_term_capital_gains_tax: preferences.tax.shortTermCapitalGainsTax
+    };
+    
+    return fetchWithAuth('/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
 };
 
 // End of API definitions

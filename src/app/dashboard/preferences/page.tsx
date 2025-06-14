@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { preferencesApi } from '@/services/api';
 
 /**
  * User Preferences Page
@@ -60,15 +61,69 @@ export default function PreferencesPage() {
     'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
     'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming', 'District of Columbia'
   ];
+  
+  // Tax filing status options
+  const taxFilingStatusOptions = [
+    'Single',
+    'Married Filing Jointly',
+    'Married Filing Separately',
+    'Head of Household',
+    'Qualifying Widow(er)'
+  ];
+
+  // State for loading states and errors
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Load user preferences from the API
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      setIsLoading(true);
+      try {
+        const preferences = await preferencesApi.getPreferences();
+        setMarketRegionValues(preferences.marketRegion);
+        setTaxValues(preferences.tax);
+        dispatch(updateAllPreferences(preferences));
+      } catch (err) {
+        console.error('Failed to load preferences:', err);
+        setError('Failed to load preferences. Using default values.');
+        toast.error('Failed to load your preferences');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPreferences();
+  }, [dispatch]);
 
   // Handle all preferences submission
-  const handleSavePreferences = (e: React.FormEvent) => {
+  const handleSavePreferences = async (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateAllPreferences({
-      marketRegion: marketRegionValues,
-      tax: taxValues
-    }));
-    toast.success('Preferences saved successfully');
+    setIsSaving(true);
+    setError(null);
+    
+    try {
+      // Update Redux state
+      dispatch(updateAllPreferences({
+        marketRegion: marketRegionValues,
+        tax: taxValues
+      }));
+      
+      // Make API call to persist to backend
+      await preferencesApi.updatePreferences({
+        marketRegion: marketRegionValues,
+        tax: taxValues
+      });
+      
+      toast.success('Preferences saved successfully');
+    } catch (err) {
+      console.error('Failed to save preferences:', err);
+      setError('Failed to save preferences. Please try again.');
+      toast.error('Failed to save preferences');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Handle market region form input changes
@@ -130,7 +185,14 @@ export default function PreferencesPage() {
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6">
       <h1 className="text-3xl font-bold mb-6">User Preferences</h1>
-      <form onSubmit={handleSavePreferences}>
+      
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-12 space-y-4">
+          <div className="w-8 h-8 border-4 border-t-primary rounded-full animate-spin"></div>
+          <p className="text-muted-foreground">Loading your preferences...</p>
+        </div>
+      ) : (
+        <form onSubmit={handleSavePreferences}>
         <Tabs defaultValue="market-region" className="w-full">
           <TabsList className="mb-6 w-full justify-start border-b">
             <TabsTrigger value="market-region" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-8 py-3">Market Region Settings</TabsTrigger>
@@ -223,6 +285,17 @@ export default function PreferencesPage() {
                       description="Your primary state of residence for tax purposes"
                     />
                   </div>
+                  
+                  <div className="space-y-2">
+                    <SimpleSelect
+                      id="taxFilingStatus"
+                      value={taxValues.taxFilingStatus}
+                      onChange={(value) => handleTaxChange('taxFilingStatus', value)}
+                      options={taxFilingStatusOptions}
+                      label="Tax Filing Status"
+                      description="Your tax filing status for federal tax purposes"
+                    />
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="federalIncomeTax" className="text-base font-medium">Federal Income Tax (%)</Label>
@@ -292,31 +365,30 @@ export default function PreferencesPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="affordableCareActTax" className="text-base font-medium">Affordable Care Act Tax (%)</Label>
-                    <div className="relative flex items-center">
-                      <Input
-                        id="affordableCareActTax"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={taxValues.affordableCareActTax.toString()}
-                        onChange={(e) => handleTaxChange('affordableCareActTax', e.target.value)}
-                        className="pr-8 h-10"
-                      />
-                      <span className="absolute right-3 text-muted-foreground">%</span>
-                    </div>
-                  </div>
+
                 </div>
               </CardContent>
           </Card>
           </TabsContent>
         </Tabs>
-      <div className="mt-8 flex justify-end">
-        <Button type="submit" className="px-10 py-6 text-base">Save All Preferences</Button>
+      <div className="mt-8 flex flex-col space-y-4">
+        {error && (
+          <div className="bg-destructive/15 text-destructive rounded-md p-3">
+            {error}
+          </div>
+        )}
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            className="px-10 py-6 text-base" 
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save All Preferences'}
+          </Button>
+        </div>
       </div>
     </form>
+      )}
     </div>
   );
 }

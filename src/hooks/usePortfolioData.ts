@@ -10,6 +10,9 @@ import { alertsApi, Alert } from '@/services/api';
  * @returns Portfolio data, loading states, and error states
  */
 export function usePortfolioData() {
+  // Portfolio existence state
+  const [portfolioExists, setPortfolioExists] = useState<boolean | null>(null);
+  
   // Portfolio summary data
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState<boolean>(true);
@@ -31,7 +34,7 @@ export function usePortfolioData() {
   const [alertsLoading, setAlertsLoading] = useState<boolean>(true);
   const [alertsError, setAlertsError] = useState<string | null>(null);
   
-  // Fetch portfolio summary
+  // Fetch portfolio summary and check if portfolio exists
   useEffect(() => {
     async function fetchSummary() {
       try {
@@ -39,8 +42,13 @@ export function usePortfolioData() {
         const data = await portfolioApi.getPortfolioSummary();
         setSummary(data);
         setSummaryError(null);
-      } catch (error) {
+        setPortfolioExists(true);
+      } catch (error: any) {
         console.error('Error fetching portfolio summary:', error);
+        // Check for 404 specifically to determine portfolio doesn't exist
+        if (error?.status === 404 || error?.message?.includes('404')) {
+          setPortfolioExists(false);
+        }
         setSummaryError('Failed to load portfolio summary');
       } finally {
         setSummaryLoading(false);
@@ -50,9 +58,13 @@ export function usePortfolioData() {
     fetchSummary();
   }, []);
   
-  // Fetch performance data
+  // Fetch performance data only if portfolio exists
   useEffect(() => {
     async function fetchPerformance() {
+      if (portfolioExists !== true) {
+        return;
+      }
+      
       try {
         setPerformanceLoading(true);
         // Fetch all performance data at once to avoid reloading when changing periods
@@ -68,11 +80,15 @@ export function usePortfolioData() {
     }
     
     fetchPerformance();
-  }, []);
+  }, [portfolioExists]);
   
-  // Fetch asset allocation
+  // Fetch asset allocation only if portfolio exists
   useEffect(() => {
     async function fetchAllocation() {
+      if (portfolioExists !== true) {
+        return;
+      }
+      
       try {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
@@ -107,13 +123,15 @@ export function usePortfolioData() {
     }
     
     fetchAllocation();
-  }, []);
+  }, [portfolioExists]);
   
 
   
-  // Fetch alerts
+  // Fetch alerts only if portfolio exists
   useEffect(() => {
     async function fetchAlerts() {
+      // Still fetch alerts even without portfolio, as there might be system alerts
+      // But we could add a check here if alerts are strictly portfolio-related
       try {
         setAlertsLoading(true);
         const data = await alertsApi.getAlerts();
@@ -134,32 +152,45 @@ export function usePortfolioData() {
   const refreshData = () => {
     // Reset loading states
     setSummaryLoading(true);
-    setPerformanceLoading(true);
-    setAllocationLoading(true);
     setAlertsLoading(true);
     
-    // Fetch all data again
+    // Always check portfolio summary first
     portfolioApi.getPortfolioSummary().then(data => {
       setSummary(data);
       setSummaryError(null);
+      setPortfolioExists(true);
+      
+      // Portfolio exists, prepare to refresh the other data
+      setPerformanceLoading(true);
+      setAllocationLoading(true);
     }).catch(error => {
       console.error('Error refreshing portfolio summary:', error);
       setSummaryError('Failed to refresh portfolio summary');
+      
+      // Check if portfolio doesn't exist
+      if (error?.status === 404 || error?.message?.includes('404')) {
+        setPortfolioExists(false);
+      }
     }).finally(() => {
       setSummaryLoading(false);
     });
     
-    portfolioApi.getPerformance('all').then(data => {
-      setPerformance(data);
-      setPerformanceError(null);
-    }).catch(error => {
-      console.error('Error refreshing performance data:', error);
-      setPerformanceError('Failed to refresh performance data');
-    }).finally(() => {
-      setPerformanceLoading(false);
-    });
+    // Only fetch performance data if portfolio exists
+    if (portfolioExists === true) {
+      portfolioApi.getPerformance('all').then(data => {
+        setPerformance(data);
+        setPerformanceError(null);
+      }).catch(error => {
+        console.error('Error refreshing performance data:', error);
+        setPerformanceError('Failed to refresh performance data');
+      }).finally(() => {
+        setPerformanceLoading(false);
+      });
+    }
     
-    portfolioApi.getAssetAllocation().then(data => {
+    // Only fetch allocation data if portfolio exists
+    if (portfolioExists === true) {
+      portfolioApi.getAssetAllocation().then(data => {
       // Handle asset allocation
       if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
         setAssetAllocation(data.asset_allocation);
@@ -187,6 +218,7 @@ export function usePortfolioData() {
     }).finally(() => {
       setAllocationLoading(false);
     });
+    }
     
 
     
