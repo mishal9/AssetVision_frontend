@@ -189,7 +189,7 @@ export const preferencesApi = {
    * - Tax filing status is uppercase (e.g., 'SINGLE', 'MARRIED_FILING_JOINTLY')
    */
   getPreferences: () => 
-    fetchWithAuth<any>('/preferences')
+    fetchWithAuth<any>('/preferences/')
       .then(response => {
         // Convert decimal percentages to whole numbers (e.g., 0.24 to 24)
         const convertPercentage = (value: string | number | null | undefined): number => {
@@ -252,7 +252,7 @@ export const preferencesApi = {
         short_term_capital_gains_tax: convertToDecimalPercentage(preferences.tax.shortTermCapitalGainsTax)
     };
     
-    return fetchWithAuth('/preferences', {
+    return fetchWithAuth('/preferences/', {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
