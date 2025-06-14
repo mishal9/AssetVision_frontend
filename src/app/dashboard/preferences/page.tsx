@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { updateMarketRegionSettings, updateTaxSettings, type MarketRegionSettings, type TaxSettings } from '@/store/preferencesSlice';
+import { updateAllPreferences, type MarketRegionSettings, type TaxSettings } from '@/store/preferencesSlice';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -49,19 +49,26 @@ export default function PreferencesPage() {
     'DAX',
     'TSX Composite'
   ];
+  
+  // US states for state of residence
+  const statesOfResidence = [
+    'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+    'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+    'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+    'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+    'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+    'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+    'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming', 'District of Columbia'
+  ];
 
-  // Handle market region settings form submission
-  const handleMarketRegionSubmit = (e: React.FormEvent) => {
+  // Handle all preferences submission
+  const handleSavePreferences = (e: React.FormEvent) => {
     e.preventDefault();
-    dispatch(updateMarketRegionSettings(marketRegionValues));
-    toast.success('Market region settings saved successfully');
-  };
-
-  // Handle tax settings form submission
-  const handleTaxSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(updateTaxSettings(taxValues));
-    toast.success('Tax settings saved successfully');
+    dispatch(updateAllPreferences({
+      marketRegion: marketRegionValues,
+      tax: taxValues
+    }));
+    toast.success('Preferences saved successfully');
   };
 
   // Handle market region form input changes
@@ -123,13 +130,14 @@ export default function PreferencesPage() {
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4 sm:px-6">
       <h1 className="text-3xl font-bold mb-6">User Preferences</h1>
-      <Tabs defaultValue="market-region" className="w-full">
-        <TabsList className="mb-6 w-full justify-start border-b">
-          <TabsTrigger value="market-region" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-8 py-3">Market Region Settings</TabsTrigger>
-          <TabsTrigger value="tax" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-8 py-3">Tax Settings</TabsTrigger>
-        </TabsList>
+      <form onSubmit={handleSavePreferences}>
+        <Tabs defaultValue="market-region" className="w-full">
+          <TabsList className="mb-6 w-full justify-start border-b">
+            <TabsTrigger value="market-region" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-8 py-3">Market Region Settings</TabsTrigger>
+            <TabsTrigger value="tax" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-8 py-3">Tax Settings</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="market-region">
+          <TabsContent value="market-region">
           <Card className="border shadow-sm">
             <CardHeader>
               <CardTitle>Market Region Settings</CardTitle>
@@ -137,7 +145,6 @@ export default function PreferencesPage() {
                 Configure the market region settings for analyzed securities, risk metrics, and inflation adjustments.
               </CardDescription>
             </CardHeader>
-            <form onSubmit={handleMarketRegionSubmit}>
               <CardContent className="space-y-2 pt-4">
                 <div className="grid gap-0">
                   <SimpleSelect
@@ -177,14 +184,10 @@ export default function PreferencesPage() {
                   />
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end border-t pt-4 mt-2">
-                <Button type="submit" className="px-8">Save Market Region Settings</Button>
-              </CardFooter>
-            </form>
           </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="tax">
+          <TabsContent value="tax">
           <Card className="border shadow-sm">
             <CardHeader>
               <CardTitle>Tax Settings</CardTitle>
@@ -192,9 +195,35 @@ export default function PreferencesPage() {
                 Configure your tax settings for accurate portfolio return and income calculations.
               </CardDescription>
             </CardHeader>
-            <form onSubmit={handleTaxSubmit}>
               <CardContent className="space-y-4 pt-4">
                 <div className="grid gap-3 md:grid-cols-2 md:gap-x-6 md:gap-y-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="pretaxAnnualIncome" className="text-base font-medium">Approximate Pre-Tax Annual Income ($)</Label>
+                    <div className="relative flex items-center">
+                      <Input
+                        id="pretaxAnnualIncome"
+                        type="number"
+                        min="0"
+                        step="1000"
+                        value={taxValues.pretaxAnnualIncome.toString()}
+                        onChange={(e) => handleTaxChange('pretaxAnnualIncome', e.target.value)}
+                        className="pr-8 h-10"
+                      />
+                      <span className="absolute right-3 text-muted-foreground">$</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <SimpleSelect
+                      id="stateOfResidence"
+                      value={taxValues.stateOfResidence}
+                      onChange={(value) => handleTaxChange('stateOfResidence', value)}
+                      options={statesOfResidence}
+                      label="State of Residence"
+                      description="Your primary state of residence for tax purposes"
+                    />
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="federalIncomeTax" className="text-base font-medium">Federal Income Tax (%)</Label>
                     <div className="relative flex items-center">
@@ -206,40 +235,6 @@ export default function PreferencesPage() {
                         step="0.1"
                         value={taxValues.federalIncomeTax.toString()}
                         onChange={(e) => handleTaxChange('federalIncomeTax', e.target.value)}
-                        className="pr-8 h-10"
-                      />
-                      <span className="absolute right-3 text-muted-foreground">%</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="capitalGainsTax" className="text-base font-medium">Capital Gains Tax (%)</Label>
-                    <div className="relative flex items-center">
-                      <Input
-                        id="capitalGainsTax"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={taxValues.capitalGainsTax.toString()}
-                        onChange={(e) => handleTaxChange('capitalGainsTax', e.target.value)}
-                        className="pr-8 h-10"
-                      />
-                      <span className="absolute right-3 text-muted-foreground">%</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="dividendTax" className="text-base font-medium">Dividend Tax (%)</Label>
-                    <div className="relative flex items-center">
-                      <Input
-                        id="dividendTax"
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="0.1"
-                        value={taxValues.dividendTax.toString()}
-                        onChange={(e) => handleTaxChange('dividendTax', e.target.value)}
                         className="pr-8 h-10"
                       />
                       <span className="absolute right-3 text-muted-foreground">%</span>
@@ -264,6 +259,40 @@ export default function PreferencesPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="longTermCapitalGainsTax" className="text-base font-medium">Long Term Capital Gains Tax (%)</Label>
+                    <div className="relative flex items-center">
+                      <Input
+                        id="longTermCapitalGainsTax"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxValues.longTermCapitalGainsTax.toString()}
+                        onChange={(e) => handleTaxChange('longTermCapitalGainsTax', e.target.value)}
+                        className="pr-8 h-10"
+                      />
+                      <span className="absolute right-3 text-muted-foreground">%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="shortTermCapitalGainsTax" className="text-base font-medium">Short Term Capital Gains Tax (%)</Label>
+                    <div className="relative flex items-center">
+                      <Input
+                        id="shortTermCapitalGainsTax"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={taxValues.shortTermCapitalGainsTax.toString()}
+                        onChange={(e) => handleTaxChange('shortTermCapitalGainsTax', e.target.value)}
+                        className="pr-8 h-10"
+                      />
+                      <span className="absolute right-3 text-muted-foreground">%</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="affordableCareActTax" className="text-base font-medium">Affordable Care Act Tax (%)</Label>
                     <div className="relative flex items-center">
                       <Input
@@ -281,13 +310,13 @@ export default function PreferencesPage() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end border-t pt-4 mt-2">
-                <Button type="submit" className="px-8">Save Tax Settings</Button>
-              </CardFooter>
-            </form>
           </Card>
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+        </Tabs>
+      <div className="mt-8 flex justify-end">
+        <Button type="submit" className="px-10 py-6 text-base">Save All Preferences</Button>
+      </div>
+    </form>
     </div>
   );
 }

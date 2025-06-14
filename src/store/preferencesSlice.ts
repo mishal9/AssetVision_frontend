@@ -15,10 +15,12 @@ export interface MarketRegionSettings {
  */
 export interface TaxSettings {
   federalIncomeTax: number;
-  capitalGainsTax: number;
-  dividendTax: number;
   stateIncomeTax: number;
   affordableCareActTax: number;
+  pretaxAnnualIncome: number;
+  stateOfResidence: string;
+  longTermCapitalGainsTax: number;
+  shortTermCapitalGainsTax: number;
 }
 
 /**
@@ -40,10 +42,12 @@ const initialState: PreferencesState = {
   },
   tax: {
     federalIncomeTax: 22,
-    capitalGainsTax: 15,
-    dividendTax: 15,
     stateIncomeTax: 0,
     affordableCareActTax: 0,
+    pretaxAnnualIncome: 100000,
+    stateOfResidence: 'California',
+    longTermCapitalGainsTax: 15,
+    shortTermCapitalGainsTax: 22,
   },
   loading: false,
   error: null,
@@ -59,15 +63,23 @@ const preferencesSlice = createSlice({
     /**
      * Update market region settings
      */
-    updateMarketRegionSettings(state, action: PayloadAction<MarketRegionSettings>) {
+    updateMarketRegionSettings: (state, action: PayloadAction<MarketRegionSettings>) => {
       state.marketRegion = action.payload;
     },
     
     /**
      * Update tax settings
      */
-    updateTaxSettings(state, action: PayloadAction<TaxSettings>) {
+    updateTaxSettings: (state, action: PayloadAction<TaxSettings>) => {
       state.tax = action.payload;
+    },
+    
+    /**
+     * Update all preferences
+     */
+    updateAllPreferences: (state, action: PayloadAction<{marketRegion: MarketRegionSettings, tax: TaxSettings}>) => {
+      state.marketRegion = action.payload.marketRegion;
+      state.tax = action.payload.tax;
     },
     
     /**
