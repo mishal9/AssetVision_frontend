@@ -23,6 +23,7 @@ export class MarketDataService {
   private callbacks: MarketDataCallback[] = [];
   private isConnected = false;
   private wsBaseUrl: string;
+  private unsubscribeCallbacks: Array<() => void> = [];
 
   private constructor() {
     this.wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/';
@@ -37,14 +38,27 @@ export class MarketDataService {
   }
 
   private initialize() {
+    // Set up connection status listener
+    const unsubscribe = socketService.onConnectionChange((connected) => {
+      this.isConnected = connected;
+      if (connected) {
+        console.log('MarketDataService: WebSocket connected');
+      } else {
+        console.log('MarketDataService: WebSocket disconnected');
+      }
+    });
+    this.unsubscribeCallbacks.push(unsubscribe);
+    
     // Connect to WebSocket server
     socketService.connect(this.wsBaseUrl);
     
     // Set up message handlers
-    socketService.on('connect', this.handleConnect.bind(this));
-    socketService.on('disconnect', this.handleDisconnect.bind(this));
-    socketService.on('MARKET_UPDATE', this.handleMarketUpdate.bind(this));
-    socketService.on('INITIAL_DATA', this.handleInitialData.bind(this));
+    this.unsubscribeCallbacks.push(
+      socketService.on('connect', this.handleConnect.bind(this)),
+      socketService.on('disconnect', this.handleDisconnect.bind(this)),
+      socketService.on('MARKET_UPDATE', this.handleMarketUpdate.bind(this)),
+      socketService.on('INITIAL_DATA', this.handleInitialData.bind(this))
+    );
   }
 
   private handleConnect() {
@@ -92,8 +106,15 @@ export class MarketDataService {
 
   // Clean up when the service is no longer needed
   disconnect() {
-    socketService.disconnect();
+    // Clean up all event listeners
+    this.unsubscribeCallbacks.forEach(unsubscribe => unsubscribe());
+    this.unsubscribeCallbacks = [];
+    
+    // Clear callbacks
     this.callbacks = [];
+    
+    // Disconnect WebSocket
+    socketService.disconnect();
   }
 }
 
