@@ -50,10 +50,32 @@ export default function DashboardPage() {
   
   useEffect(() => {
     // Initialize WebSocket connection for real-time updates
-    socketService.connect();
+    const connectWebSocket = () => {
+      try {
+        console.log('Connecting to WebSocket...');
+        socketService.connect();
+      } catch (error) {
+        console.error('Failed to connect to WebSocket:', error);
+      }
+    };
+    
+    // Connect to WebSocket
+    connectWebSocket();
+    
+    // Set up connection status listener
+    const unsubscribe = socketService.onConnectionChange((connected) => {
+      console.log('WebSocket connection status:', connected ? 'connected' : 'disconnected');
+      if (!connected) {
+        // Attempt to reconnect after a delay
+        setTimeout(connectWebSocket, 5000);
+      }
+    });
     
     // Cleanup WebSocket connection on unmount
-    return () => socketService.disconnect();
+    return () => {
+      unsubscribe();
+      socketService.disconnect();
+    };
   }, []);
 
   // Format currency values

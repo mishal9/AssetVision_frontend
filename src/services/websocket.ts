@@ -1,5 +1,11 @@
 type EventHandler = (data: any) => void;
 
+interface WebSocketMessage {
+  type: string;
+  data?: any;
+  [key: string]: any;
+}
+
 export class WebSocketService {
   private static instance: WebSocketService;
   private socket: WebSocket | null = null;
@@ -10,6 +16,10 @@ export class WebSocketService {
   private reconnectDelay = 1000;
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private connectionListeners: Array<(connected: boolean) => void> = [];
+  private messageQueue: WebSocketMessage[] = [];
+  private connectionPromise: Promise<void> | null = null;
+  private resolveConnection: (() => void) | null = null;
+  private rejectConnection: ((error: Error) => void) | null = null;
 
   private constructor() {
     this.url = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/';
@@ -22,7 +32,29 @@ export class WebSocketService {
     return WebSocketService.instance;
   }
 
-  connect(url?: string) {
+  async connect(url?: string): Promise<void> {
+    if (this.connectionPromise) {
+      return this.connectionPromise;
+    }
+    
+    this.connectionPromise = new Promise((resolve, reject) => {
+      this.resolveConnection = resolve;
+      this.rejectConnection = reject;
+    });
+    
+    try {
+      await this._connect(url);
+      return this.connectionPromise;
+    } catch (error) {
+      this.rejectConnection?.(error instanceof Error ? error : new Error(String(error)));
+      this.connectionPromise = null;
+      this.rejectConnection = null;
+      this.resolveConnection = null;
+      throw error;
+    }
+  }
+  
+  private async _connect(url?: string): Promise<void> {
     if (this.socket) {
       this.disconnect();
     }
@@ -30,42 +62,63 @@ export class WebSocketService {
     const connectUrl = url || this.url;
     this.url = connectUrl;
 
-    try {
-      this.socket = new WebSocket(connectUrl);
+    return new Promise((resolve, reject) => {
+      try {
+        this.socket = new WebSocket(connectUrl);
 
-      this.socket.onopen = () => {
-        console.log('Connected to WebSocket server at', connectUrl);
-        this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
-        this.notifyConnectionChange(true);
-      };
+        const onOpen = () => {
+          console.log('Connected to WebSocket server at', connectUrl);
+          this.reconnectAttempts = 0;
+          this.notifyConnectionChange(true);
+          resolve();
+        };
 
-      this.socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          const handlers = this.eventHandlers.get(message.type) || [];
-          handlers.forEach(handler => handler(message.data));
-        } catch (error) {
-          console.error('Error processing WebSocket message:', error);
-        }
-      };
+        const onError = (error: Event) => {
+          console.error('WebSocket error:', error);
+          this.notifyConnectionChange(false);
+          if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
+            reject(new Error('WebSocket connection failed'));
+          }
+        };
 
-      this.socket.onclose = (event) => {
-        console.log('WebSocket connection closed:', event.code, event.reason);
-        this.notifyConnectionChange(false);
+        const onClose = (event: CloseEvent) => {
+          console.log('WebSocket connection closed:', event.code, event.reason);
+          this.notifyConnectionChange(false);
+          this.attemptReconnect();
+          if (event.code >= 4000) {
+            reject(new Error(`WebSocket error: ${event.reason || 'Connection closed with error'}`));
+          }
+        };
+
+        this.socket.onopen = onOpen;
+        this.socket.onerror = onError;
+        this.socket.onclose = onClose;
+
+        this.socket.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            const handlers = this.eventHandlers.get(message.type) || [];
+            handlers.forEach(handler => handler(message.data));
+          } catch (error) {
+            console.error('Error processing WebSocket message:', error);
+          }
+        };
+      } catch (error) {
+        console.error('Failed to create WebSocket:', error);
+        reject(error);
         this.attemptReconnect();
-      };
-
-      this.socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-        this.notifyConnectionChange(false);
-      };
-    } catch (error) {
-      console.error('Failed to create WebSocket:', error);
-      this.attemptReconnect();
-    }
+      }
+    });
   }
 
   private notifyConnectionChange(connected: boolean) {
+    if (connected) {
+      this.flushMessageQueue();
+      this.resolveConnection?.();
+      this.connectionPromise = null;
+      this.rejectConnection = null;
+      this.resolveConnection = null;
+    }
     this.connectionListeners.forEach(listener => listener(connected));
   }
 
@@ -127,20 +180,50 @@ export class WebSocketService {
     }
   }
 
-  // Send a message to the server
-  send(event: string, data: any = {}) {
-    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      try {
-        const message = JSON.stringify({ type: event, data });
-        this.socket.send(message);
-        return true;
-      } catch (error) {
-        console.error('Error sending WebSocket message:', error);
-        return false;
-      }
-    } else {
-      console.warn('WebSocket is not connected');
+  private flushMessageQueue() {
+    while (this.messageQueue.length > 0 && this.socket?.readyState === WebSocket.OPEN) {
+      const message = this.messageQueue.shift()!;
+      this.sendInternal(message);
+    }
+  }
+  
+  private sendInternal(message: WebSocketMessage): boolean {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
       return false;
+    }
+    
+    try {
+      this.socket.send(JSON.stringify(message));
+      return true;
+    } catch (error) {
+      console.error('Error sending WebSocket message:', error);
+      return false;
+    }
+  }
+
+  // Send a message to the server
+  async send(event: string, data: any = {}): Promise<boolean> {
+    const message = { type: event, data };
+    
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      return this.sendInternal(message);
+    } else if (this.socket?.readyState === WebSocket.CONNECTING) {
+      // Queue the message if we're still connecting
+      this.messageQueue.push(message);
+      return true;
+    } else {
+      // If not connected, try to reconnect and queue the message
+      this.messageQueue.push(message);
+      if (!this.connectionPromise) {
+        try {
+          await this.connect();
+          return true;
+        } catch (error) {
+          console.error('Failed to reconnect:', error);
+          return false;
+        }
+      }
+      return true;
     }
   }
   
