@@ -25,7 +25,7 @@ export class MarketDataService {
   private wsBaseUrl: string;
 
   private constructor() {
-    this.wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001';
+    this.wsBaseUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/';
     this.initialize();
   }
 
