@@ -46,7 +46,7 @@ export const PLAID_ENDPOINTS = {
 
 // WebSocket endpoints
 export const WEBSOCKET_ENDPOINTS = {
-  CONNECT: process.env.NEXT_PUBLIC_WEBSOCKET_URL || 'ws://localhost:8000/ws/',
+  CONNECT: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/',
 };
 
 // Export a combined object for easy imports
