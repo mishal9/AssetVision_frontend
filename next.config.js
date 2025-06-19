@@ -4,7 +4,7 @@ const nextConfig = {
   env: {
     // Use NEXT_PUBLIC_WS_URL if set, otherwise use the Docker service URL if in production, otherwise use the host's IP
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 
-      (process.env.NODE_ENV === 'production' ? 'ws://websocket:8001' : 'ws://192.168.1.187:8001') + '/ws/market-data/',
+      'ws://localhost:8001/ws/market-data/',
   },
   
   // Image optimization

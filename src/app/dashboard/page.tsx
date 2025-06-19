@@ -50,10 +50,12 @@ export default function DashboardPage() {
   
   useEffect(() => {
     // Initialize WebSocket connection for real-time updates
-    const connectWebSocket = () => {
+    const connectWebSocket = async () => {
       try {
         console.log('Connecting to WebSocket...');
-        socketService.connect();
+        // Get the access token from localStorage
+        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+        await socketService.connect(undefined, token || undefined);
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
       }

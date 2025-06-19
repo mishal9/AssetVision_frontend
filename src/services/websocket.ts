@@ -10,6 +10,7 @@ export class WebSocketService {
   private static instance: WebSocketService;
   private socket: WebSocket | null = null;
   private url: string;
+  private accessToken: string | null = null;
   private eventHandlers: Map<string, EventHandler[]> = new Map();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -23,6 +24,10 @@ export class WebSocketService {
 
   private constructor() {
     this.url = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/';
+    // Try to get token from localStorage if available
+    if (typeof window !== 'undefined') {
+      this.accessToken = localStorage.getItem('auth_token');
+    }
   }
 
   static getInstance(): WebSocketService {
@@ -32,9 +37,22 @@ export class WebSocketService {
     return WebSocketService.instance;
   }
 
-  async connect(url?: string): Promise<void> {
+  /**
+   * Connect to the WebSocket server with an optional access token
+   * @param url Optional WebSocket URL (defaults to the one set in constructor)
+   * @param accessToken Optional access token for authentication
+   */
+  async connect(url?: string, accessToken?: string): Promise<void> {
     if (this.connectionPromise) {
       return this.connectionPromise;
+    }
+    
+    // Update access token if provided
+    if (accessToken) {
+      this.accessToken = accessToken;
+    } else if (typeof window !== 'undefined' && !this.accessToken) {
+      // Try to get token from localStorage if not set
+      this.accessToken = localStorage.getItem('auth_token');
     }
     
     this.connectionPromise = new Promise((resolve, reject) => {
@@ -60,11 +78,36 @@ export class WebSocketService {
     }
 
     const connectUrl = url || this.url;
-    this.url = connectUrl;
+    this.url = connectUrl; // Store the base URL
+    
+    // Create WebSocket with Authorization header if token is available
+    const wsUrl = new URL(connectUrl);
+    const headers: Record<string, string> = {};
+    
+    if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+    
+    // Convert headers to the format expected by the WebSocket constructor
+    const wsProtocols = headers['Sec-WebSocket-Protocol'] ? [headers['Sec-WebSocket-Protocol']] : undefined;
+    
+    // Create WebSocket with custom headers using a proxy if needed
+    // Note: This is a simplified example - in a real app, you might need to use a proxy
+    // or a library that supports custom headers with WebSockets
+    if (this.accessToken) {
+      // Add token to the URL as a fallback if headers aren't supported
+      const separator = connectUrl.includes('?') ? '&' : '?';
+      wsUrl.search = `${wsUrl.search ? wsUrl.search + '&' : '?'}token=${encodeURIComponent(this.accessToken)}`;
+    }
 
     return new Promise((resolve, reject) => {
       try {
-        this.socket = new WebSocket(connectUrl);
+        // Note: The WebSocket API doesn't support custom headers in the browser
+        // This is a limitation of the WebSocket API. In a real app, you might need to:
+        // 1. Use a library that supports custom headers with WebSockets
+        // 2. Use a proxy server that adds the Authorization header
+        // 3. Use a different authentication method (like cookies or URL parameters)
+        this.socket = new WebSocket(wsUrl.toString());
 
         const onOpen = () => {
           console.log('Connected to WebSocket server at', connectUrl);
@@ -235,6 +278,18 @@ export class WebSocketService {
   // Get connection status
   get isConnected(): boolean {
     return this.socket?.readyState === WebSocket.OPEN;
+  }
+
+  /**
+   * Set the access token for authentication
+   * @param token The JWT access token
+   */
+  setAccessToken(token: string | null) {
+    this.accessToken = token;
+    // If we're already connected, we need to reconnect with the new token
+    if (this.socket) {
+      this.connect();
+    }
   }
 }
 
