@@ -124,9 +124,38 @@ export const alertsApi = {
   updateAlertRule: async (id: string, alertRule: Partial<AlertRuleInput>): Promise<AlertRule> => {
     // Transform frontend model to API expected format
     const apiAlertRule: Record<string, any> = {};
+    
+    // Log what we're about to update
+    console.warn('🔄 Updating alert rule:', id, 'with data:', alertRule);
+    
+    // Process each field that needs updating
     if (alertRule.name !== undefined) apiAlertRule.name = alertRule.name;
-    if (alertRule.isActive !== undefined) apiAlertRule.is_active = alertRule.isActive;
-    if (alertRule.status !== undefined) apiAlertRule.status = alertRule.status;
+    
+    // Make sure both isActive and status are updated together for consistency
+    if (alertRule.isActive !== undefined) {
+      apiAlertRule.is_active = alertRule.isActive;
+      // If status wasn't explicitly provided but isActive was, derive status from isActive
+      if (alertRule.status === undefined) {
+        apiAlertRule.status = alertRule.isActive ? AlertStatus.ACTIVE : AlertStatus.PAUSED;
+      }
+    }
+    
+    // If status is being updated, ensure it's a valid enum value
+    if (alertRule.status !== undefined) {
+      const validStatusTypes = Object.values(AlertStatus);
+      if (validStatusTypes.includes(alertRule.status)) {
+        apiAlertRule.status = alertRule.status;
+        
+        // Ensure isActive matches the status for consistency if not explicitly set
+        if (alertRule.isActive === undefined) {
+          apiAlertRule.is_active = alertRule.status === AlertStatus.ACTIVE;
+        }
+      } else {
+        console.error('❌ Invalid alert status:', alertRule.status);
+      }
+    }
+    
+    // Process other fields
     if (alertRule.frequency !== undefined) apiAlertRule.frequency = alertRule.frequency;
     if (alertRule.conditionType !== undefined) apiAlertRule.condition_type = alertRule.conditionType;
     if (alertRule.conditionConfig !== undefined) apiAlertRule.condition_config = alertRule.conditionConfig;
@@ -135,11 +164,22 @@ export const alertsApi = {
     if (alertRule.portfolioId !== undefined) apiAlertRule.portfolio = alertRule.portfolioId;
     if (alertRule.accountId !== undefined) apiAlertRule.account = alertRule.accountId;
 
-    const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id), {
-      method: 'PATCH',
-      body: JSON.stringify(apiAlertRule),
-    });
-    return transformAlertRule(response);
+    console.warn('📤 Sending API request:', apiAlertRule);
+    
+    try {
+      const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id), {
+        method: 'PATCH',
+        body: JSON.stringify(apiAlertRule),
+      });
+      
+      console.warn('📥 API response received:', response);
+      const transformed = transformAlertRule(response);
+      console.warn('✅ Transformed response:', transformed);
+      return transformed;
+    } catch (error) {
+      console.error('❌ Error updating alert rule:', error);
+      throw error;
+    }
   },
 
   // Delete an alert rule

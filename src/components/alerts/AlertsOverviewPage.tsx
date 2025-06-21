@@ -1,32 +1,28 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { 
-  AlertRule, 
-  ConditionType,
-  AlertStatus
-} from '../../types/alerts';
-import { alertsApi } from '../../services/alerts-api';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { AlertRule, ConditionType, AlertStatus } from "../../types/alerts";
+import { alertsApi } from "../../services/alerts-api";
 
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '../ui/card';
+} from "../ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import { Separator } from '../ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+} from "../ui/select";
+import { Separator } from "../ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import {
   Table,
   TableBody,
@@ -36,12 +32,12 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { 
+import {
   Plus,
-  Filter, 
-  Bell, 
-  Search, 
-  ArrowUpDown, 
+  Filter,
+  Bell,
+  Search,
+  ArrowUpDown,
   BarChart3,
   AlertCircle,
   Eye,
@@ -49,26 +45,26 @@ import {
   Trash2,
   ToggleLeft,
   ToggleRight,
-  Info
-} from 'lucide-react';
+  Info,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import DriftAlertCard from './DriftAlertCard';
+import DriftAlertCard from "./DriftAlertCard";
 
 export default function AlertsOverviewPage() {
   const router = useRouter();
   const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [filteredAlerts, setFilteredAlerts] = useState<AlertRule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+
   // Fetch alerts on component mount
   useEffect(() => {
     fetchAlerts();
@@ -78,74 +74,93 @@ export default function AlertsOverviewPage() {
   useEffect(() => {
     applyFilters();
   }, [alerts, activeTab, searchQuery, statusFilter, typeFilter]);
-  
+
   // Add a debug log to check alert data after fetching
   useEffect(() => {
     if (alerts.length > 0) {
-      console.log('Alerts data loaded:', alerts);
+      console.log("Alerts data loaded:", alerts);
     }
   }, [alerts]);
 
   const fetchAlerts = async () => {
     setLoading(true);
     try {
+      // Force console log to be visible
+      console.warn("🔄 Fetching alerts...");
       const alertsData = await alertsApi.getAlertRules();
-      // Log the raw alert data for debugging
-      console.log('Raw alert data from API:', alertsData);
+      // Log the raw alert data for debugging with more visible formatting
+      console.warn("📊 Raw alert data from API:", alertsData);
       setAlerts(alertsData);
+      // Force immediate re-filtering of alerts
+      const filtered = applyFiltersDirectly(alertsData);
+      setFilteredAlerts(filtered);
     } catch (error) {
-      console.error('Failed to fetch alerts:', error);
+      console.error("❌ Failed to fetch alerts:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...alerts];
+  // Apply filters directly to an alerts array (can be used with any alerts data, not just from state)
+  const applyFiltersDirectly = (alertsData: AlertRule[]) => {
+    let filtered = [...alertsData];
 
     // Apply tab filter
-    if (activeTab === 'drift') {
-      filtered = filtered.filter(alert => 
-        [ConditionType.DRIFT, ConditionType.SECTOR_DRIFT, ConditionType.ASSET_CLASS_DRIFT].includes(alert.conditionType)
-      );
-    } else if (activeTab === 'price') {
-      filtered = filtered.filter(alert => alert.conditionType === ConditionType.PRICE_MOVEMENT);
-    } else if (activeTab === 'other') {
-      filtered = filtered.filter(alert => 
-        ![
-          ConditionType.DRIFT, 
-          ConditionType.SECTOR_DRIFT, 
+    if (activeTab === "drift") {
+      filtered = filtered.filter((alert) =>
+        [
+          ConditionType.DRIFT,
+          ConditionType.SECTOR_DRIFT,
           ConditionType.ASSET_CLASS_DRIFT,
-          ConditionType.PRICE_MOVEMENT
-        ].includes(alert.conditionType)
+        ].includes(alert.conditionType),
+      );
+    } else if (activeTab === "price") {
+      filtered = filtered.filter(
+        (alert) => alert.conditionType === ConditionType.PRICE_MOVEMENT,
+      );
+    } else if (activeTab === "other") {
+      filtered = filtered.filter(
+        (alert) =>
+          ![
+            ConditionType.DRIFT,
+            ConditionType.SECTOR_DRIFT,
+            ConditionType.ASSET_CLASS_DRIFT,
+            ConditionType.PRICE_MOVEMENT,
+          ].includes(alert.conditionType),
       );
     }
 
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(alert => 
-        alert.name.toLowerCase().includes(query)
+      filtered = filtered.filter((alert) =>
+        alert.name.toLowerCase().includes(query),
       );
     }
 
     // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(alert => 
-        statusFilter === 'active' ? alert.isActive : !alert.isActive
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((alert) =>
+        statusFilter === "active" ? alert.isActive : !alert.isActive,
       );
     }
 
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(alert => alert.conditionType === typeFilter);
-    }
+    return filtered;
+  };
 
+  // Original applyFilters that uses the alerts state
+  const applyFilters = () => {
+    let filtered = applyFiltersDirectly(alerts);
+
+    // Apply type filter (we'll include this here for now)
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((alert) => alert.conditionType === typeFilter);
+    }
     setFilteredAlerts(filtered);
   };
 
   const handleCreateAlert = () => {
-    router.push('/dashboard/alerts/create');
+    router.push("/dashboard/alerts/create");
   };
 
   const handleViewAlert = (alertId: string) => {
@@ -157,53 +172,70 @@ export default function AlertsOverviewPage() {
   };
 
   const handleResolveAlert = async (alertId: string) => {
-    console.log('Toggle clicked for alert ID:', alertId);
     try {
       // Find the current alert to toggle its status
-      const currentAlert = alerts.find(alert => alert.id === alertId);
-      console.log('Current alert found:', currentAlert);
+      const currentAlert = alerts.find((alert) => alert.id === alertId);
       if (!currentAlert) {
-        console.error('Alert not found in state with ID:', alertId);
+        console.error("Alert not found with ID:", alertId);
         return;
       }
-      
+
       // Toggle the active status
       const newActiveStatus = !currentAlert.isActive;
-      console.log(`Toggling alert status from ${currentAlert.isActive} to ${newActiveStatus}`);
-      
-      // Update alert active status and set appropriate alert status
-      console.log('Calling API to update alert status...');
-      await alertsApi.updateAlertRule(alertId, { 
-        isActive: newActiveStatus,
-        status: newActiveStatus ? AlertStatus.ACTIVE : AlertStatus.PAUSED 
-      });
-      console.log('API call successful');
-      
-      // Refresh the alerts list immediately
-      console.log('Refreshing alerts list...');
-      await fetchAlerts();
-      console.log('Alerts refreshed successfully');
+      const newStatus = newActiveStatus ? AlertStatus.ACTIVE : AlertStatus.PAUSED;
+
+      // Optimistically update the UI
+      const updateAlertState = (alertsList: AlertRule[]) => 
+        alertsList.map(alert => 
+          alert.id === alertId 
+            ? { 
+                ...alert, 
+                isActive: newActiveStatus,
+                status: newStatus
+              } 
+            : alert
+        );
+
+      setAlerts(prev => updateAlertState(prev));
+      setFilteredAlerts(prev => updateAlertState(prev));
+
+      try {
+        // Call the API to update the status
+        await alertsApi.updateAlertRule(alertId, {
+          isActive: newActiveStatus,
+          status: newStatus,
+        });
+      } catch (error) {
+        console.error("Failed to update alert status:", error);
+        // Revert UI on error
+        await fetchAlerts();
+      }
     } catch (error) {
-      console.error('Failed to update alert status:', error);
+      console.error("Error in handleResolveAlert:", error);
+      await fetchAlerts();
     }
   };
-  
+
   const handleDeleteAlert = async (alertId: string) => {
-    if (window.confirm('Are you sure you want to delete this alert?')) {
+    if (window.confirm("Are you sure you want to delete this alert?")) {
       try {
         await alertsApi.deleteAlertRule(alertId);
-        
+
         // Refresh the alerts list
         fetchAlerts();
       } catch (error) {
-        console.error('Failed to delete alert:', error);
+        console.error("Failed to delete alert:", error);
       }
     }
   };
 
   const renderDriftAlerts = () => {
-    const driftAlerts = filteredAlerts.filter(alert => 
-      [ConditionType.DRIFT, ConditionType.SECTOR_DRIFT, ConditionType.ASSET_CLASS_DRIFT].includes(alert.conditionType)
+    const driftAlerts = filteredAlerts.filter((alert) =>
+      [
+        ConditionType.DRIFT,
+        ConditionType.SECTOR_DRIFT,
+        ConditionType.ASSET_CLASS_DRIFT,
+      ].includes(alert.conditionType),
     );
 
     if (driftAlerts.length === 0) {
@@ -240,23 +272,32 @@ export default function AlertsOverviewPage() {
                 <TableCell className="font-medium">{alert.name}</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    {alert.conditionType.replace(/_/g, ' ')}
+                    {alert.conditionType.replace(/_/g, " ")}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${alert.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                    {alert.isActive ? 'Active' : 'Inactive'}
-                  </span>
+                  <div className="flex items-center">
+                    <div
+                      className={`h-2.5 w-2.5 rounded-full mr-2 ${
+                        alert.isActive ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                    />
+                    <span className="capitalize">
+                      {alert.status?.toLowerCase() || (alert.isActive ? "active" : "inactive")}
+                    </span>
+                  </div>
                 </TableCell>
                 <TableCell>
-                  {alert.lastChecked ? new Date(alert.lastChecked).toLocaleString() : 'Never'}
+                  {alert.lastChecked
+                    ? new Date(alert.lastChecked).toLocaleString()
+                    : "Never"}
                 </TableCell>
                 <TableCell className="flex justify-center space-x-2">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleViewAlert(alert.id)}
                           className="h-8 w-8"
@@ -264,15 +305,15 @@ export default function AlertsOverviewPage() {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
+                      <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                         <p>View alert details</p>
                       </TooltipContent>
                     </Tooltip>
-                  
+
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleEditAlert(alert.id)}
                           className="h-8 w-8"
@@ -280,31 +321,39 @@ export default function AlertsOverviewPage() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
+                      <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                         <p>Edit alert</p>
                       </TooltipContent>
                     </Tooltip>
-                  
+
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
-                          onClick={() => handleResolveAlert(alert.id)}
-                          className={`h-8 w-8 ${!alert.isActive ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            await handleResolveAlert(alert.id);
+                          }}
+                          className={`h-8 w-8 relative ${!alert.isActive ? "text-green-600 hover:text-green-700" : "text-amber-600 hover:text-amber-700"}`}
                         >
-                          {alert.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                          {alert.isActive ? (
+                            <ToggleRight className="h-4 w-4" />
+                          ) : (
+                            <ToggleLeft className="h-4 w-4" />
+                          )}
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{alert.isActive ? 'Deactivate alert' : 'Activate alert'}</p>
+                      <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
+                        {alert.isActive ? "Deactivate alert" : "Activate alert"}
                       </TooltipContent>
                     </Tooltip>
-                  
+
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteAlert(alert.id)}
                           className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -312,7 +361,7 @@ export default function AlertsOverviewPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent>
+                      <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                         <p>Delete alert</p>
                       </TooltipContent>
                     </Tooltip>
@@ -337,7 +386,9 @@ export default function AlertsOverviewPage() {
           <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground" />
           <h3 className="mt-2 text-lg font-medium">No alerts found</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {searchQuery ? 'Try adjusting your search or filters' : 'Create an alert to get started'}
+            {searchQuery
+              ? "Try adjusting your search or filters"
+              : "Create an alert to get started"}
           </p>
           {!searchQuery && (
             <Button onClick={handleCreateAlert} className="mt-4">
@@ -350,7 +401,7 @@ export default function AlertsOverviewPage() {
     }
 
     // If we're showing drift alerts, use the dedicated component
-    if (activeTab === 'drift') {
+    if (activeTab === "drift") {
       return renderDriftAlerts();
     }
 
@@ -381,26 +432,30 @@ export default function AlertsOverviewPage() {
                   <TableCell>
                     {alert.conditionType ? (
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {alert.conditionType.replace(/_/g, ' ')}
+                        {alert.conditionType.replace(/_/g, " ")}
                       </span>
                     ) : (
-                      'Unknown'
+                      "Unknown"
                     )}
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${alert.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                      {alert.isActive ? 'Active' : 'Inactive'}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${alert.isActive ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}`}
+                    >
+                      {alert.isActive ? "Active" : "Inactive"}
                     </span>
                   </TableCell>
                   <TableCell>
-                    {alert.lastTriggered ? new Date(alert.lastTriggered).toLocaleString() : 'Never'}
+                    {alert.lastTriggered
+                      ? new Date(alert.lastTriggered).toLocaleString()
+                      : "Never"}
                   </TableCell>
                   <TableCell className="flex justify-center space-x-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleViewAlert(alert.id)}
                             className="h-8 w-8"
@@ -408,15 +463,15 @@ export default function AlertsOverviewPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                           <p>View alert details</p>
                         </TooltipContent>
                       </Tooltip>
-                    
+
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleEditAlert(alert.id)}
                             className="h-8 w-8"
@@ -424,31 +479,46 @@ export default function AlertsOverviewPage() {
                             <Pencil className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                           <p>Edit alert</p>
                         </TooltipContent>
                       </Tooltip>
-                    
+
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
-                            onClick={() => handleResolveAlert(alert.id)}
-                            className={`h-8 w-8 ${!alert.isActive ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              console.log(
+                                "Toggle button clicked for alert:",
+                                alert.id,
+                              );
+                              handleResolveAlert(alert.id);
+                            }}
+                            className={`h-8 w-8 ${!alert.isActive ? "text-green-600 hover:text-green-700" : "text-amber-600 hover:text-amber-700"}`}
                           >
-                            {alert.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                            {alert.isActive ? (
+                              <ToggleRight className="h-4 w-4" />
+                            ) : (
+                              <ToggleLeft className="h-4 w-4" />
+                            )}
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{alert.isActive ? 'Deactivate alert' : 'Activate alert'}</p>
+                        <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
+                          <p>
+                            {alert.isActive
+                              ? "Deactivate alert"
+                              : "Activate alert"}
+                          </p>
                         </TooltipContent>
                       </Tooltip>
-                    
+
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteAlert(alert.id)}
                             className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -456,7 +526,7 @@ export default function AlertsOverviewPage() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
+                        <TooltipContent side="top" align="center" className="z-50 bg-foreground text-background shadow-md rounded-md py-2 px-4">
                           <p>Delete alert</p>
                         </TooltipContent>
                       </Tooltip>
@@ -472,19 +542,21 @@ export default function AlertsOverviewPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Alerts</h1>
-          <p className="text-muted-foreground">
-            Monitor changes in your portfolio and get notified
-          </p>
+    <TooltipProvider>
+      <div className="container mx-auto py-6 px-4 relative" style={{ overflow: 'visible' }}>
+        <div className="flex flex-col space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
+            <p className="text-muted-foreground">
+              Manage your portfolio alerts and notifications
+            </p>
+          </div>
+          <Button onClick={handleCreateAlert}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Alert
+          </Button>
         </div>
-        <Button onClick={handleCreateAlert}>
-          <Plus size={16} className="mr-2" />
-          Create Alert
-        </Button>
-      </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -494,7 +566,7 @@ export default function AlertsOverviewPage() {
             <TabsTrigger value="price">Price Alerts</TabsTrigger>
             <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
-          
+
           <div className="flex gap-2 items-center">
             <div className="relative w-full md:w-auto">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -505,7 +577,7 @@ export default function AlertsOverviewPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            
+
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter by status" />
@@ -518,25 +590,27 @@ export default function AlertsOverviewPage() {
             </Select>
           </div>
         </div>
-        
+
         <div className="py-6">
           <TabsContent value="all" className="mt-0">
             {renderAlertCards()}
           </TabsContent>
-          
+
           <TabsContent value="drift" className="mt-0">
             {renderDriftAlerts()}
           </TabsContent>
-          
+
           <TabsContent value="price" className="mt-0">
             {renderAlertCards()}
           </TabsContent>
-          
+
           <TabsContent value="other" className="mt-0">
             {renderAlertCards()}
           </TabsContent>
         </div>
       </Tabs>
-    </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }
