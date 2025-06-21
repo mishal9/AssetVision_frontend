@@ -43,6 +43,8 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
   const [alert, setAlert] = useState<AlertRule | null>(null);
   const [history, setHistory] = useState<AlertHistory[]>([]);
   const [driftData, setDriftData] = useState<any | null>(null);
+  const [driftDataLoading, setDriftDataLoading] = useState(false);
+  const [driftDataError, setDriftDataError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('overview');
   
@@ -62,14 +64,23 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
         if (
           [ConditionType.DRIFT, ConditionType.SECTOR_DRIFT, ConditionType.ASSET_CLASS_DRIFT].includes(
             alertData.conditionType
-          ) &&
-          alertData.portfolioId
+          )
         ) {
+          // For MVP, we assume user has only one portfolio
+          setDriftDataLoading(true);
+          setDriftDataError(null);
+          
           try {
-            const driftData = await alertsApi.getPortfolioDrift(alertData.portfolioId);
+            // Use the user's default portfolio ID or the one from the alert if available
+            // In MVP we assume user has only one portfolio, so we can pass "default" or user ID
+            const portfolioId = alertData.portfolioId || 'default';
+            const driftData = await alertsApi.getPortfolioDrift(portfolioId);
             setDriftData(driftData);
           } catch (error) {
             console.error('Error fetching drift data:', error);
+            setDriftDataError('Failed to load drift data. Please try again later.');
+          } finally {
+            setDriftDataLoading(false);
           }
         }
       } catch (error) {
@@ -349,7 +360,36 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
                 <CardDescription>Visualize the current drift status of your portfolio</CardDescription>
               </CardHeader>
               <CardContent>
-                {driftData ? (
+                {driftDataLoading ? (
+                  <div className="text-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                    <p className="mt-4 text-muted-foreground">Loading drift data...</p>
+                  </div>
+                ) : driftDataError ? (
+                  <div className="text-center py-8">
+                    <AlertTriangle className="h-8 w-8 mx-auto text-destructive" />
+                    <p className="mt-4 text-muted-foreground">{driftDataError}</p>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setDriftDataLoading(true);
+                        alertsApi.getPortfolioDrift('default')
+                          .then(data => {
+                            setDriftData(data);
+                            setDriftDataError(null);
+                          })
+                          .catch(err => {
+                            console.error('Error retrying drift data fetch:', err);
+                            setDriftDataError('Failed to load drift data. Please try again later.');
+                          })
+                          .finally(() => setDriftDataLoading(false));
+                      }}
+                      className="mt-4"
+                    >
+                      Retry
+                    </Button>
+                  </div>
+                ) : driftData ? (
                   <DriftVisualization 
                     data={driftData}
                     thresholdPercent={alert.conditionConfig.thresholdPercent || 5}
@@ -363,8 +403,8 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
                   />
                 ) : (
                   <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                    <p className="mt-4 text-muted-foreground">Loading drift data...</p>
+                    <Info className="h-8 w-8 mx-auto text-muted-foreground" />
+                    <p className="mt-4 text-muted-foreground">No drift data available</p>
                   </div>
                 )}
               </CardContent>
