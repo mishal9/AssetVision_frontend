@@ -10,12 +10,12 @@ import {
 
 // Define alert API endpoints as a constant
 const ALERT_ENDPOINTS = {
-  RULES: '/alerts/rules',
-  HISTORY: '/alerts/history',
-  STATS: '/alerts/stats',
-  DRIFT: '/alerts/drift',
-  RULE_DETAIL: (id: string) => `/alerts/rules/${id}`,
-  HISTORY_DETAIL: (id: string) => `/alerts/history/${id}`,
+  RULES: '/alerts/rules/',
+  HISTORY: '/alerts/history/',
+  STATS: '/alerts/stat/',
+  DRIFT: '/alerts/drift/',
+  RULE_DETAIL: (id: string) => `/alerts/rules/${id}/`,
+  HISTORY_DETAIL: (id: string) => `/alerts/history/${id}/`,
 };
 
 /**
