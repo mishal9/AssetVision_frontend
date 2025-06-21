@@ -1,4 +1,4 @@
-import { alertsApi } from './api';
+import { alertsApi as api } from './api';
 import { 
   AlertRule, 
   AlertHistory, 
@@ -58,8 +58,8 @@ const transformAlertHistory = (response: AlertHistoryResponse): AlertHistory => 
 export const alertsApi = {
   // Get all alert rules for the current user
   getAlertRules: async (): Promise<AlertRule[]> => {
-    const response = await api.get<AlertRuleResponse[]>(ALERT_ENDPOINTS.RULES);
-    return response.data.map(transformAlertRule);
+    const response = await api.getAlerts();
+    return Array.isArray(response) ? response.map(transformAlertRule) : [];
   },
 
   // Get a specific alert rule by ID
