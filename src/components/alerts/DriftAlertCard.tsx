@@ -20,7 +20,7 @@ interface DriftAlertCardProps {
   onEdit?: () => void;
 }
 
-export const DriftAlertCard: React.FC<DriftAlertCardProps> = ({ 
+const DriftAlertCard: React.FC<DriftAlertCardProps> = ({ 
   alert, 
   onResolve, 
   onView, 

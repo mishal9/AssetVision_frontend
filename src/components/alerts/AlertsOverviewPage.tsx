@@ -27,6 +27,15 @@ import {
 } from '../ui/select';
 import { Separator } from '../ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../ui/table";
 import { 
   Plus,
   Filter, 
@@ -34,8 +43,20 @@ import {
   Search, 
   ArrowUpDown, 
   BarChart3,
-  AlertCircle 
+  AlertCircle,
+  Eye,
+  Pencil,
+  Trash2,
+  ToggleLeft,
+  ToggleRight,
+  Info
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../ui/tooltip";
 import DriftAlertCard from './DriftAlertCard';
 
 export default function AlertsOverviewPage() {
@@ -57,11 +78,20 @@ export default function AlertsOverviewPage() {
   useEffect(() => {
     applyFilters();
   }, [alerts, activeTab, searchQuery, statusFilter, typeFilter]);
+  
+  // Add a debug log to check alert data after fetching
+  useEffect(() => {
+    if (alerts.length > 0) {
+      console.log('Alerts data loaded:', alerts);
+    }
+  }, [alerts]);
 
   const fetchAlerts = async () => {
     setLoading(true);
     try {
       const alertsData = await alertsApi.getAlertRules();
+      // Log the raw alert data for debugging
+      console.log('Raw alert data from API:', alertsData);
       setAlerts(alertsData);
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
@@ -127,14 +157,47 @@ export default function AlertsOverviewPage() {
   };
 
   const handleResolveAlert = async (alertId: string) => {
+    console.log('Toggle clicked for alert ID:', alertId);
     try {
-      // Update alert status to resolved/inactive in this case
-      await alertsApi.updateAlertRule(alertId, { isActive: false });
+      // Find the current alert to toggle its status
+      const currentAlert = alerts.find(alert => alert.id === alertId);
+      console.log('Current alert found:', currentAlert);
+      if (!currentAlert) {
+        console.error('Alert not found in state with ID:', alertId);
+        return;
+      }
       
-      // Refresh the alerts list
-      fetchAlerts();
+      // Toggle the active status
+      const newActiveStatus = !currentAlert.isActive;
+      console.log(`Toggling alert status from ${currentAlert.isActive} to ${newActiveStatus}`);
+      
+      // Update alert active status and set appropriate alert status
+      console.log('Calling API to update alert status...');
+      await alertsApi.updateAlertRule(alertId, { 
+        isActive: newActiveStatus,
+        status: newActiveStatus ? AlertStatus.ACTIVE : AlertStatus.PAUSED 
+      });
+      console.log('API call successful');
+      
+      // Refresh the alerts list immediately
+      console.log('Refreshing alerts list...');
+      await fetchAlerts();
+      console.log('Alerts refreshed successfully');
     } catch (error) {
-      console.error('Failed to resolve alert:', error);
+      console.error('Failed to update alert status:', error);
+    }
+  };
+  
+  const handleDeleteAlert = async (alertId: string) => {
+    if (window.confirm('Are you sure you want to delete this alert?')) {
+      try {
+        await alertsApi.deleteAlertRule(alertId);
+        
+        // Refresh the alerts list
+        fetchAlerts();
+      } catch (error) {
+        console.error('Failed to delete alert:', error);
+      }
     }
   };
 
@@ -160,16 +223,105 @@ export default function AlertsOverviewPage() {
     }
 
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {driftAlerts.map((alert) => (
-          <DriftAlertCard
-            key={alert.id}
-            alert={alert}
-            onResolve={() => handleResolveAlert(alert.id)}
-            onView={() => handleViewAlert(alert.id)}
-            onEdit={() => handleEditAlert(alert.id)}
-          />
-        ))}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Alert Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last Checked</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {driftAlerts.map((alert) => (
+              <TableRow key={alert.id}>
+                <TableCell className="font-medium">{alert.name}</TableCell>
+                <TableCell>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {alert.conditionType.replace(/_/g, ' ')}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${alert.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                    {alert.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  {alert.lastChecked ? new Date(alert.lastChecked).toLocaleString() : 'Never'}
+                </TableCell>
+                <TableCell className="flex justify-center space-x-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleViewAlert(alert.id)}
+                          className="h-8 w-8"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View alert details</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleEditAlert(alert.id)}
+                          className="h-8 w-8"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Edit alert</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleResolveAlert(alert.id)}
+                          className={`h-8 w-8 ${!alert.isActive ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                        >
+                          {alert.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{alert.isActive ? 'Deactivate alert' : 'Activate alert'}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeleteAlert(alert.id)}
+                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Delete alert</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   };
@@ -202,30 +354,119 @@ export default function AlertsOverviewPage() {
       return renderDriftAlerts();
     }
 
-    // For other types, render generic alert cards
+    // For other types, render alerts in a table
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filteredAlerts.map((alert) => (
-          <div key={alert.id} className="border rounded-lg p-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-medium">{alert.name}</h3>
-              <span className={`px-2 py-1 text-xs rounded-full ${alert.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
-                {alert.isActive ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-            <p className="text-sm text-muted-foreground mb-3">
-              {alert.conditionType ? alert.conditionType.replace('_', ' ') : 'Unknown'}
-            </p>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => handleViewAlert(alert.id)}>
-                View
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => handleEditAlert(alert.id)}>
-                Edit
-              </Button>
-            </div>
-          </div>
-        ))}
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[250px]">Alert Name</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last Triggered</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAlerts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredAlerts.map((alert) => (
+                <TableRow key={alert.id}>
+                  <TableCell className="font-medium">{alert.name}</TableCell>
+                  <TableCell>
+                    {alert.conditionType ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {alert.conditionType.replace(/_/g, ' ')}
+                      </span>
+                    ) : (
+                      'Unknown'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${alert.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                      {alert.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    {alert.lastTriggered ? new Date(alert.lastTriggered).toLocaleString() : 'Never'}
+                  </TableCell>
+                  <TableCell className="flex justify-center space-x-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleViewAlert(alert.id)}
+                            className="h-8 w-8"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View alert details</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleEditAlert(alert.id)}
+                            className="h-8 w-8"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Edit alert</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleResolveAlert(alert.id)}
+                            className={`h-8 w-8 ${!alert.isActive ? 'text-green-600 hover:text-green-700' : 'text-amber-600 hover:text-amber-700'}`}
+                          >
+                            {alert.isActive ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{alert.isActive ? 'Deactivate alert' : 'Activate alert'}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="icon"
+                            onClick={() => handleDeleteAlert(alert.id)}
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Delete alert</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     );
   };

@@ -5,7 +5,11 @@ import {
   AlertHistory, 
   AlertRuleResponse, 
   AlertHistoryResponse, 
-  AlertRuleInput 
+  AlertRuleInput,
+  AlertStatus,
+  AlertFrequency,
+  ConditionType,
+  ActionType
 } from '../types/alerts';
 
 // Define alert API endpoints as a constant
@@ -21,24 +25,50 @@ const ALERT_ENDPOINTS = {
 /**
  * Transform API response to frontend model
  */
-const transformAlertRule = (response: AlertRuleResponse): AlertRule => ({
-  id: response.id,
-  userId: response.user,
-  name: response.name,
-  isActive: response.is_active,
-  status: response.status as any,
-  frequency: response.frequency as any,
-  conditionType: response.condition_type as any,
-  conditionConfig: response.condition_config,
-  actionType: response.action_type as any,
-  actionConfig: response.action_config,
-  createdAt: response.created_at,
-  updatedAt: response.updated_at,
-  lastTriggered: response.last_triggered,
-  lastChecked: response.last_checked,
-  portfolioId: response.portfolio,
-  accountId: response.account,
-});
+const transformAlertRule = (response: AlertRuleResponse): AlertRule => {
+  // Validate condition type and ensure it's a valid enum value
+  const validConditionTypes = Object.values(ConditionType);
+  const conditionType = validConditionTypes.includes(response.condition_type as ConditionType)
+    ? response.condition_type as ConditionType
+    : ConditionType.CUSTOM; // Default to CUSTOM if invalid
+
+  // Validate status and ensure it's a valid enum value
+  const validStatusTypes = Object.values(AlertStatus);
+  const status = validStatusTypes.includes(response.status as AlertStatus)
+    ? response.status as AlertStatus
+    : response.is_active ? AlertStatus.ACTIVE : AlertStatus.PAUSED; // Default based on is_active
+
+  // Validate action type
+  const validActionTypes = Object.values(ActionType);
+  const actionType = validActionTypes.includes(response.action_type as ActionType)
+    ? response.action_type as ActionType
+    : ActionType.NOTIFICATION; // Default to NOTIFICATION if invalid
+  
+  // Validate frequency
+  const validFrequencyTypes = Object.values(AlertFrequency);
+  const frequency = validFrequencyTypes.includes(response.frequency as AlertFrequency)
+    ? response.frequency as AlertFrequency
+    : AlertFrequency.IMMEDIATE; // Default to IMMEDIATE if invalid
+
+  return {
+    id: response.id,
+    userId: response.user,
+    name: response.name,
+    isActive: response.is_active,
+    status: status,
+    frequency: frequency,
+    conditionType: conditionType,
+    conditionConfig: response.condition_config || {},
+    actionType: actionType,
+    actionConfig: response.action_config || {},
+    createdAt: response.created_at,
+    updatedAt: response.updated_at,
+    lastTriggered: response.last_triggered,
+    lastChecked: response.last_checked,
+    portfolioId: response.portfolio,
+    accountId: response.account,
+  };
+};
 
 /**
  * Transform API response to frontend model for alert history
