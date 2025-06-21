@@ -214,7 +214,7 @@ export default function AlertsOverviewPage() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground mb-3">
-              {alert.conditionType.replace('_', ' ')}
+              {alert.conditionType ? alert.conditionType.replace('_', ' ') : 'Unknown'}
             </p>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => handleViewAlert(alert.id)}>

@@ -1,4 +1,5 @@
 import { alertsApi as api } from './api';
+import { fetchWithAuth } from './api-utils';
 import { 
   AlertRule, 
   AlertHistory, 
@@ -64,8 +65,8 @@ export const alertsApi = {
 
   // Get a specific alert rule by ID
   getAlertRule: async (id: string): Promise<AlertRule> => {
-    const response = await api.get<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id));
-    return transformAlertRule(response.data);
+    const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id));
+    return transformAlertRule(response);
   },
 
   // Create a new alert rule
@@ -84,8 +85,9 @@ export const alertsApi = {
       account: alertRule.accountId,
     };
 
-    const response = await api.post<AlertRuleResponse>(ALERT_ENDPOINTS.RULES, apiAlertRule);
-    return transformAlertRule(response.data);
+    // Use the createAlert method from the alertsApi instead of post
+    const response = await api.createAlert(apiAlertRule);
+    return transformAlertRule(response);
   },
 
   // Update an existing alert rule
@@ -103,13 +105,18 @@ export const alertsApi = {
     if (alertRule.portfolioId !== undefined) apiAlertRule.portfolio = alertRule.portfolioId;
     if (alertRule.accountId !== undefined) apiAlertRule.account = alertRule.accountId;
 
-    const response = await api.patch<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id), apiAlertRule);
-    return transformAlertRule(response.data);
+    const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id), {
+      method: 'PATCH',
+      body: JSON.stringify(apiAlertRule),
+    });
+    return transformAlertRule(response);
   },
 
   // Delete an alert rule
   deleteAlertRule: async (id: string): Promise<void> => {
-    await api.delete(ALERT_ENDPOINTS.RULE_DETAIL(id));
+    await fetchWithAuth(ALERT_ENDPOINTS.RULE_DETAIL(id), {
+      method: 'DELETE',
+    });
   },
 
   // Get alert history
@@ -118,27 +125,27 @@ export const alertsApi = {
     if (alertRuleId) {
       endpoint += `?alert_rule=${alertRuleId}`;
     }
-    const response = await api.get<AlertHistoryResponse[]>(endpoint);
-    return response.data.map(transformAlertHistory);
+    const response = await fetchWithAuth<AlertHistoryResponse[]>(endpoint);
+    return Array.isArray(response) ? response.map(transformAlertHistory) : [];
   },
 
   // Get alert statistics
   getAlertStats: async (): Promise<any> => {
-    const response = await api.get(ALERT_ENDPOINTS.STATS);
-    return response.data;
+    return await fetchWithAuth(ALERT_ENDPOINTS.STATS);
   },
 
   // Get current drift information for a portfolio
   getPortfolioDrift: async (portfolioId: string): Promise<any> => {
     const endpoint = `${ALERT_ENDPOINTS.DRIFT}/${portfolioId}`;
-    const response = await api.get(endpoint);
-    return response.data;
+    return await fetchWithAuth(endpoint);
   },
 
   // Mark an alert history item as resolved
   resolveAlertHistory: async (historyId: string): Promise<AlertHistory> => {
-    const response = await api.post<AlertHistoryResponse>(`${ALERT_ENDPOINTS.HISTORY_DETAIL(historyId)}/resolve`);
-    return transformAlertHistory(response.data);
+    const response = await fetchWithAuth<AlertHistoryResponse>(`${ALERT_ENDPOINTS.HISTORY_DETAIL(historyId)}/resolve`, {
+      method: 'POST',
+    });
+    return transformAlertHistory(response);
   },
 };
 

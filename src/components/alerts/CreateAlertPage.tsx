@@ -84,6 +84,7 @@ export default function CreateAlertPage() {
 
   const handleCreateAlert = async (data: AlertRuleInput) => {
     setLoading(true);
+    console.log("Data for alerts ",data)
     try {
       const createdAlert = await alertsApi.createAlertRule(data);
       router.push('/dashboard/alerts');

@@ -80,14 +80,14 @@ export const alertsApi = {
    * Get all user alerts
    */
   getAlerts: () => 
-    fetchWithAuth<AlertResponse[]>('/alerts')
+    fetchWithAuth<AlertResponse[]>('/alerts/rules/')
       .then(response => convertSnakeToCamelCase<Alert[]>(response)),
   
   /**
    * Create a new alert
    */
-  createAlert: (alertData: AlertInput) => 
-    fetchWithAuth<AlertResponse>('/alerts', {
+  createAlert: (alertData: any) => 
+    fetchWithAuth<AlertResponse>('/alerts/rules/', {
       method: 'POST',
       body: JSON.stringify(alertData),
     })
@@ -97,7 +97,7 @@ export const alertsApi = {
    * Update an existing alert
    */
   updateAlert: (alertId: string, alertData: Partial<AlertInput>) => 
-    fetchWithAuth<AlertResponse>(`/alerts/${alertId}`, {
+    fetchWithAuth<AlertResponse>(`/alerts/rules/${alertId}/`, {
       method: 'PATCH',
       body: JSON.stringify(alertData),
     })
@@ -107,7 +107,7 @@ export const alertsApi = {
    * Delete an alert
    */
   deleteAlert: (alertId: string) => 
-    fetchWithAuth<void>(`/alerts/${alertId}`, {
+    fetchWithAuth<void>(`/alerts/rules/${alertId}/`, {
       method: 'DELETE',
     }),
 };

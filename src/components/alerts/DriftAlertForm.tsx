@@ -43,7 +43,6 @@ const driftAlertSchema = z.object({
   conditionType: z.string(),
   thresholdPercent: z.number().min(0.1).max(50),
   driftType: z.enum(['absolute', 'relative']),
-  portfolioId: z.string().uuid(),
   actionType: z.string(),
   sectorId: z.string().optional(),
   assetClassId: z.string().optional(),
@@ -53,7 +52,7 @@ type DriftAlertFormValues = z.infer<typeof driftAlertSchema>;
 
 interface DriftAlertFormProps {
   initialData?: AlertRule;
-  portfolios: { id: string; name: string }[];
+  portfolios?: { id: string; name: string }[];
   sectors?: { id: string; name: string }[];
   assetClasses?: { id: string; name: string }[];
   isLoading?: boolean;
@@ -62,7 +61,7 @@ interface DriftAlertFormProps {
 
 export function DriftAlertForm({
   initialData,
-  portfolios,
+  portfolios = [],
   sectors = [],
   assetClasses = [],
   isLoading = false,
@@ -80,7 +79,6 @@ export function DriftAlertForm({
       conditionType: initialData?.conditionType || ConditionType.DRIFT,
       thresholdPercent: initialData?.conditionConfig?.thresholdPercent || 5,
       driftType: (initialData?.conditionConfig?.driftType as 'absolute' | 'relative') || 'absolute',
-      portfolioId: initialData?.portfolioId || '',
       actionType: initialData?.actionType || ActionType.NOTIFICATION,
       sectorId: initialData?.conditionType === ConditionType.SECTOR_DRIFT 
         ? initialData?.conditionConfig?.sectorId 
@@ -100,7 +98,6 @@ export function DriftAlertForm({
     try {
       // Create condition config based on condition type
       let conditionConfig: Record<string, any> = {
-        portfolioId: values.portfolioId,
         thresholdPercent: values.thresholdPercent,
         driftType: values.driftType,
       };
@@ -123,8 +120,7 @@ export function DriftAlertForm({
         conditionConfig,
         actionType: values.actionType as ActionType,
         actionConfig: {}, // Default empty action config
-        frequency: values.frequency as AlertFrequency,
-        portfolioId: values.portfolioId,
+        frequency: values.frequency as AlertFrequency
       };
 
       await onSubmit(alertRuleData);
@@ -157,35 +153,7 @@ export function DriftAlertForm({
                 )}
               />
               
-              <FormField
-                control={form.control}
-                name="portfolioId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Portfolio</FormLabel>
-                    <Select
-                      disabled={isLoading}
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a portfolio" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {portfolios.map((portfolio) => (
-                          <SelectItem key={portfolio.id} value={portfolio.id}>
-                            {portfolio.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+
 
               <FormField
                 control={form.control}
@@ -225,7 +193,7 @@ export function DriftAlertForm({
                           <SelectValue placeholder="Select frequency" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
                         <SelectItem value={AlertFrequency.IMMEDIATE}>
                           Immediately
                         </SelectItem>
@@ -270,7 +238,7 @@ export function DriftAlertForm({
                           <SelectValue placeholder="Select drift type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
                         <SelectItem value={ConditionType.DRIFT}>
                           Overall Portfolio Drift
                         </SelectItem>
@@ -305,7 +273,7 @@ export function DriftAlertForm({
                           <SelectValue placeholder="Select calculation type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
                         <SelectItem value="absolute">
                           Absolute (% change)
                         </SelectItem>
@@ -338,8 +306,8 @@ export function DriftAlertForm({
                             <SelectValue placeholder="All sectors" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="">All sectors</SelectItem>
+                        <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
+                          <SelectItem value="all_sectors">All sectors</SelectItem>
                           {sectors.map((sector) => (
                             <SelectItem key={sector.id} value={sector.id}>
                               {sector.name}
@@ -372,8 +340,8 @@ export function DriftAlertForm({
                             <SelectValue placeholder="All asset classes" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="">All asset classes</SelectItem>
+                        <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
+                          <SelectItem value="all_asset_classes">All asset classes</SelectItem>
                           {assetClasses.map((assetClass) => (
                             <SelectItem key={assetClass.id} value={assetClass.id}>
                               {assetClass.name}
@@ -436,7 +404,7 @@ export function DriftAlertForm({
                         <SelectValue placeholder="Select an action" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
                       <SelectItem value={ActionType.NOTIFICATION}>
                         Send Notification
                       </SelectItem>
