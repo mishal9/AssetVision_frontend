@@ -75,6 +75,7 @@ export default function AlertsOverviewPage() {
 
   // Apply filters when filter state changes
   useEffect(() => {
+    console.log("Filter state changed, applying filters:", { statusFilter, activeTab, searchQuery, typeFilter });
     applyFilters();
   }, [alerts, activeTab, searchQuery, statusFilter, typeFilter]);
 
@@ -82,8 +83,15 @@ export default function AlertsOverviewPage() {
   useEffect(() => {
     if (alerts.length > 0) {
       console.log("Alerts data loaded:", alerts);
+      // Display current filter state
+      console.log("Current filter state:", { 
+        statusFilter, 
+        activeTab, 
+        typeFilter, 
+        searchQuery 
+      });
     }
-  }, [alerts]);
+  }, [alerts, statusFilter, activeTab, typeFilter, searchQuery]);
 
   const fetchAlerts = async () => {
     setLoading(true);
@@ -157,10 +165,20 @@ export default function AlertsOverviewPage() {
 
     // Apply status filter
     if (statusFilter !== "all") {
-      filtered = filtered.filter((alert) =>
-        statusFilter === "active" ? alert.isActive : !alert.isActive,
-      );
+      console.log("Applying status filter:", statusFilter);
+      filtered = filtered.filter((alert) => {
+        const isActiveAlert = alert.isActive === true || alert.status === AlertStatus.ACTIVE;
+        return statusFilter === "active" ? isActiveAlert : !isActiveAlert;
+      });
     }
+    
+    // Debug log for status filtering
+    console.log("Status filter applied:", { 
+      statusFilter, 
+      alertsDataCount: alertsData.length, 
+      filteredCount: filtered.length,
+      sample: filtered.slice(0, 2).map(a => ({ id: a.id, name: a.name, isActive: a.isActive, status: a.status }))
+    });
 
     return filtered;
   };
@@ -631,7 +649,10 @@ export default function AlertsOverviewPage() {
               />
             </div>
 
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter} onValueChange={(value) => {
+                console.log("Status filter changed to:", value);
+                setStatusFilter(value);
+              }}>
               <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
