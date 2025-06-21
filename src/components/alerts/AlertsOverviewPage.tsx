@@ -46,6 +46,7 @@ import {
   ToggleLeft,
   ToggleRight,
   Info,
+  RefreshCw
 } from "lucide-react";
 import {
   Tooltip,
@@ -54,6 +55,7 @@ import {
   TooltipTrigger,
 } from "../ui/tooltip";
 import DriftAlertCard from "./DriftAlertCard";
+import { ErrorMessage } from "../ui/error-message";
 
 export default function AlertsOverviewPage() {
   const router = useRouter();
@@ -64,6 +66,7 @@ export default function AlertsOverviewPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [error, setError] = useState<{title: string; message: string} | null>(null);
 
   // Fetch alerts on component mount
   useEffect(() => {
@@ -84,18 +87,32 @@ export default function AlertsOverviewPage() {
 
   const fetchAlerts = async () => {
     setLoading(true);
+    setError(null); // Reset error state on each fetch attempt
     try {
       // Force console log to be visible
       console.warn("🔄 Fetching alerts...");
       const alertsData = await alertsApi.getAlertRules();
       // Log the raw alert data for debugging with more visible formatting
       console.warn("📊 Raw alert data from API:", alertsData);
-      setAlerts(alertsData);
+      
+      // Ensure isActive property is correctly synchronized with the alert status
+      const processedAlerts = alertsData.map(alert => ({
+        ...alert,
+        isActive: alert.status === AlertStatus.ACTIVE
+      }));
+      
+      console.warn("🔄 Processed alerts with synchronized status:", processedAlerts);
+      setAlerts(processedAlerts);
+      
       // Force immediate re-filtering of alerts
-      const filtered = applyFiltersDirectly(alertsData);
+      const filtered = applyFiltersDirectly(processedAlerts);
       setFilteredAlerts(filtered);
     } catch (error) {
       console.error("❌ Failed to fetch alerts:", error);
+      setError({
+        title: "Failed to load alerts", 
+        message: "There was a problem retrieving your alerts. Please try again."
+      });
     } finally {
       setLoading(false);
     }
@@ -177,6 +194,10 @@ export default function AlertsOverviewPage() {
       const currentAlert = alerts.find((alert) => alert.id === alertId);
       if (!currentAlert) {
         console.error("Alert not found with ID:", alertId);
+        setError({
+          title: "Alert Not Found",
+          message: `Unable to find alert with ID: ${alertId}`
+        });
         return;
       }
 
@@ -207,11 +228,19 @@ export default function AlertsOverviewPage() {
         });
       } catch (error) {
         console.error("Failed to update alert status:", error);
+        setError({
+          title: "Status Update Failed",
+          message: `Failed to ${newActiveStatus ? 'activate' : 'deactivate'} the alert. Please try again.`
+        });
         // Revert UI on error
         await fetchAlerts();
       }
     } catch (error) {
       console.error("Error in handleResolveAlert:", error);
+      setError({
+        title: "Operation Failed",
+        message: "An unexpected error occurred while updating the alert status."
+      });
       await fetchAlerts();
     }
   };
@@ -225,6 +254,10 @@ export default function AlertsOverviewPage() {
         fetchAlerts();
       } catch (error) {
         console.error("Failed to delete alert:", error);
+        setError({
+          title: "Delete Failed",
+          message: "There was a problem deleting this alert. Please try again."
+        });
       }
     }
   };
@@ -377,7 +410,27 @@ export default function AlertsOverviewPage() {
 
   const renderAlertCards = () => {
     if (loading) {
-      return <div className="py-8 text-center">Loading alerts...</div>;
+      return (
+        <div className="py-8 text-center flex flex-col items-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary mb-2" />
+          <p>Loading alerts...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <ErrorMessage 
+          title={error.title}
+          message={error.message}
+          variant="destructive"
+          action={{
+            label: "Retry",
+            onClick: fetchAlerts
+          }}
+          onDismiss={() => setError(null)}
+        />
+      );
     }
 
     if (filteredAlerts.length === 0) {
