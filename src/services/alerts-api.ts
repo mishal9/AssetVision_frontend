@@ -136,7 +136,7 @@ export const alertsApi = {
 
   // Get current drift information for a portfolio
   getPortfolioDrift: async (portfolioId: string): Promise<any> => {
-    const endpoint = `${ALERT_ENDPOINTS.DRIFT}/${portfolioId}`;
+    const endpoint = `${ALERT_ENDPOINTS.DRIFT}${portfolioId}`;
     return await fetchWithAuth(endpoint);
   },
 
