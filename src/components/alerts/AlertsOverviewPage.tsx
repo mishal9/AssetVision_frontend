@@ -639,20 +639,28 @@ export default function AlertsOverviewPage() {
             <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center h-10 gap-3">
-            <div className="relative flex-1 h-10 md:flex-none md:w-[200px]">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+          <div className="flex flex-row items-center space-x-4 mt-2">
+            <div className="relative w-[280px]">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
                 <Search className="h-4 w-4 text-muted-foreground" />
               </div>
+              {/* Reset component styles and apply consistent height */}
               <Input
                 placeholder="Search alerts..."
-                className="h-10 w-full pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  height: '44px',
+                  paddingLeft: '36px',
+                  lineHeight: 'normal',
+                  borderRadius: '6px',
+                  boxSizing: 'border-box'
+                }}
+                className="shadow-sm w-full border"
               />
             </div>
 
-            <div className="h-10 w-[160px]">
+            <div className="w-[160px]">
               <Select
                 value={statusFilter}
                 onValueChange={(value) => {
@@ -660,7 +668,16 @@ export default function AlertsOverviewPage() {
                   setStatusFilter(value);
                 }}
               >
-                <SelectTrigger className="h-10 w-full">
+                {/* Match exact styling with search input */}
+                <SelectTrigger 
+                  style={{
+                    height: '44px',
+                    lineHeight: 'normal',
+                    borderRadius: '6px',
+                    boxSizing: 'border-box'
+                  }}
+                  className="shadow-sm w-full border"
+                >
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
