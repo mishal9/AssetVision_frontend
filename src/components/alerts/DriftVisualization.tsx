@@ -155,14 +155,14 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                 <TabsTrigger value="relative">Relative Drift</TabsTrigger>
               </TabsList>
               
-              <TooltipProvider>
-                <Tooltip delayDuration={300}>
-                  <TooltipTrigger asChild>
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger>
                     <button className="text-muted-foreground hover:text-primary transition-colors">
                       <Info className="h-4 w-4" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent sideOffset={5} side="top" align="end" className="max-w-sm p-4 z-50">
+                  <TooltipContent side="top" align="end" className="max-w-sm p-4">
                     <p className="font-medium mb-2">Understanding Drift Types</p>
                     <p className="mb-2 text-sm">{driftExplanations[driftView].text}</p>
                     
