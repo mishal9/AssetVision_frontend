@@ -639,35 +639,37 @@ export default function AlertsOverviewPage() {
             <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
 
-          <div className="flex gap-2 items-center">
-            <div className="relative w-full md:w-auto">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="flex items-center h-10 gap-3">
+            <div className="relative flex-1 h-10 md:flex-none md:w-[200px]">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="h-4 w-4 text-muted-foreground" />
+              </div>
               <Input
                 placeholder="Search alerts..."
-                className="pl-8 w-full md:w-[200px]"
+                className="h-10 w-full pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-              <div className="w-[160px]">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    console.log("Status filter changed to:", value);
-                    setStatusFilter(value);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="h-10 w-[160px]">
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  console.log("Status filter changed to:", value);
+                  setStatusFilter(value);
+                }}
+              >
+                <SelectTrigger className="h-10 w-full">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
