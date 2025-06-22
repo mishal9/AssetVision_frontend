@@ -46,7 +46,8 @@ import {
   ToggleLeft,
   ToggleRight,
   Info,
-  RefreshCw
+  RefreshCw,
+  ChevronDown as ChevronDownIcon
 } from "lucide-react";
 import {
   Tooltip,
@@ -649,19 +650,24 @@ export default function AlertsOverviewPage() {
               />
             </div>
 
-            <Select value={statusFilter} onValueChange={(value) => {
-                console.log("Status filter changed to:", value);
-                setStatusFilter(value);
-              }}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="inactive">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
+              <div className="w-[160px]">
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    console.log("Status filter changed to:", value);
+                    setStatusFilter(value);
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent position="item-aligned" side="bottom" align="start" className="z-[9999]" style={{ position: 'relative', zIndex: 9999 }}>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
           </div>
         </div>
 
