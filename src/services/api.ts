@@ -4,7 +4,7 @@
  */
 
 import { fetchWithAuth } from './api-utils';
-import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput } from '@/types/portfolio';
+import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
 import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
@@ -70,6 +70,23 @@ export const portfolioApi = {
   getTaxEfficiencyAnalysis: () => 
     fetchWithAuth<any>('/portfolio/tax-efficiency-analysis')
       .then(response => convertSnakeToCamelCase<TaxEfficiencyResponse>(response)),
+      
+  /**
+   * Get portfolio drift analysis
+   * Compares current allocations to target allocations to identify portfolio drift
+   * @param portfolioId ID of the portfolio to analyze
+   */
+  getPortfolioDrift: (portfolioId: string) => 
+    fetchWithAuth<any>(`/portfolios/${portfolioId}/drift`)
+      .then(response => convertSnakeToCamelCase<DriftResponse>(response)),
+      
+  /**
+   * Get the active portfolio ID
+   */
+  getActivePortfolioId: () => 
+    fetchWithAuth<{id: string}>('/portfolio/active')
+      .then(response => response.id)
+      .catch(() => ''),
 };
 
 /**

@@ -17,7 +17,7 @@ const ALERT_ENDPOINTS = {
   RULES: '/alerts/rules/',
   HISTORY: '/alerts/history/',
   STATS: '/alerts/stat/',
-  DRIFT: '/alerts/drift/',
+  DRIFT: '/portfolios/',
   RULE_DETAIL: (id: string) => `/alerts/rules/${id}/`,
   HISTORY_DETAIL: (id: string) => `/alerts/history/${id}/`,
 };
@@ -206,7 +206,7 @@ export const alertsApi = {
 
   // Get current drift information for a portfolio
   getPortfolioDrift: async (portfolioId: string): Promise<any> => {
-    const endpoint = `${ALERT_ENDPOINTS.DRIFT}${portfolioId}`;
+    const endpoint = `${ALERT_ENDPOINTS.DRIFT}${portfolioId}/drift`;
     return await fetchWithAuth(endpoint);
   },
 

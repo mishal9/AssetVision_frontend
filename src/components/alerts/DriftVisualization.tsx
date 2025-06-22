@@ -146,7 +146,8 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
             </div>
             
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{item.targetAllocation.toFixed(1)}%</span>
+              {/* Show target allocation on the left side */}
+              <span className="whitespace-nowrap">Target: {item.targetAllocation.toFixed(1)}%</span>
               <div className="flex-1 relative h-6">
                 <div className="absolute h-1.5 bg-gray-200 w-full top-1/2 -translate-y-1/2"></div>
                 <div 
@@ -158,7 +159,7 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                   }}
                 ></div>
               </div>
-              <span>{item.currentAllocation.toFixed(1)}%</span>
+              <span className="whitespace-nowrap">Current: {item.currentAllocation.toFixed(1)}%</span>
               
               <div className="flex items-center">
                 <ArrowRight size={12} />
@@ -173,25 +174,47 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
     </div>
   );
 
-  const renderTotalDrift = () => (
-    <div className="mt-6 pt-4 border-t">
-      <div className="mb-2">
-        <div className="flex justify-between mb-1">
-          <span className="text-sm font-medium">Total Portfolio Drift</span>
-          <span className="text-sm font-medium">{data.totalAbsoluteDrift.toFixed(2)}%</span>
+  const renderTotalDrift = () => {
+    // Use a wider range (0-25%) for the total portfolio drift visualization
+    const maxDriftRange = 25; // Show up to 25% drift range
+    const progressPercentage = (data.totalAbsoluteDrift / maxDriftRange) * 100;
+    
+    return (
+      <div className="mt-6 pt-4 border-t">
+        <div className="mb-4">
+          <div className="flex justify-between mb-1">
+            <span className="text-sm font-medium">Total Portfolio Drift</span>
+          </div>
+          
+          <div className="relative">
+            {/* Progress bar */}
+            <Progress 
+              value={progressPercentage} 
+              className={getDriftColor(data.totalAbsoluteDrift)}
+              max={100}
+            />
+            
+            {/* Value indicator that aligns with the actual drift percentage */}
+            <div 
+              className="absolute bottom-full mb-1"
+              style={{ 
+                left: `${Math.min(progressPercentage, 98)}%`, 
+                transform: 'translateX(-50%)'
+              }}
+            >
+              <div className={`px-1.5 py-0.5 rounded text-xs font-medium ${getDriftColor(data.totalAbsoluteDrift)} text-white`}>
+                {data.totalAbsoluteDrift.toFixed(2)}%
+              </div>
+            </div>
+          </div>
         </div>
-        <Progress 
-          value={(data.totalAbsoluteDrift / thresholdPercent) * 100} 
-          className={getDriftColor(data.totalAbsoluteDrift)}
-          max={100}
-        />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>0%</span>
+          <span>{maxDriftRange}%</span>
+        </div>
       </div>
-      <div className="flex justify-between text-xs text-muted-foreground">
-        <span>0%</span>
-        <span>{thresholdPercent}%</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <Card className="overflow-hidden">

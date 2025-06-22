@@ -11,7 +11,8 @@ import {
   Bot,
   Sliders,
   Bell,
-  BarChart2
+  BarChart2,
+  PieChart
 } from 'lucide-react';
 
 /**
@@ -31,6 +32,11 @@ export function Sidebar() {
       name: 'Tax strategies',
       icon: <Receipt className="h-5 w-5" />,
       path: '/dashboard/tax-strategies',
+    },
+    {
+      name: 'Portfolio Drift',
+      icon: <PieChart className="h-5 w-5" />,
+      path: '/dashboard/portfolio-drift',
     },
     {
       name: 'Ask AI',

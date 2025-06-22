@@ -86,3 +86,27 @@ export interface HoldingInput {
   purchasePrice: number;
   purchaseDate: string;
 }
+
+// Drift data types
+export interface DriftItem {
+  name: string;
+  currentAllocation: number;
+  targetAllocation: number;
+  absoluteDrift: number;
+  relativeDrift: number;
+}
+
+export interface DriftData {
+  portfolioId: string;
+  portfolioName: string;
+  lastUpdated: string;
+  totalAbsoluteDrift: number;
+  items: DriftItem[];
+}
+
+// Backend Drift Response
+export interface DriftResponse {
+  overall: DriftData;
+  asset_class: DriftData;
+  sector: DriftData | null;
+}
