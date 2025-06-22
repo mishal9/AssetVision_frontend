@@ -155,40 +155,38 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                 <TabsTrigger value="relative">Relative Drift</TabsTrigger>
               </TabsList>
               
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <button className="text-muted-foreground hover:text-primary transition-colors">
-                      <Info className="h-4 w-4" />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" align="end" className="max-w-sm p-4">
-                    <p className="font-medium mb-2">Understanding Drift Types</p>
-                    <p className="mb-2 text-sm">{driftExplanations[driftView].text}</p>
-                    
-                    <div className="mb-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
-                      <p className="text-xs font-medium mb-1">Example:</p>
-                      <div className="flex items-center justify-center gap-4 mb-1">
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground">Target</p>
-                          <p className="text-sm font-medium">{driftExplanations[driftView].example.target}%</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground">Current</p>
-                          <p className="text-sm font-medium">{driftExplanations[driftView].example.current}%</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground">Drift</p>
-                          <p className="text-sm font-medium">{driftExplanations[driftView].example.result}</p>
-                        </div>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <button type="button" className="text-muted-foreground hover:text-primary transition-colors">
+                    <Info className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-sm p-4 bg-popover text-popover-foreground">
+                  <p className="font-medium mb-2">Understanding Drift Types</p>
+                  <p className="mb-2 text-sm">{driftExplanations[driftView].text}</p>
+                  
+                  <div className="mb-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-md">
+                    <p className="text-xs font-medium mb-1">Example:</p>
+                    <div className="flex items-center justify-center gap-4 mb-1">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Target</p>
+                        <p className="text-sm font-medium">{driftExplanations[driftView].example.target}%</p>
                       </div>
-                      <p className="text-xs text-center text-muted-foreground">{driftExplanations[driftView].example.calculation}</p>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Current</p>
+                        <p className="text-sm font-medium">{driftExplanations[driftView].example.current}%</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground">Drift</p>
+                        <p className="text-sm font-medium">{driftExplanations[driftView].example.result}</p>
+                      </div>
                     </div>
-                    
-                    <p className="text-xs text-muted-foreground">{driftExplanations[driftView].usage}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+                    <p className="text-xs text-center text-muted-foreground">{driftExplanations[driftView].example.calculation}</p>
+                  </div>
+                  
+                  <p className="text-xs text-muted-foreground">{driftExplanations[driftView].usage}</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
             
             <p className="text-xs text-muted-foreground mt-1 ml-1">
@@ -330,13 +328,15 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   };
 
   return (
-    <Card className="overflow-hidden">
-      {renderHeader()}
-      <CardContent>
-        {renderDriftTabs()}
-        {renderTotalDrift()}
-      </CardContent>
-    </Card>
+    <TooltipProvider>
+      <Card className="overflow-hidden">
+        {renderHeader()}
+        <CardContent>
+          {renderDriftTabs()}
+          {renderTotalDrift()}
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 
