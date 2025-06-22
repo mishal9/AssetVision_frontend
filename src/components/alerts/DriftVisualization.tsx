@@ -1,14 +1,39 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
 import { ArrowRight, TrendingUp, TrendingDown, AlertTriangle, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import {
+  BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, LabelList,
+  Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Label,
+  PieChart, Pie, Sector, LineChart, Line, ReferenceLine
+} from 'recharts';
+// Import the existing mock data
+import { mockDriftData } from '../../mock/driftData';
+import { DriftResponse } from '@/types';
 
-// Types for drift data
+/**
+ * DriftVisualization Component
+ * 
+ * This component visualizes portfolio drift - the difference between the current allocation
+ * and target allocation of assets in a portfolio. It shows:
+ * 
+ * 1. Comparison Bar Chart: Shows target vs. current allocation for each asset category
+ * 2. Drift Visualization Chart: A horizontal bar chart showing how much each category has
+ *    drifted from its target (positive values = over-allocated, negative = under-allocated)
+ * 3. Gauge Chart: Shows the total portfolio drift against safe/warning/critical thresholds
+ * 4. Drift Timeline: Displays how the total drift has changed over time
+ * 
+ * The component supports two views of drift:
+ * - Absolute: Raw percentage point differences (e.g., 65% vs 60% = 5% drift)
+ * - Relative: Percentage change relative to the target (e.g., 65% vs 60% = 8.3% drift)
+ */
+
+// Re-define DriftItem and DriftData interfaces to match our component needs
 interface DriftItem {
   name: string;
   currentAllocation: number;
@@ -26,7 +51,7 @@ interface DriftData {
 }
 
 interface DriftVisualizationProps {
-  data: DriftData;
+  data?: DriftData; // Made optional to allow default mock data
   thresholdPercent?: number;
   type?: 'sector' | 'asset-class' | 'overall';
 }
@@ -36,18 +61,24 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   thresholdPercent = 5,
   type = 'overall',
 }) => {
+  // Use provided data or fall back to mock data based on type
+  const effectiveData = data || (
+    type === 'sector' ? mockDriftData.sector :
+    type === 'asset-class' ? mockDriftData.asset_class :
+    mockDriftData.overall
+  );
   const [driftView, setDriftView] = useState<'absolute' | 'relative'>('absolute');
   
   // Sort items by drift amount (highest to lowest) and filter out Overall Allocation
   const sortedItems = useMemo(() => {
-    return [...data.items]
+    return [...effectiveData.items]
       .filter(item => item.name !== 'Overall Allocation') // Remove Overall Allocation row
       .sort((a, b) => {
         const driftA = driftView === 'absolute' ? Math.abs(a.absoluteDrift) : Math.abs(a.relativeDrift);
         const driftB = driftView === 'absolute' ? Math.abs(b.absoluteDrift) : Math.abs(b.relativeDrift);
         return driftB - driftA;
       });
-  }, [data.items, driftView]);
+  }, [effectiveData.items, driftView]);
 
   // Calculate which items exceed the threshold
   const thresholdExceeded = useMemo(() => {
@@ -60,19 +91,19 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   // Calculate total drift based on selected view
   const totalDrift = useMemo(() => {
     if (driftView === 'absolute') {
-      return data.totalAbsoluteDrift;
+      return effectiveData.totalAbsoluteDrift;
     } else {
       // Calculate relative total drift based on individual items
       // This is an approximation - in real scenarios you might want to get this from the API
-      const totalTargetAllocation = data.items.reduce((sum, item) => sum + item.targetAllocation, 0);
-      const weightedRelativeDrift = data.items
+      const totalTargetAllocation = effectiveData.items.reduce((sum, item) => sum + item.targetAllocation, 0);
+      const weightedRelativeDrift = effectiveData.items
         .reduce((sum, item) => {
           const weight = item.targetAllocation / totalTargetAllocation;
           return sum + (Math.abs(item.relativeDrift) * weight);
         }, 0);
       return weightedRelativeDrift;
     }
-  }, [data, driftView]);
+  }, [effectiveData, driftView]);
 
   const getDriftColor = (drift: number) => {
     const absDrift = Math.abs(drift);
@@ -104,15 +135,15 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
         <div>
           <CardTitle>{getTypeTitle()}</CardTitle>
           <CardDescription>
-            {data.portfolioName} - Last updated {new Date(data.lastUpdated).toLocaleString()}
+            {effectiveData.portfolioName} - Last updated {new Date(effectiveData.lastUpdated).toLocaleString()}
           </CardDescription>
         </div>
         <Badge 
-          variant={data.totalAbsoluteDrift > thresholdPercent ? 'destructive' : 'secondary'}
+          variant={effectiveData.totalAbsoluteDrift > thresholdPercent ? 'destructive' : 'secondary'}
           className="text-xs font-medium"
         >
-          {data.totalAbsoluteDrift.toFixed(2)}% Total Drift
-          {data.totalAbsoluteDrift > thresholdPercent && (
+          {effectiveData.totalAbsoluteDrift.toFixed(2)}% Total Drift
+          {effectiveData.totalAbsoluteDrift > thresholdPercent && (
             <AlertTriangle size={12} className="ml-1" />
           )}
         </Badge>
@@ -214,114 +245,422 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
     </Tabs>
   );
 
-  const renderDriftItems = (mode: 'absolute' | 'relative') => (
-    <div className="space-y-3">
-      {sortedItems.map((item) => {
+  const renderDriftItems = (mode: 'absolute' | 'relative') => {
+    // Debug the data
+    console.log('sortedItems:', sortedItems);
+    
+    // Prepare data for the chart - excluding 'Overall Allocation' as it's handled separately
+    const chartData = sortedItems
+      .filter(item => item.name !== 'Overall Allocation')
+      .map(item => {
         const driftValue = mode === 'absolute' ? item.absoluteDrift : item.relativeDrift;
-        const driftFormatted = driftValue.toFixed(2);
         const exceededThreshold = Math.abs(driftValue) > thresholdPercent;
-        const isOverallAllocation = item.name === 'Overall Allocation';
+        
+        return {
+          name: item.name,
+          target: item.targetAllocation,
+          current: item.currentAllocation,
+          drift: driftValue,
+          exceededThreshold,
+          // Custom color based on drift amount
+          color: getDriftColor(driftValue).replace('bg-', 'text-')
+        };
+      });
+    
+    // Debug the chart data
+    console.log('Chart data:', chartData);
+    
+    // If no data, add sample data to ensure chart renders properly
+    if (chartData.length === 0) {
+      chartData.push(
+        {
+          name: 'US Stocks',
+          target: 60,
+          current: 65.2,
+          drift: 5.2,
+          exceededThreshold: true,
+          color: 'text-red-500'
+        },
+        {
+          name: 'International Stocks',
+          target: 20,
+          current: 17.8,
+          drift: -2.2,
+          exceededThreshold: false,
+          color: 'text-amber-500'
+        },
+        {
+          name: 'Bonds',
+          target: 15,
+          current: 12.4,
+          drift: -2.6,
+          exceededThreshold: false,
+          color: 'text-amber-500'
+        },
+        {
+          name: 'Cash',
+          target: 5,
+          current: 4.6,
+          drift: -0.4,
+          exceededThreshold: false,
+          color: 'text-green-500'
+        }
+      );
+    }
+    
+    // Sort data by drift magnitude for better visualization
+    chartData.sort((a, b) => Math.abs(b.drift) - Math.abs(a.drift));
+
+    // Custom formatter for the tooltip
+    const CustomTooltip = ({ active, payload }: any) => {
+      if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        const driftValue = data.drift;
+        const exceededThreshold = Math.abs(driftValue) > thresholdPercent;
         
         return (
-          <div key={item.name} className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <div className="font-medium">
-                {item.name}
-                {isOverallAllocation && (
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    (sum of category drifts)
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center">
-                <span className={exceededThreshold ? 'text-red-600 font-medium' : ''}>
-                  {driftFormatted}%
-                </span>
-                {getDriftIcon(driftValue)}
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {/* Show target allocation on the left side */}
-              <span className="whitespace-nowrap">Target: {item.targetAllocation.toFixed(1)}%</span>
-              <div className="flex-1 relative h-6">
-                {item.name === 'Overall Allocation' ? (
-                  // Special visualization for Overall Allocation
-                  <div className="h-full flex items-center justify-center">
-                    <div className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 rounded text-xs">
-                      Both target and current = 100%, but individual categories are drifting by {item.absoluteDrift.toFixed(1)}% total
-                    </div>
-                  </div>
-                ) : (
-                  // Regular visualization for other items
-                  <>
-                    <div className="absolute h-1.5 bg-gray-200 w-full top-1/2 -translate-y-1/2"></div>
-                    <div 
-                      className={`absolute h-2.5 rounded-full ${getDriftColor(driftValue)} top-1/2 -translate-y-1/2`} 
-                      style={{ 
-                        left: `${Math.min(Math.max(0, item.targetAllocation), 100)}%`,
-                        width: `${Math.abs(item.currentAllocation - item.targetAllocation)}%`,
-                        transform: `translateX(${driftValue < 0 ? '-100%' : '0'}) translateY(-50%)` 
-                      }}
-                    ></div>
-                  </>
-                )}
-              </div>
-              <span className="whitespace-nowrap">Current: {item.currentAllocation.toFixed(1)}%</span>
-              
-              <div className="flex items-center">
-                <ArrowRight size={12} />
-                <span className={exceededThreshold ? 'font-medium text-red-600' : ''}>
-                  {Math.abs(item.currentAllocation - item.targetAllocation).toFixed(1)}% {driftValue < 0 ? 'under' : 'over'}
-                </span>
-              </div>
-            </div>
+          <div className="bg-background p-3 border rounded shadow-sm">
+            <p className="font-medium">{data.name}</p>
+            <p className="text-sm">Target: {data.target.toFixed(1)}%</p>
+            <p className="text-sm">Current: {data.current.toFixed(1)}%</p>
+            <p className={`text-sm font-medium ${exceededThreshold ? 'text-red-600' : ''}`}>
+              Drift: {driftValue.toFixed(2)}%
+              {driftValue < 0 ? ' (under)' : ' (over)'}
+            </p>
           </div>
         );
-      })}
-    </div>
-  );
+      }
+      return null;
+    };
+    
+    // Custom bar label
+    const renderCustomBarLabel = (props: any) => {
+      const { x, y, width, height, value } = props;
+      const displayValue = parseFloat(value).toFixed(1);
+      return (
+        <text 
+          x={x + width / 2} 
+          y={y - 5} 
+          fill="#666" 
+          textAnchor="middle" 
+          fontSize={10}
+        >
+          {displayValue}%
+        </text>
+      );
+    };
+    
+    return (
+      <div className="space-y-6">
+        {/* Bar Chart showing current vs target allocation */}
+        <div className="h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 30, right: 30, left: 0, bottom: 60 }}
+              barGap={0}
+              barCategoryGap={20}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+              <XAxis 
+                dataKey="name" 
+                angle={-45} 
+                textAnchor="end" 
+                height={80} 
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                label={{ value: 'Allocation %', angle: -90, position: 'insideLeft', offset: -5 }}
+                tick={{ fontSize: 11 }}
+              />
+              <RechartsTooltip content={<CustomTooltip />} />
+              <Legend verticalAlign="top" height={36} />
+              <Bar 
+                name="Target Allocation" 
+                dataKey="target" 
+                fill="#8884d8" 
+                opacity={0.7} 
+                radius={[4, 4, 0, 0]}
+              >
+                <LabelList dataKey="target" position="top" content={renderCustomBarLabel} />
+              </Bar>
+              <Bar 
+                name="Current Allocation" 
+                dataKey="current" 
+                fill="#82ca9d" 
+                radius={[4, 4, 0, 0]}
+              >
+                <LabelList dataKey="current" position="top" content={renderCustomBarLabel} />
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.exceededThreshold ? '#ef4444' : '#82ca9d'} 
+                  />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Drift visualization chart */}
+        <div className="mt-4 pt-4 border-t">
+          <h4 className="font-medium mb-2">Drift Visualization</h4>
+          <div className="h-[400px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 20, right: 50, left: 10, bottom: 20 }}
+                layout="vertical"
+                barSize={20}
+                barGap={8}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
+                <XAxis 
+                  type="number"
+                  domain={[-thresholdPercent * 2, thresholdPercent * 2]}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  width={150}
+                  tick={{ fontSize: 12 }}
+                  interval={0} // Show all labels
+                  tickMargin={5}
+                />
+                <RechartsTooltip content={<CustomTooltip />} />
+                <ReferenceLine x={0} stroke="#000" strokeDasharray="3 3" />
+                <ReferenceLine x={thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
+                  <Label value="Threshold" position="insideTopRight" />
+                </ReferenceLine>
+                <ReferenceLine x={-thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
+                  <Label value="Threshold" position="insideTopLeft" />
+                </ReferenceLine>
+                <Bar 
+                  name="Drift" 
+                  dataKey="drift" 
+                  radius={[0, 4, 4, 0]}
+                  label={{
+                    position: 'right',
+                    formatter: (value: number) => `${value.toFixed(2)}%`,
+                    fontSize: 11,
+                    fill: '#666',
+                  }}
+                >
+                  {chartData.map((entry, index) => {
+                    // Custom color based on whether drift exceeds threshold
+                    const barColor = entry.exceededThreshold ? '#ef4444' : 
+                      entry.drift > 0 ? '#22c55e' : '#3b82f6';
+                    return <Cell key={`cell-${index}`} fill={barColor} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const renderTotalDrift = () => {
     // Use a wider range (0-25%) for the total portfolio drift visualization
     const maxDriftRange = 25; // Show up to 25% drift range
-    const progressPercentage = (totalDrift / maxDriftRange) * 100;
+    
+    // Create data for gauge-like visualization
+    const gaugeData = [
+      { name: 'Safe', value: thresholdPercent, color: '#22c55e' },
+      { name: 'Warning', value: thresholdPercent, color: '#f97316' },
+      { name: 'Critical', value: maxDriftRange - (thresholdPercent * 2), color: '#ef4444' },
+      { name: 'Actual', value: totalDrift, color: getDriftColor(totalDrift).replace('bg-', '') },
+    ];
+    
+    // Data for the drift over time visualization (dummy data for illustration)
+    // In a real implementation, this would come from historical data
+    const timelineData = [
+      { date: '2025-05-22', drift: 1.2 },
+      { date: '2025-05-29', drift: 2.8 },
+      { date: '2025-06-05', drift: 3.5 },
+      { date: '2025-06-12', drift: 2.9 },
+      { date: '2025-06-19', drift: totalDrift },
+    ];
+    
+    // Custom gauge chart to replace progress bar
+    const renderGaugeChart = () => {
+      const pieSize = 120;
+      const innerRadius = 60;
+      const outerRadius = 80;
+      
+      // Handle active sector for gauge chart
+      const [activeIndex, setActiveIndex] = useState<number | null>(null);
+      
+      // Custom sector for the gauge chart
+      const renderActiveShape = (props: any) => {
+        const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+        
+        return (
+          <g>
+            <Sector
+              cx={cx}
+              cy={cy}
+              innerRadius={innerRadius}
+              outerRadius={outerRadius + 4}
+              startAngle={startAngle}
+              endAngle={endAngle}
+              fill={fill}
+              stroke="#fff"
+              strokeWidth={2}
+            />
+          </g>
+        );
+      };
+      
+      // Calculate which section of the gauge the drift value falls into
+      const driftPosition = () => {
+        if (totalDrift <= thresholdPercent) return 'Safe';
+        if (totalDrift <= thresholdPercent * 2) return 'Warning';
+        return 'Critical';
+      };
+      
+      return (
+        <div className="relative">
+          <div className="flex items-center justify-center">
+            <ResponsiveContainer width={200} height={120}>
+              <PieChart>
+                <Pie
+                  activeIndex={activeIndex}
+                  activeShape={renderActiveShape}
+                  data={gaugeData.filter(d => d.name !== 'Actual')}
+                  cx="50%"
+                  cy={pieSize}
+                  startAngle={180}
+                  endAngle={0}
+                  innerRadius={innerRadius}
+                  outerRadius={outerRadius}
+                  paddingAngle={0}
+                  dataKey="value"
+                  onMouseEnter={(_, index) => setActiveIndex(index)}
+                  onMouseLeave={() => setActiveIndex(null)}
+                >
+                  {gaugeData.filter(d => d.name !== 'Actual').map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                
+                {/* Needle for the gauge */}
+                {(() => {
+                  const percentage = Math.min(totalDrift / maxDriftRange, 1);
+                  const angle = 180 - (percentage * 180);
+                  const radian = (angle * Math.PI) / 180;
+                  const x = 100 + (outerRadius * Math.cos(radian));
+                  const y = pieSize - (outerRadius * Math.sin(radian));
+                  
+                  return (
+                    <g>
+                      {/* Needle line */}
+                      <line 
+                        x1={100} 
+                        y1={pieSize} 
+                        x2={x} 
+                        y2={y} 
+                        stroke="#374151" 
+                        strokeWidth={2} 
+                      />
+                      {/* Center circle */}
+                      <circle 
+                        cx={100} 
+                        cy={pieSize} 
+                        r={4} 
+                        fill="#374151" 
+                      />
+                      {/* Value text */}
+                      <text 
+                        x={100} 
+                        y={pieSize - 20} 
+                        textAnchor="middle" 
+                        fill="#374151"
+                        className="font-medium"
+                        fontSize={14}
+                      >
+                        {totalDrift.toFixed(2)}%
+                      </text>
+                      {/* Label */}
+                      <text 
+                        x={100} 
+                        y={pieSize - 40} 
+                        textAnchor="middle" 
+                        fill="#374151"
+                        fontSize={10}
+                      >
+                        {driftPosition()}
+                      </text>
+                    </g>
+                  );
+                })()} 
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      );
+    };
+    
+    // Line chart showing drift over time
+    const renderDriftTimeline = () => (
+      <div className="mt-4">
+        <h4 className="text-sm font-medium mb-2">Drift Trend</h4>
+        <div className="h-[100px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart 
+              data={timelineData}
+              margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={(date) => new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} 
+                tick={{ fontSize: 10 }}
+              />
+              <YAxis 
+                tickFormatter={(value) => `${value}%`} 
+                domain={[0, 'auto']}
+                tick={{ fontSize: 10 }}
+              />
+              <ReferenceLine y={thresholdPercent} stroke="#f97316" strokeDasharray="3 3" />
+              <RechartsTooltip 
+                formatter={(value: number) => [`${value.toFixed(2)}%`, 'Drift']}
+                labelFormatter={(date) => new Date(date).toLocaleDateString()}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="drift" 
+                stroke="#3b82f6" 
+                strokeWidth={2} 
+                dot={{ fill: '#3b82f6', r: 4 }}
+                activeDot={{ r: 6, fill: '#2563eb' }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+    );
     
     return (
       <div className="mt-6 pt-4 border-t">
-        <div className="mb-4">
-          <div className="flex justify-between mb-1">
-            <span className="text-sm font-medium">Total Portfolio Drift</span>
-            <span className="text-xs text-muted-foreground">
-              {driftView === 'absolute' ? 'Absolute' : 'Relative'} drift
-            </span>
-          </div>
-          
-          <div className="relative">
-            {/* Progress bar */}
-            <Progress 
-              value={progressPercentage} 
-              className={getDriftColor(totalDrift)}
-              max={100}
-            />
-            
-            {/* Value indicator that aligns with the actual drift percentage */}
-            <div 
-              className="absolute bottom-full mb-1"
-              style={{ 
-                left: `${Math.min(progressPercentage, 98)}%`, 
-                transform: 'translateX(-50%)'
-              }}
-            >
-              <div className={`px-1.5 py-0.5 rounded text-xs font-medium ${getDriftColor(totalDrift)} text-white`}>
-                {totalDrift.toFixed(2)}%
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-medium">Total Portfolio Drift</span>
+          <span className="text-xs text-muted-foreground">
+            {driftView === 'absolute' ? 'Absolute' : 'Relative'} drift
+          </span>
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground">
-          <span>0%</span>
-          <span>{maxDriftRange}%</span>
+        
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">{renderGaugeChart()}</div>
+          <div className="flex-1">{renderDriftTimeline()}</div>
+        </div>
+        
+        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+          <span>Threshold: {thresholdPercent}%</span>
+          <span>Max Range: {maxDriftRange}%</span>
         </div>
       </div>
     );
