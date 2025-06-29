@@ -6,8 +6,19 @@
 import { API_BASE_URL } from '@/config/api';
 
 /**
- * Generic fetch wrapper with error handling
- * Automatically adds authentication headers and handles errors
+ * Generic fetch wrapper with authentication and error handling
+ * 
+ * This function handles API requests to the backend server with automatic authentication.
+ * It supports both relative paths (which are appended to API_BASE_URL) and absolute URLs.
+ * 
+ * Authentication is handled by automatically retrieving JWT tokens from cookies or localStorage
+ * and adding them as Authorization Bearer headers to the request.
+ * 
+ * @template T - The expected return type of the API call
+ * @param {string} endpoint - The API endpoint to call (can be a relative path or full URL)
+ * @param {RequestInit} [options={}] - Fetch API options (method, body, additional headers, etc.)
+ * @returns {Promise<T>} A promise that resolves to the API response data of type T
+ * @throws {Error} Throws an error if the API request fails or returns an error status
  */
 export async function fetchWithAuth<T>(
   endpoint: string, 

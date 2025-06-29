@@ -89,10 +89,44 @@ body {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   background-color: transparent !important;
+  z-index: 9999 !important;
+  position: fixed !important;
+  transform: translateY(10px) !important;
+  top: auto !important;
+  margin-top: 8px !important;
 }
 
 [data-slot="dropdown-menu-content"] {
   background-color: var(--popover) !important;
   border: 1px solid var(--border) !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Ensure dropdown has proper background and shadow */
+[role="listbox"] {
+  background-color: var(--popover) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  isolation: isolate !important;
+}
+
+/* Improve visibility of selected options */
+[role="option"][aria-selected="true"] {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  font-weight: 500 !important;
+}
+
+/* Create space between form fields */
+.form-item + .form-item {
+  margin-top: 1.5rem !important;
+}
+
+/* Add proper spacing around select triggers */
+[data-slot="select-trigger"] {
+  margin-bottom: 0.5rem !important;
+}
+
+/* Fix for radix dropdowns to ensure they appear at the right position */
+[data-radix-popper-content-wrapper][style*="--radix-popper-transform-origin"] {
+  transform-origin: var(--radix-popper-transform-origin) !important;
 }

@@ -10,8 +10,9 @@ import {
   Receipt,
   Bot,
   Sliders,
-  Bell,
-  BarChart2
+  BarChart2,
+  BarChart3,
+  PieChart
 } from 'lucide-react';
 
 /**
@@ -33,6 +34,11 @@ export function Sidebar() {
       path: '/dashboard/tax-strategies',
     },
     {
+      name: 'Portfolio Drift',
+      icon: <PieChart className="h-5 w-5" />,
+      path: '/dashboard/portfolio-drift',
+    },
+    {
       name: 'Ask AI',
       icon: <Bot className="h-5 w-5" />,
       path: '/dashboard/ask-ai',
@@ -44,7 +50,7 @@ export function Sidebar() {
     },
     {
       name: 'Drift alerts',
-      icon: <Bell className="h-5 w-5" />,
+      icon: <BarChart3 className="h-5 w-5" />,
       path: '/dashboard/alerts',
     },
   ];

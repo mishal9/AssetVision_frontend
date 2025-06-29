@@ -4,7 +4,7 @@
  */
 
 import { fetchWithAuth } from './api-utils';
-import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput } from '@/types/portfolio';
+import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
 import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
@@ -70,6 +70,23 @@ export const portfolioApi = {
   getTaxEfficiencyAnalysis: () => 
     fetchWithAuth<any>('/portfolio/tax-efficiency-analysis')
       .then(response => convertSnakeToCamelCase<TaxEfficiencyResponse>(response)),
+      
+  /**
+   * Get portfolio drift analysis
+   * Compares current allocations to target allocations to identify portfolio drift
+   * @param portfolioId ID of the portfolio to analyze
+   */
+  getPortfolioDrift: (portfolioId: string) => 
+    fetchWithAuth<any>(`/portfolios/${portfolioId}/drift`)
+      .then(response => convertSnakeToCamelCase<DriftResponse>(response)),
+      
+  /**
+   * Get the active portfolio ID
+   */
+  getActivePortfolioId: () => 
+    fetchWithAuth<{id: string}>('/portfolio/active')
+      .then(response => response.id)
+      .catch(() => ''),
 };
 
 /**
@@ -80,14 +97,14 @@ export const alertsApi = {
    * Get all user alerts
    */
   getAlerts: () => 
-    fetchWithAuth<AlertResponse[]>('/alerts')
+    fetchWithAuth<AlertResponse[]>('/alerts/rules/')
       .then(response => convertSnakeToCamelCase<Alert[]>(response)),
   
   /**
    * Create a new alert
    */
-  createAlert: (alertData: AlertInput) => 
-    fetchWithAuth<AlertResponse>('/alerts', {
+  createAlert: (alertData: any) => 
+    fetchWithAuth<AlertResponse>('/alerts/rules/', {
       method: 'POST',
       body: JSON.stringify(alertData),
     })
@@ -97,7 +114,7 @@ export const alertsApi = {
    * Update an existing alert
    */
   updateAlert: (alertId: string, alertData: Partial<AlertInput>) => 
-    fetchWithAuth<AlertResponse>(`/alerts/${alertId}`, {
+    fetchWithAuth<AlertResponse>(`/alerts/rules/${alertId}/`, {
       method: 'PATCH',
       body: JSON.stringify(alertData),
     })
@@ -107,7 +124,7 @@ export const alertsApi = {
    * Delete an alert
    */
   deleteAlert: (alertId: string) => 
-    fetchWithAuth<void>(`/alerts/${alertId}`, {
+    fetchWithAuth<void>(`/alerts/rules/${alertId}/`, {
       method: 'DELETE',
     }),
 };
