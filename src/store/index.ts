@@ -4,6 +4,7 @@ import appReducer from './appSlice';
 import userReducer from './userSlice';
 import portfolioReducer from './portfolioSlice';
 import preferencesReducer from './preferencesSlice';
+import aiChatReducer from './aiChatSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     user: userReducer,
     portfolio: portfolioReducer,
     preferences: preferencesReducer,
+    aiChat: aiChatReducer,
   },
 });
 

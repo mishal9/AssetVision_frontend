@@ -39,11 +39,6 @@ export function Sidebar() {
       path: '/dashboard/portfolio-drift',
     },
     {
-      name: 'Ask AI',
-      icon: <Bot className="h-5 w-5" />,
-      path: '/dashboard/ask-ai',
-    },
-    {
       name: 'Optimize portfolio',
       icon: <Sliders className="h-5 w-5" />,
       path: '/dashboard/optimize',

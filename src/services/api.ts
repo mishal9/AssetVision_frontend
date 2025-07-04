@@ -276,4 +276,44 @@ export const preferencesApi = {
   }
 };
 
+/**
+ * Chat API methods
+ * Backend-powered LLM integration
+ */
+export const chatApi = {
+  /**
+   * Send a message to the AI assistant via the backend
+   * @param messages Array of message objects with role and content
+   * @param context Current application context
+   * @returns Promise with the AI response
+   */
+  sendMessage: (
+    messages: { role: 'user' | 'assistant'; content: string }[], 
+    context: { page?: string; section?: string; portfolioId?: string; assetId?: string }
+  ) => 
+    fetchWithAuth<{ response: string }>('/ai/chat/', {
+      method: 'POST',
+      body: JSON.stringify({ messages, context }),
+    })
+      .then(response => response.response),
+  
+  /**
+   * Get AI-generated insights for a specific portfolio
+   * @param portfolioId ID of the portfolio to analyze
+   * @returns Promise with portfolio insights
+   */
+  getPortfolioInsights: (portfolioId: string) => 
+    fetchWithAuth<{ insights: string }>(`/ai/insights/portfolio/${portfolioId}`)
+      .then(response => response.insights),
+      
+  /**
+   * Get AI-generated recommendations for portfolio optimization
+   * @param portfolioId ID of the portfolio to optimize
+   * @returns Promise with optimization recommendations
+   */
+  getOptimizationRecommendations: (portfolioId: string) => 
+    fetchWithAuth<{ recommendations: string }>(`/ai/recommendations/portfolio/${portfolioId}`)
+      .then(response => response.recommendations),
+};
+
 // End of API definitions
