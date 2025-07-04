@@ -15,7 +15,6 @@ import {
 } from '@/store/aiChatSlice';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert } from '@/components/ui/alert';
 import { chatApi } from '@/services/api';
@@ -31,7 +30,20 @@ export function AiChat() {
   const dispatch = useDispatch();
   const router = useRouter();
   const pathname = usePathname();
-  const [inputValue, setInputValue] = useState('');
+  const [selectedPrompt, setSelectedPrompt] = useState('');
+  
+  /**
+   * Predefined list of prompts that users can select from
+   */
+  const predefinedPrompts = [
+    'Analyze my portfolio performance',
+    'Show my asset allocation',
+    'Identify tax loss harvesting opportunities',
+    'Analyze my dividend income',
+    'Explain my sector exposure',
+    'Suggest portfolio optimizations',
+    'Summarize recent market impacts on my portfolio'
+  ];
   const [isApiConfigured, setIsApiConfigured] = useState<boolean>(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -456,39 +468,50 @@ export function AiChat() {
   };
 
   /**
+   * Handle prompt selection from dropdown
+   * @param prompt - The selected predefined prompt
+   */
+  const handlePromptSelect = (prompt: string) => {
+    setSelectedPrompt(prompt);
+  };
+
+  /**
    * Handle form submission
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!inputValue.trim() || loading) return;
+    if (!selectedPrompt || loading) return;
     
-    // Get the user's message
-    const userMessage = inputValue.trim();
+    // Get the selected prompt
+    const userPrompt = selectedPrompt;
     
-    // Add original user message to chat (for display)
+    // Create the enhanced message with system context embedded
+    const systemData = getSystemMessage();
+    const enhancedUserMessage = `${userPrompt}\n\n[SYSTEM_CONTEXT]\n${systemData}\n[/SYSTEM_CONTEXT]`;
+    
+    // Add only the original prompt to chat (for display)
     dispatch(addMessage({ 
       role: 'user', 
-      content: userMessage
+      content: userPrompt
     }));
     
-    // Clear input field
-    setInputValue('');
+    // Reset selected prompt
+    setSelectedPrompt('');
     
     try {
       // Start loading state
       dispatch(setLoading(true));
       
-      // Format messages for API with proper context
-      const formattedMessages = formatMessagesForApi(userMessage);
+      // Format messages for API with the enhanced user message
+      const formattedMessages = formatMessagesForApi(enhancedUserMessage);
       
       // Send to backend API which handles the LLM calls
-      // Pass only minimal context (page name) - portfolio data is in system message
+      // Pass only minimal context (page name)
       const minimalContext = { page: context.page || 'Dashboard' };
       const response = await chatApi.sendMessage(formattedMessages, minimalContext);
       
       // Format the response to ensure proper markdown rendering
-      // (We're assuming the backend returns markdown-formatted text)
       const formattedResponse = response.trim();
       
       // Add the formatted AI response to chat
@@ -611,19 +634,29 @@ export function AiChat() {
             </div>
           </ScrollArea>
 
-          {/* Input area */}
+          {/* Input area with native select for predefined prompts */}
           <form onSubmit={handleSubmit} className="p-3 border-t flex items-center gap-2">
-            <Input
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Type your message..."
-              disabled={loading || !isApiConfigured}
-              className="flex-grow"
-            />
+            <div className="flex-grow">
+              <select
+                value={selectedPrompt}
+                onChange={(e) => handlePromptSelect(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={loading || !isApiConfigured}
+              >
+                <option value="" disabled>
+                  Select a prompt...
+                </option>
+                {predefinedPrompts.map((prompt) => (
+                  <option key={prompt} value={prompt}>
+                    {prompt}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Button 
               type="submit" 
               size="icon" 
-              disabled={!inputValue.trim() || loading || !isApiConfigured}
+              disabled={!selectedPrompt || loading || !isApiConfigured}
             >
               <Send className="h-4 w-4" />
             </Button>
