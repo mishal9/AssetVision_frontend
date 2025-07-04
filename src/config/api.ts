@@ -34,6 +34,8 @@ export const PORTFOLIO_ENDPOINTS = {
   TAX_LOSS_HARVESTING: `${API_BASE_URL}/portfolio/tax-loss-harvesting/`,  // Uses the active user's portfolio
   TAX_EFFICIENCY: `${API_BASE_URL}/portfolio/tax-efficiency-analysis/`,  // Uses the active user's portfolio
   ALERTS: `${API_BASE_URL}/alerts/`,  // The alerts endpoints are under /api/alerts/ in the backend
+  ASSET_CLASSES: `${API_BASE_URL}/portfolio/asset-classes/`,  // Get available asset classes
+  TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/target-allocations/`,  // Save target allocations
 };
 
 // Plaid endpoints - using API_HOST to avoid double /api prefixing

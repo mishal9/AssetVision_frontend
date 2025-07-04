@@ -82,6 +82,24 @@ export const portfolioApi = {
       .then(response => convertSnakeToCamelCase<DriftResponse>(response)),
       
   /**
+   * Get available asset classes for target allocations
+   * Includes current allocation percentages if available
+   */
+  getAssetClasses: () => 
+    fetchWithAuth<any[]>(PORTFOLIO_ENDPOINTS.ASSET_CLASSES)
+      .then(response => convertSnakeToCamelCase<any[]>(response)),
+      
+  /**
+   * Save target allocations for the portfolio
+   * @param allocations Array of asset allocations with target percentages
+   */
+  saveTargetAllocations: (allocations: { asset_id: string; target_percentage: number }[]) => 
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.TARGET_ALLOCATIONS, {
+      method: 'POST',
+      body: JSON.stringify({ allocations }),
+    }),
+      
+  /**
    * Get the active portfolio ID
    * Uses the summary endpoint since active endpoint was deprecated
    */
@@ -325,7 +343,7 @@ export const chatApi = {
   getOptimizationRecommendations: (portfolioId: string) => 
     fetchWithAuth<{ recommendations: string }>(`/ai/recommendations/portfolio/${portfolioId}`)
       .then(response => response.recommendations),
-      
+ 
   /**
    * Analyze portfolio data directly with Google Gemini API
    * Uses the direct Gemini endpoint for enhanced portfolio analysis
