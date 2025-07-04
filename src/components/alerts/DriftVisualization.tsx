@@ -61,24 +61,69 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   thresholdPercent = 5,
   type = 'overall',
 }) => {
-  // Use provided data or fall back to mock data based on type
-  const effectiveData = data || (
-    type === 'sector' ? mockDriftData.sector :
-    type === 'asset-class' ? mockDriftData.asset_class :
-    mockDriftData.overall
-  );
+  // Only use provided data - no automatic fallback to mock data
+  // If data is undefined or null, use an empty structure instead of mock data
+  const effectiveData = data || {
+    items: [],
+    thresholds: { absolute: 5, relative: 10 }
+  };
+  
+  // Log if we're missing data to help debugging
+  if (!data) {
+    console.warn(`Missing ${type} drift data - rendering empty state`);
+  }
+  
+  // DEBUG: Log what data we're actually using
+  console.log('DriftVisualization receiving data:', { 
+    providedData: data, 
+    effectiveData, 
+    usingMockData: !data,
+    type 
+  });
+  
+  // Verify the data structure has what we need
+  console.log('Items with current allocations:', effectiveData?.items?.map(item => ({
+    name: item.name,
+    currentAllocation: item.currentAllocation,
+    targetAllocation: item.targetAllocation
+  })));
   const [driftView, setDriftView] = useState<'absolute' | 'relative'>('absolute');
   
   // Sort items by drift amount (highest to lowest) and filter out Overall Allocation
   const sortedItems = useMemo(() => {
-    return [...effectiveData.items]
+    // Guard against undefined items
+    if (!effectiveData?.items) {
+      console.error('effectiveData.items is undefined or');
+      return [];
+    }
+    
+    // Clone and process items
+    const items = [...effectiveData.items]
       .filter(item => item.name !== 'Overall Allocation') // Remove Overall Allocation row
+      .map(item => {
+        // Make sure currentAllocation is a number
+        if (item.currentAllocation === undefined || item.currentAllocation === null) {
+          console.warn(`Item ${item.name} missing currentAllocation, setting to 0`);
+          item.currentAllocation = 0;
+        }
+        
+        // Make sure targetAllocation is a number
+        if (item.targetAllocation === undefined || item.targetAllocation === null) {
+          console.warn(`Item ${item.name} missing targetAllocation, setting to 0`);
+          item.targetAllocation = 0;
+        }
+        
+        return item;
+      })
       .sort((a, b) => {
         const driftA = driftView === 'absolute' ? Math.abs(a.absoluteDrift) : Math.abs(a.relativeDrift);
         const driftB = driftView === 'absolute' ? Math.abs(b.absoluteDrift) : Math.abs(b.relativeDrift);
         return driftB - driftA;
       });
-  }, [effectiveData.items, driftView]);
+      
+    console.log('Sorted and processed items:', items);
+    return items;
+  }, [effectiveData?.items, driftView]);
 
   // Calculate which items exceed the threshold
   const thresholdExceeded = useMemo(() => {
@@ -256,10 +301,26 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
         const driftValue = mode === 'absolute' ? item.absoluteDrift : item.relativeDrift;
         const exceededThreshold = Math.abs(driftValue) > thresholdPercent;
         
+        // Ensure current allocation is a number - parse if it's a string
+        let currentAlloc = typeof item.currentAllocation === 'string' 
+          ? parseFloat(item.currentAllocation) 
+          : item.currentAllocation;
+          
+        // Ensure target allocation is a number
+        let targetAlloc = typeof item.targetAllocation === 'string'
+          ? parseFloat(item.targetAllocation)
+          : item.targetAllocation;
+        
+        console.log(`Processing item ${item.name}: current=${currentAlloc}, target=${targetAlloc}`);
+        
+        // Make sure we have valid numbers (not NaN, undefined, etc)
+        currentAlloc = isNaN(currentAlloc) ? 0 : currentAlloc;
+        targetAlloc = isNaN(targetAlloc) ? 0 : targetAlloc;
+        
         return {
           name: item.name,
-          target: item.targetAllocation,
-          current: item.currentAllocation,
+          target: targetAlloc,
+          current: currentAlloc,
           drift: driftValue,
           exceededThreshold,
           // Custom color based on drift amount
@@ -270,42 +331,29 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
     // Debug the chart data
     console.log('Chart data:', chartData);
     
-    // If no data, add sample data to ensure chart renders properly
+    // If there's no data at all, only then show a message instead of using sample data
     if (chartData.length === 0) {
-      chartData.push(
-        {
-          name: 'US Stocks',
-          target: 60,
-          current: 65.2,
-          drift: 5.2,
-          exceededThreshold: true,
-          color: 'text-red-500'
-        },
-        {
-          name: 'International Stocks',
-          target: 20,
-          current: 17.8,
-          drift: -2.2,
-          exceededThreshold: false,
-          color: 'text-amber-500'
-        },
-        {
-          name: 'Bonds',
-          target: 15,
-          current: 12.4,
-          drift: -2.6,
-          exceededThreshold: false,
-          color: 'text-amber-500'
-        },
-        {
-          name: 'Cash',
-          target: 5,
-          current: 4.6,
-          drift: -0.4,
-          exceededThreshold: false,
-          color: 'text-green-500'
-        }
+      // Don't automatically add sample data as it confuses users
+      console.warn('No chart data available - showing empty state');
+      
+      // Instead of adding fake data, we'll return an empty state message
+      return (
+        <div className="p-8 text-center border rounded-lg">
+          <div className="mb-4 text-muted-foreground">
+            <BarChart2 className="w-12 h-12 mx-auto mb-2 opacity-30" />
+          </div>
+          <h3 className="text-lg font-medium">No allocation data available</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            This could be because your portfolio is new or because the data is still being processed.
+          </p>
+        </div>
       );
+    }
+    
+    // If we have data but all current allocations are zero, log it but still show the data
+    // This helps detect potential issues without showing incorrect mock data
+    if (chartData.every(item => item.current === 0)) {
+      console.warn('All current allocations are zero - possible data issue');
     }
     
     // Sort data by drift magnitude for better visualization
@@ -361,13 +409,16 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
               barGap={0}
               barCategoryGap={20}
             >
+              {/* DEBUG: Add chart data verification */}
+              {console.log('Bar Chart data being rendered:', chartData)}
               <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
               <XAxis 
                 dataKey="name" 
-                angle={-45} 
+                angle={-35} 
                 textAnchor="end" 
-                height={80} 
-                tick={{ fontSize: 12 }}
+                height={100} 
+                tick={{ fontSize: 11 }}
+                tickMargin={10}
               />
               <YAxis 
                 label={{ value: 'Allocation %', angle: -90, position: 'insideLeft', offset: -5 }}
@@ -389,14 +440,27 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                 dataKey="current" 
                 fill="#82ca9d" 
                 radius={[4, 4, 0, 0]}
+                isAnimationActive={true}
+                animationDuration={1000}
               >
-                <LabelList dataKey="current" position="top" content={renderCustomBarLabel} />
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.exceededThreshold ? '#ef4444' : '#82ca9d'} 
-                  />
-                ))}
+                <LabelList 
+                  dataKey="current" 
+                  position="top" 
+                  content={renderCustomBarLabel} 
+                  formatter={(value: any) => {
+                    console.log('Current allocation label value:', value);
+                    return value;
+                  }}
+                />
+                {chartData.map((entry, index) => {
+                  console.log(`Cell ${index} for ${entry.name}: current=${entry.current}, target=${entry.target}`);
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.exceededThreshold ? '#ef4444' : '#82ca9d'} 
+                    />
+                  );
+                })}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -409,10 +473,10 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
-                margin={{ top: 20, right: 50, left: 10, bottom: 20 }}
+                margin={{ top: 40, right: 100, left: 30, bottom: 30 }}
                 layout="vertical"
-                barSize={20}
-                barGap={8}
+                barSize={18}
+                barGap={10}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
                 <XAxis 
@@ -420,22 +484,24 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                   domain={[-thresholdPercent * 2, thresholdPercent * 2]}
                   tick={{ fontSize: 11 }}
                   tickFormatter={(value) => `${value}%`}
+                  tickMargin={5}
+                  padding={{ left: 30, right: 30 }}
                 />
                 <YAxis 
                   dataKey="name" 
                   type="category" 
-                  width={150}
+                  width={200}
                   tick={{ fontSize: 12 }}
                   interval={0} // Show all labels
-                  tickMargin={5}
+                  tickMargin={15}
                 />
                 <RechartsTooltip content={<CustomTooltip />} />
                 <ReferenceLine x={0} stroke="#000" strokeDasharray="3 3" />
                 <ReferenceLine x={thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
-                  <Label value="Threshold" position="insideTopRight" />
+                  <Label value="Threshold" position="top" offset={15} fill="#f97316" fontSize={12} />
                 </ReferenceLine>
                 <ReferenceLine x={-thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
-                  <Label value="Threshold" position="insideTopLeft" />
+                  <Label value="Threshold" position="top" offset={15} fill="#f97316" fontSize={12} />
                 </ReferenceLine>
                 <Bar 
                   name="Drift" 
@@ -443,9 +509,10 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                   radius={[0, 4, 4, 0]}
                   label={{
                     position: 'right',
-                    formatter: (value: number) => `${value.toFixed(2)}%`,
+                    formatter: (value: number) => `${value.toFixed(1)}%`,
                     fontSize: 11,
                     fill: '#666',
+                    offset: 15,
                   }}
                 >
                   {chartData.map((entry, index) => {

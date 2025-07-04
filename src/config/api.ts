@@ -26,11 +26,16 @@ export const PORTFOLIO_ENDPOINTS = {
   GET_BY_ID: (id: string) => `${API_BASE_URL}/portfolios/${id}/`,
   UPDATE: (id: string) => `${API_BASE_URL}/portfolios/${id}/`,
   DELETE: (id: string) => `${API_BASE_URL}/portfolios/${id}/`,
-  HAS_PORTFOLIO: `${API_BASE_URL}/portfolios/exists/`,
-  PERFORMANCE: (id: string) => `${API_BASE_URL}/portfolios/${id}/performance/`,
-  ALLOCATION: (id: string) => `${API_BASE_URL}/portfolios/${id}/allocation/`,
-  SUMMARY: `${API_BASE_URL}/portfolios/summary/`,
-  ALERTS: `${API_BASE_URL}/portfolios/alerts/`,
+  HAS_PORTFOLIO: `${API_BASE_URL}/portfolio/status`,  // Returns {has_portfolio: boolean}
+  PERFORMANCE: `${API_BASE_URL}/portfolio/performance/`,  // Uses the active user's portfolio
+  ALLOCATION: `${API_BASE_URL}/portfolio/allocation/`,  // Uses the active user's portfolio
+  DRIFT: `${API_BASE_URL}/portfolio/drift/`,  // Uses the active user's portfolio
+  SUMMARY: `${API_BASE_URL}/portfolio/summary`,  // Uses singular 'portfolio' path
+  TAX_LOSS_HARVESTING: `${API_BASE_URL}/portfolio/tax-loss-harvesting/`,  // Uses the active user's portfolio
+  TAX_EFFICIENCY: `${API_BASE_URL}/portfolio/tax-efficiency-analysis/`,  // Uses the active user's portfolio
+  ALERTS: `${API_BASE_URL}/alerts/`,  // The alerts endpoints are under /api/alerts/ in the backend
+  ASSET_CLASSES: `${API_BASE_URL}/portfolio/asset-classes/`,  // Get available asset classes
+  TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/target-allocations/`,  // Save target allocations
 };
 
 // Plaid endpoints - using API_HOST to avoid double /api prefixing

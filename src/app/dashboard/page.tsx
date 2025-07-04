@@ -202,7 +202,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Asset Allocation */}
           <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
@@ -263,6 +263,8 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+        
+
       </div>
     </div>
   );

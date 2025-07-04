@@ -40,16 +40,27 @@ export async function fetchWithAuth<T>(
   // Try to get from cookies first
   if (typeof document !== 'undefined') {
     const cookies = document.cookie.split(';');
+    console.log('DEBUG - All cookies:', cookies);
     const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
     if (tokenCookie) {
       token = tokenCookie.split('=')[1];
+      console.log('DEBUG - Found auth token in cookies:', token.substring(0, 10) + '...');
+    } else {
+      console.log('DEBUG - No auth_token found in cookies');
     }
   }
   
   // Fall back to localStorage
   if (!token && typeof localStorage !== 'undefined') {
     token = localStorage.getItem('auth_token');
+    if (token) {
+      console.log('DEBUG - Found auth token in localStorage:', token.substring(0, 10) + '...');
+    } else {
+      console.log('DEBUG - No auth_token found in localStorage');
+    }
   }
+  
+  console.log('DEBUG - Final auth token status:', token ? 'Present' : 'Missing');
   
   const headers = {
     'Content-Type': 'application/json',
@@ -65,13 +76,28 @@ export async function fetchWithAuth<T>(
   } as RequestInit;
 
   try {
+    // Log detailed request information
     console.log(`API Request to ${url}:`, { 
       method: config.method || 'GET',
       hasAuthToken: !!token,
       bodySize: config.body ? JSON.stringify(config.body).length : 0
     });
     
+    // Log the actual headers being sent
+    console.log('DEBUG - Request headers:', {
+      Authorization: headers.Authorization || 'Not set',
+      ContentType: headers['Content-Type'],
+      Accept: headers.Accept
+    });
+    
     const response = await fetch(url, config);
+    
+    // Log response status and headers
+    console.log('DEBUG - Response status:', response.status);
+    console.log('DEBUG - Response headers:', {
+      'Content-Type': response.headers.get('Content-Type'),
+      'WWW-Authenticate': response.headers.get('WWW-Authenticate')
+    });
     
     // For 204 No Content responses
     if (response.status === 204) {

@@ -5,8 +5,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '@/store';
 import { fetchPortfolioDrift } from '@/store/portfolioSlice';
 import DriftVisualization from '../alerts/DriftVisualization';
+import TargetAllocationEditor from './TargetAllocationEditor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { AlertTriangle, Loader2, BugPlay, RefreshCw } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AlertTriangle, Loader2, BugPlay, RefreshCw, PieChart, Settings } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
 import { mockDriftData } from '@/mock/driftData';
@@ -18,10 +27,29 @@ const PortfolioDriftContainer: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overall' | 'asset-class' | 'sector'>('overall');
   const [useMockData, setUseMockData] = useState(false);
   const [portfolioId, setPortfolioId] = useState<string>('');
+  const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   
   // Determine which data to display - real or mock
+  // Added logging to check what data is being used
   const displayData = useMockData ? mockDriftData : driftData;
+  
+  useEffect(() => {
+    // Add extensive logging to help debug the data issue
+    if (driftData && !driftLoading) {
+      console.log('ACTUAL API DRIFT DATA:', JSON.stringify(driftData, null, 2));
+      console.log('Is using mock data?', useMockData);
+      
+      // Check if we have real asset class data
+      if (driftData.asset_class?.items?.length > 0) {
+        console.log('Real asset class data available:', 
+          driftData.asset_class.items.map(item => `${item.name}: ${item.currentAllocation}%`)
+        );
+      } else {
+        console.warn('No real asset class data available in API response!');
+      }
+    }
+  }, [driftData, driftLoading, useMockData]);
 
   useEffect(() => {
     // Get the active portfolio ID and then fetch drift data
@@ -43,11 +71,20 @@ const PortfolioDriftContainer: React.FC = () => {
         
         // Attempt to fetch drift data
         try {
-          await dispatch(fetchPortfolioDrift(activePortfolioId)).unwrap();
-        } catch (error) {
+          await dispatch(fetchPortfolioDrift()).unwrap();
+          
+          // Only use real data if we successfully fetched it
+          setUseMockData(false);
+          
+          // Log the success
+          console.log('Successfully fetched portfolio drift data');
+        } catch (error: any) {
           console.error('Error fetching drift data:', error);
-          // Automatically fall back to mock data when there's an API error
-          setUseMockData(true);
+          
+          // Only fall back to mock data when explicitly requested or when there's an error
+          // The Redux store will already have the error message set
+          // But let's not automatically use mock data, as it confuses the user
+          // setUseMockData(true);
         }
       } finally {
         setLoading(false);
@@ -69,17 +106,38 @@ const PortfolioDriftContainer: React.FC = () => {
 
   // Handle error state
   if (driftError && !useMockData) {
+    // Special handling for missing target allocations
+    const isMissingAllocationsError = driftError?.includes('No target allocations defined');
+    
     return (
       <div className="space-y-4">
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+        <Alert variant={isMissingAllocationsError ? "warning" : "destructive"}>
+          {isMissingAllocationsError ? (
+            <PieChart className="h-4 w-4" />
+          ) : (
+            <AlertTriangle className="h-4 w-4" />
+          )}
+          <AlertTitle>{isMissingAllocationsError ? "Action Required" : "Error"}</AlertTitle>
           <AlertDescription>
-            {driftError}. Please ensure your portfolio has target allocations defined.
+            {isMissingAllocationsError
+              ? "No target allocations defined for this portfolio. Please set your target allocations to view drift analysis."
+              : `${driftError}. Please ensure your portfolio has target allocations defined.`
+            }
           </AlertDescription>
         </Alert>
         
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          {isMissingAllocationsError && (
+            <Button 
+              variant="default" 
+              className="flex items-center gap-2"
+              onClick={() => setAllocationDialogOpen(true)}
+            >
+              <Settings className="h-4 w-4" />
+              Define Target Allocations
+            </Button>
+          )}
+          
           <Button 
             variant="outline" 
             className="flex items-center gap-2"
@@ -94,18 +152,35 @@ const PortfolioDriftContainer: React.FC = () => {
   }
 
   // Handle missing data
-  if (!useMockData && !driftData.overall && !driftData.asset_class && !driftData.sector) {
+  // Log what data is available to help troubleshoot
+  console.log('Drift data available:', {
+    overall: !!driftData?.overall,
+    asset_class: !!driftData?.asset_class,
+    sector: !!driftData?.sector,
+    usingMockData: useMockData
+  });
+  
+  if (!useMockData && !driftData?.overall && !driftData?.asset_class && !driftData?.sector) {
     return (
       <div className="space-y-4">
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>No drift data available</AlertTitle>
           <AlertDescription>
-            No target allocations are defined for this portfolio. Please set target allocations in your portfolio settings.
+            No target allocations are defined for this portfolio. Please set target allocations to see drift visualization.
           </AlertDescription>
         </Alert>
         
-        <div className="flex justify-end">
+        <div className="flex justify-between">
+          <Button 
+            variant="default" 
+            className="flex items-center gap-2"
+            onClick={() => setAllocationDialogOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            <span>Define Target Allocations</span>
+          </Button>
+          
           <Button 
             variant="outline" 
             className="flex items-center gap-2"
@@ -121,6 +196,34 @@ const PortfolioDriftContainer: React.FC = () => {
 
   return (
     <div>
+      {/* Global Dialog for target allocations */}
+      <Dialog open={allocationDialogOpen} onOpenChange={setAllocationDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Target Allocations</DialogTitle>
+            <DialogDescription>
+              Define target percentages for each asset class to track portfolio drift.
+            </DialogDescription>
+          </DialogHeader>
+          <TargetAllocationEditor onClose={() => setAllocationDialogOpen(false)} />
+        </DialogContent>
+      </Dialog>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold">Portfolio Drift</h2>
+        
+        {/* Use a regular button without DialogTrigger */}
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="flex items-center gap-2"
+          onClick={() => setAllocationDialogOpen(true)}
+        >
+          <Settings className="h-4 w-4" />
+          <span>Target Allocations</span>
+        </Button>
+        
+
+      </div>
       {useMockData && (
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-3 py-1 rounded text-sm">

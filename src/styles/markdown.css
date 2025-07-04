@@ -1,0 +1,65 @@
+/* Markdown content styling for AI chat */
+.markdown-content {
+  @apply text-sm leading-relaxed;
+}
+
+.markdown-content h1 {
+  @apply text-xl font-bold mt-2 mb-1;
+}
+
+.markdown-content h2 {
+  @apply text-lg font-semibold mt-2 mb-1;
+}
+
+.markdown-content h3 {
+  @apply font-medium mt-2 mb-1;
+}
+
+.markdown-content p {
+  @apply my-1;
+}
+
+.markdown-content ul {
+  @apply list-disc pl-5 my-1;
+}
+
+.markdown-content ol {
+  @apply list-decimal pl-5 my-1;
+}
+
+.markdown-content li {
+  @apply my-0.5;
+}
+
+.markdown-content strong {
+  @apply font-semibold text-primary;
+}
+
+.markdown-content a {
+  @apply text-blue-600 hover:underline;
+}
+
+.markdown-content code {
+  @apply bg-muted px-1 py-0.5 rounded text-xs font-mono;
+}
+
+.markdown-content pre {
+  @apply bg-muted p-2 rounded my-2 overflow-x-auto;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-muted-foreground/30 pl-3 italic my-2;
+}
+
+.markdown-content table {
+  @apply border-collapse w-full my-2;
+}
+
+.markdown-content th, .markdown-content td {
+  @apply border border-muted-foreground/20 px-2 py-1 text-xs;
+}
+
+/* Ensure the content doesn't overflow its container */
+.markdown-content {
+  @apply max-w-full break-words;
+}

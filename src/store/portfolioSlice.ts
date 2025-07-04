@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
-import { API_BASE_URL } from '@/config/api';
+import { API_BASE_URL, PORTFOLIO_ENDPOINTS } from '@/config/api';
+import { fetchWithAuth } from '@/services/api-utils';
 
 /**
  * Type for a single holding in the portfolio
@@ -35,6 +36,25 @@ export interface DriftData {
 }
 
 /**
+ * Asset class type definition
+ */
+export interface AssetClass {
+  id: string;
+  name: string;
+  description?: string;
+  target_allocation?: number;
+  current_allocation?: number;
+}
+
+/**
+ * Target allocation input type
+ */
+export interface TargetAllocationInput {
+  asset_id: string;
+  target_percentage: number;
+}
+
+/**
  * Portfolio state managed by Redux
  */
 export interface PortfolioState {
@@ -49,6 +69,11 @@ export interface PortfolioState {
   };
   driftLoading: boolean;
   driftError: string | null;
+  assetClasses: AssetClass[];
+  assetClassesLoading: boolean;
+  assetClassesError: string | null;
+  targetAllocationsLoading: boolean;
+  targetAllocationsError: string | null;
 }
 
 const initialState: PortfolioState = {
@@ -59,6 +84,11 @@ const initialState: PortfolioState = {
   driftData: {},
   driftLoading: false,
   driftError: null,
+  assetClasses: [],
+  assetClassesLoading: false,
+  assetClassesError: null,
+  targetAllocationsLoading: false,
+  targetAllocationsError: null,
 };
 
 /**
@@ -83,33 +113,55 @@ export const fetchHoldingsAndBalance = createAsyncThunk(
 );
 
 /**
+ * Async thunk to fetch available asset classes for the portfolio
+ * Retrieves asset classes with their current allocations if available
+ */
+export const fetchAssetClasses = createAsyncThunk(
+  'portfolio/fetchAssetClasses',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Use fetchWithAuth to handle authentication consistently
+      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.ASSET_CLASSES);
+    } catch (error: any) {
+      console.error('Asset classes fetch error:', error);
+      return rejectWithValue(error.message || 'Failed to fetch asset classes');
+    }
+  }
+);
+
+/**
+ * Async thunk to save target allocations for the portfolio
+ * @param allocations Array of asset allocations with target percentages
+ */
+export const saveTargetAllocations = createAsyncThunk(
+  'portfolio/saveTargetAllocations',
+  async (allocations: TargetAllocationInput[], { rejectWithValue }) => {
+    try {
+      // Use fetchWithAuth to handle authentication and CSRF consistently
+      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.TARGET_ALLOCATIONS, {
+        method: 'POST',
+        body: JSON.stringify(allocations)
+      });
+    } catch (error: any) {
+      console.error('Target allocation save error:', error);
+      return rejectWithValue(error.message || 'Failed to save target allocations');
+    }
+  }
+);
+
+/**
  * Async thunk to fetch portfolio drift data
- * @param portfolioId The ID of the portfolio to fetch drift data for
+ * Uses the active user's portfolio (no ID parameter needed)
  */
 export const fetchPortfolioDrift = createAsyncThunk(
   'portfolio/fetchDrift',
-  async (portfolioId: string, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Use the complete URL with the API_BASE_URL
-      const response = await fetch(`${API_BASE_URL}/portfolios/${portfolioId}/drift`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Add credentials to ensure cookies are sent
-        credentials: 'include'
-      });
-      
-      if (!response.ok) {
-        // For 404s and other errors, we'll handle them in the component layer
-        const errorData = await response.json().catch(() => ({}));
-        return rejectWithValue(errorData?.message || `Error ${response.status}: ${response.statusText}`);
-      }
-      
-      return await response.json();
+      // Use fetchWithAuth to handle authentication consistently
+      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.DRIFT);
     } catch (error: any) {
-      console.error('Network or parsing error fetching drift data:', error);
-      return rejectWithValue(error.message || 'Failed to fetch drift data');
+      console.error('Portfolio drift fetch error:', error);
+      return rejectWithValue(error.message || 'Failed to fetch portfolio drift');
     }
   }
 );
@@ -144,12 +196,74 @@ export const portfolioSlice = createSlice({
         state.driftError = null;
       })
       .addCase(fetchPortfolioDrift.fulfilled, (state, action) => {
-        state.driftData = action.payload;
+        // Process the drift data to ensure all required fields exist
+        const processedData: any = { ...action.payload };
+        
+        // Ensure proper data structure for each category
+        ['asset_class', 'sector', 'overall'].forEach(category => {
+          if (processedData[category]) {
+            // Make sure each item has both current and target allocations
+            processedData[category].items = processedData[category].items.map((item: any) => ({
+              ...item,
+              // Set currentAllocation to 0 if undefined or
+              currentAllocation: item.currentAllocation ?? 0,
+              // Set targetAllocation to 0 if undefined or null
+              targetAllocation: item.targetAllocation ?? 0,
+              // Calculate drifts if not provided
+              absoluteDrift: item.absoluteDrift ?? (item.currentAllocation - item.targetAllocation) ?? 0,
+              relativeDrift: item.relativeDrift ?? (
+                item.targetAllocation ? ((item.currentAllocation - item.targetAllocation) / item.targetAllocation * 100) : 0
+              )
+            }));
+          }
+        });
+        
+        console.log('Processed drift data:', processedData);
+        state.driftData = processedData;
         state.driftLoading = false;
       })
       .addCase(fetchPortfolioDrift.rejected, (state, action) => {
         state.driftLoading = false;
         state.driftError = action.payload as string;
+      })
+
+      // Fetch asset classes cases
+      .addCase(fetchAssetClasses.pending, (state) => {
+        state.assetClassesLoading = true;
+        state.assetClassesError = null;
+      })
+      .addCase(fetchAssetClasses.fulfilled, (state, action) => {
+        state.assetClasses = action.payload;
+        state.assetClassesLoading = false;
+      })
+      .addCase(fetchAssetClasses.rejected, (state, action) => {
+        state.assetClassesLoading = false;
+        state.assetClassesError = action.payload as string;
+      })
+      
+      // Save target allocations cases
+      .addCase(saveTargetAllocations.pending, (state) => {
+        state.targetAllocationsLoading = true;
+        state.targetAllocationsError = null;
+      })
+      .addCase(saveTargetAllocations.fulfilled, (state, action) => {
+        state.targetAllocationsLoading = false;
+        // Store the updated asset classes from the response
+        state.assetClasses = action.payload;
+        // Update portfolioData with target allocations
+        if (action.payload && action.payload.length > 0) {
+          // Create a map of target allocations from the response
+          const targetAllocations: {[key: string]: number} = {};
+          action.payload.forEach((assetClass: AssetClass) => {
+            if (assetClass.target_allocation !== undefined) {
+              targetAllocations[assetClass.id] = assetClass.target_allocation;
+            }
+          });
+        }
+      })
+      .addCase(saveTargetAllocations.rejected, (state, action) => {
+        state.targetAllocationsLoading = false;
+        state.targetAllocationsError = action.payload as string;
       });
   },
 });

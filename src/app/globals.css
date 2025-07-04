@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import markdown styles for AI chat */
+@import '../styles/markdown.css';
+
 
 :root {
   --background: #ffffff;
