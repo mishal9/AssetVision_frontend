@@ -293,7 +293,11 @@ export const chatApi = {
   ) => 
     fetchWithAuth<{ response: string }>('/ai/chat/', {
       method: 'POST',
-      body: JSON.stringify({ messages, context }),
+      body: JSON.stringify({ 
+        message: messages.length > 0 ? messages[messages.length - 1].content : '',
+        messages: messages, 
+        context 
+      }),
     })
       .then(response => response.response),
   

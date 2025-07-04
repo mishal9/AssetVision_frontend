@@ -61,9 +61,12 @@ export function AiChat() {
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (messagesEndRef.current && isOpen) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      // Use a small timeout to ensure DOM has updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 100);
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, loading]);
 
   /**
    * Toggle the chat window open/closed
@@ -159,7 +162,7 @@ export function AiChat() {
 
       {/* Chat window */}
       {isOpen && (
-        <Card className="fixed bottom-20 left-6 w-96 h-[500px] shadow-xl flex flex-col z-40 overflow-hidden">
+        <Card className="fixed bottom-20 left-6 w-96 h-[500px] shadow-xl flex flex-col z-40 overflow-hidden max-h-[70vh]">
           {/* Chat header */}
           <div className="p-3 border-b flex justify-between items-center bg-primary text-primary-foreground">
             <div className="flex items-center">
@@ -177,8 +180,8 @@ export function AiChat() {
           </div>
 
           {/* Messages area */}
-          <ScrollArea className="flex-grow p-3">
-            <div className="space-y-4">
+          <ScrollArea className="flex-grow p-3 h-[calc(100%-104px)] overflow-y-auto">
+            <div className="space-y-4 min-h-full">
               {messages.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
