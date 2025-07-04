@@ -31,7 +31,25 @@ const PortfolioDriftContainer: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   
   // Determine which data to display - real or mock
+  // Added logging to check what data is being used
   const displayData = useMockData ? mockDriftData : driftData;
+  
+  useEffect(() => {
+    // Add extensive logging to help debug the data issue
+    if (driftData && !driftLoading) {
+      console.log('ACTUAL API DRIFT DATA:', JSON.stringify(driftData, null, 2));
+      console.log('Is using mock data?', useMockData);
+      
+      // Check if we have real asset class data
+      if (driftData.asset_class?.items?.length > 0) {
+        console.log('Real asset class data available:', 
+          driftData.asset_class.items.map(item => `${item.name}: ${item.currentAllocation}%`)
+        );
+      } else {
+        console.warn('No real asset class data available in API response!');
+      }
+    }
+  }, [driftData, driftLoading, useMockData]);
 
   useEffect(() => {
     // Get the active portfolio ID and then fetch drift data
@@ -54,12 +72,19 @@ const PortfolioDriftContainer: React.FC = () => {
         // Attempt to fetch drift data
         try {
           await dispatch(fetchPortfolioDrift()).unwrap();
+          
+          // Only use real data if we successfully fetched it
+          setUseMockData(false);
+          
+          // Log the success
+          console.log('Successfully fetched portfolio drift data');
         } catch (error: any) {
           console.error('Error fetching drift data:', error);
           
-          // For all errors, fall back to mock data
+          // Only fall back to mock data when explicitly requested or when there's an error
           // The Redux store will already have the error message set
-          setUseMockData(true);
+          // But let's not automatically use mock data, as it confuses the user
+          // setUseMockData(true);
         }
       } finally {
         setLoading(false);
@@ -127,7 +152,15 @@ const PortfolioDriftContainer: React.FC = () => {
   }
 
   // Handle missing data
-  if (!useMockData && !driftData.overall && !driftData.asset_class && !driftData.sector) {
+  // Log what data is available to help troubleshoot
+  console.log('Drift data available:', {
+    overall: !!driftData?.overall,
+    asset_class: !!driftData?.asset_class,
+    sector: !!driftData?.sector,
+    usingMockData: useMockData
+  });
+  
+  if (!useMockData && !driftData?.overall && !driftData?.asset_class && !driftData?.sector) {
     return (
       <div className="space-y-4">
         <Alert>

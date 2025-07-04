@@ -196,7 +196,30 @@ export const portfolioSlice = createSlice({
         state.driftError = null;
       })
       .addCase(fetchPortfolioDrift.fulfilled, (state, action) => {
-        state.driftData = action.payload;
+        // Process the drift data to ensure all required fields exist
+        const processedData: any = { ...action.payload };
+        
+        // Ensure proper data structure for each category
+        ['asset_class', 'sector', 'overall'].forEach(category => {
+          if (processedData[category]) {
+            // Make sure each item has both current and target allocations
+            processedData[category].items = processedData[category].items.map((item: any) => ({
+              ...item,
+              // Set currentAllocation to 0 if undefined or
+              currentAllocation: item.currentAllocation ?? 0,
+              // Set targetAllocation to 0 if undefined or null
+              targetAllocation: item.targetAllocation ?? 0,
+              // Calculate drifts if not provided
+              absoluteDrift: item.absoluteDrift ?? (item.currentAllocation - item.targetAllocation) ?? 0,
+              relativeDrift: item.relativeDrift ?? (
+                item.targetAllocation ? ((item.currentAllocation - item.targetAllocation) / item.targetAllocation * 100) : 0
+              )
+            }));
+          }
+        });
+        
+        console.log('Processed drift data:', processedData);
+        state.driftData = processedData;
         state.driftLoading = false;
       })
       .addCase(fetchPortfolioDrift.rejected, (state, action) => {
