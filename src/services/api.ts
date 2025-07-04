@@ -343,44 +343,6 @@ export const chatApi = {
   getOptimizationRecommendations: (portfolioId: string) => 
     fetchWithAuth<{ recommendations: string }>(`/ai/recommendations/portfolio/${portfolioId}`)
       .then(response => response.recommendations),
- 
-  /**
-   * Analyze portfolio data directly with Google Gemini API
-   * Uses the direct Gemini endpoint for enhanced portfolio analysis
-   * 
-   * @param portfolioData The portfolio data to analyze
-   * @returns Promise with AI analysis of the portfolio
-   */
-  analyzePortfolioWithGemini: (portfolioData: any) => {
-    const requestData = {
-      message: "analyze the data passed in context",
-      messages: [
-        {
-          role: "system", 
-          content: `You are AssetVision AI, a portfolio assistant. Provide brief insights based on the portfolio summary.
-
-INSTRUCTIONS:
-1. Reference specific portfolio values from the data provided.
-2. Keep responses concise (max 50 words).
-3. Focus on the following key metrics: total value, total gain, performance percentages.
-
-PORTFOLIO SUMMARY:
-${JSON.stringify(portfolioData, null, 2)}`
-        },
-        {
-          role: "user",
-          content: "analyze the data passed in context"
-        }
-      ],
-      context: { page: "dashboard" }
-    };
-    
-    return fetchWithAuth<{ response: string }>('/ai/gemini/direct/', {
-      method: 'POST',
-      body: JSON.stringify(requestData),
-    })
-      .then(response => response.response);
-  },
 };
 
 // End of API definitions

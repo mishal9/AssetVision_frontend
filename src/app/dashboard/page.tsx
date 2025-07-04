@@ -8,8 +8,7 @@ import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-chart';
-import PortfolioInsightsGemini from '@/components/portfolio/PortfolioInsightsGemini';
-import { BarChart3, Users, TrendingUp, Activity, PieChart, Bell, DollarSign, Lightbulb } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Activity, PieChart, Bell, DollarSign } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
 
@@ -265,50 +264,7 @@ export default function DashboardPage() {
           </div>
         </div>
         
-        {/* AI Portfolio Insights using Gemini */}
-        <div className="bg-card border border-border rounded-lg mb-8">
-          <div className="flex items-center justify-between p-6 border-b border-border">
-            <h2 className="text-xl font-semibold">AI Portfolio Insights</h2>
-            <Lightbulb className="h-5 w-5 text-amber-500" />
-          </div>
-          <div className="p-6">
-            {summary ? (
-              <PortfolioInsightsGemini portfolioData={{
-                total_value: summary.totalValue,
-                total_cost: summary.totalCost || summary.totalValue * 0.8, // Fallback if totalCost is missing
-                total_gain: summary.totalGain,
-                total_gain_percentage: summary.totalGainPercentage,
-                day_change: summary.dayChange,
-                day_change_percentage: summary.dayChangePercentage,
-                dividend_yield: summary.dividendYield,
-                asset_allocation: summary.assetAllocation || {
-                  equity: assetAllocation?.find(a => a.name === "Equity")?.value || 0,
-                  bond: assetAllocation?.find(a => a.name === "Bond")?.value || 0,
-                  cash: assetAllocation?.find(a => a.name === "Cash")?.value || 0,
-                  alternative: assetAllocation?.find(a => a.name === "Alternative")?.value || 0,
-                  crypto: assetAllocation?.find(a => a.name === "Crypto")?.value || 0,
-                  real_estate: assetAllocation?.find(a => a.name === "Real Estate")?.value || 0,
-                  commodity: assetAllocation?.find(a => a.name === "Commodity")?.value || 0,
-                  unknown: assetAllocation?.find(a => a.name === "Unknown")?.value || 0
-                },
-                sector_allocation: Object.fromEntries(
-                  (sectorAllocation || []).map(item => [item.name, item.value])
-                ),
-                performance: summary.performance || {
-                  one_year: 15,
-                  three_year: 45,
-                  five_year: 75,
-                  ytd: 8,
-                  total_return: summary.totalGainPercentage
-                }
-              }} />
-            ) : (
-              <div className="h-32 flex items-center justify-center">
-                <p className="text-muted-foreground">No portfolio data available for AI analysis</p>
-              </div>
-            )}
-          </div>
-        </div>
+
       </div>
     </div>
   );
