@@ -82,10 +82,16 @@ export const portfolioApi = {
       
   /**
    * Get the active portfolio ID
+   * Uses the summary endpoint since active endpoint was deprecated
    */
   getActivePortfolioId: () => 
-    fetchWithAuth<{id: string}>('/portfolio/active')
-      .then(response => response.id)
+    fetchWithAuth<any>('/portfolio/summary')
+      .then(response => {
+        // The summary endpoint doesn't directly return an ID field
+        // So we extract from the response structure if available
+        const portfolioId = response.portfolio_id || '';
+        return portfolioId;
+      })
       .catch(() => ''),
 };
 
