@@ -96,10 +96,14 @@ export function useAiChat() {
       // Get response from backend
       const response = await chatApi.sendMessage(formattedMessages, context);
       
-      // Add AI response to chat
+      // Format the response to ensure proper markdown rendering
+      // and trim any extra whitespace
+      const formattedResponse = response.trim();
+      
+      // Add formatted AI response to chat
       dispatch(addMessage({
         role: 'assistant',
-        content: response
+        content: formattedResponse
       }));
       
       dispatch(setError(null));

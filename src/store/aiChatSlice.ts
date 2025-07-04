@@ -18,6 +18,8 @@ export interface ContextInfo {
   section?: string;
   portfolioId?: string;
   assetId?: string;
+  description?: string;
+  availableData?: string[];
 }
 
 /**

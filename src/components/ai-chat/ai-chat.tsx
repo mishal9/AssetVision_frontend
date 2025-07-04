@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Bot, X, Send, Loader2 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -20,6 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert } from '@/components/ui/alert';
 import { chatApi } from '@/services/api';
 import { RootState } from '@/store';
+import ReactMarkdown from 'react-markdown';
 
 /**
  * Floating AI Chat component
@@ -35,13 +36,63 @@ export function AiChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const { isOpen, messages, loading, context } = useSelector((state: RootState) => state.aiChat);
+  
+  // Access raw portfolio data from Redux state
+  const portfolio = useSelector((state: RootState) => state.portfolio);
+  
+  // Memoize the transformed portfolio data to prevent unnecessary rerenders
+  const portfolioData = useMemo(() => {
+    const portfolioState = portfolio || {};
+    
+    // Calculate portfolio summary from holdings
+    const totalValue = portfolioState.totalBalance || 0;
+    const cashBalance = 0; // Not directly available in the state
+    
+    // Get sector allocation from drift data if available
+    const sectorAllocation = portfolioState.driftData?.sector?.items?.map(item => ({
+      name: item.name,
+      percentage: item.currentAllocation * 100
+    })) || [];
+    
+    return {
+      portfolioSummary: {
+        totalValue,
+        cashBalance,
+        dayChange: 0, // Not directly available
+        dayChangePercent: 0, // Not directly available
+        totalReturn: 0, // Not directly available
+        totalReturnPercent: 0, // Not directly available
+        holdings: portfolioState.holdings || []
+      },
+      performance: {
+        data: [],
+        timeframe: '1M',
+        returnRate: 0, // Not directly available
+        benchmarkReturn: 0 // Not directly available
+      },
+      allocation: {
+        assetClasses: [],
+        sectors: sectorAllocation,
+        geographies: []
+      },
+      taxLossHarvesting: {
+        opportunities: [],
+        potentialSavings: 0
+      },
+      dividends: {
+        annualIncome: 0,
+        yield: 0,
+        nextPayment: null
+      }
+    };
+  }, [portfolio]); // Only recompute when portfolio state changes
 
   // Backend API is always considered configured since API keys are managed server-side
   useEffect(() => {
     setIsApiConfigured(true);
   }, []);
   
-  // Update context based on current route
+  // Handle route changes to update basic context
   useEffect(() => {
     if (pathname) {
       const pathSegments = pathname.split('/').filter(Boolean);
@@ -50,14 +101,209 @@ export function AiChat() {
       const page = pathSegments[0] || 'dashboard';
       const section = pathSegments.length > 1 ? pathSegments[1] : undefined;
       
-      // Update context with current page info
+      // Update basic context with page and section info
       dispatch(updateContext({ 
-        page, 
-        section 
+        page,
+        section
       }));
     }
   }, [pathname, dispatch]);
+  
+  // Memoize portfolio metrics to ensure stable reference
+  const portfolioMetrics = useMemo(() => {
+    // Only create metrics object if we have data
+    if (!portfolioData.portfolioSummary) return null;
+    
+    return {
+      summary: {
+        totalValue: portfolioData.portfolioSummary.totalValue,
+        cashBalance: portfolioData.portfolioSummary.cashBalance,
+        dayChange: portfolioData.portfolioSummary.dayChange,
+        dayChangePercent: portfolioData.portfolioSummary.dayChangePercent,
+        totalReturn: portfolioData.portfolioSummary.totalReturn,
+        totalReturnPercent: portfolioData.portfolioSummary.totalReturnPercent,
+        holdings: portfolioData.portfolioSummary.holdings || []
+      },
+      performance: portfolioData.performance,
+      allocation: portfolioData.allocation,
+      taxLossHarvesting: portfolioData.taxLossHarvesting,
+      dividends: portfolioData.dividends
+    };
+  }, [portfolioData]);
+  
+  // Store previous metrics for comparison
+  const prevMetricsRef = useRef(context.portfolioMetrics);
+  
+  // Update portfolio metrics in context when data changes
+  useEffect(() => {
+    // Only update if we have actual data and the chat is open
+    if (!isOpen || !portfolioMetrics) return;
+    
+    // Only update if the metrics have actually changed using deep comparison
+    if (!isEqual(prevMetricsRef.current, portfolioMetrics)) {
+      dispatch(updateContext({
+        portfolioMetrics
+      }));
+      prevMetricsRef.current = portfolioMetrics;
+    }
+  }, [portfolioMetrics, isOpen, dispatch]);
 
+  // Helper function to deep compare objects
+  const isEqual = (obj1: any, obj2: any): boolean => {
+    if (obj1 === obj2) return true;
+    if (!obj1 || !obj2) return false;
+    
+    const keys1 = Object.keys(obj1);
+    const keys2 = Object.keys(obj2);
+    
+    if (keys1.length !== keys2.length) return false;
+    
+    for (const key of keys1) {
+      const val1 = obj1[key];
+      const val2 = obj2[key];
+      const areObjects = val1 !== null && typeof val1 === 'object' && val2 !== null && typeof val2 === 'object';
+      
+      if (areObjects ? !isEqual(val1, val2) : val1 !== val2) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
+
+  // Update page context only when pathname changes
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    // Only update if we have no page context or it doesn't match current route
+    const currentPage = pathname.split('/')[1] || 'dashboard';
+    if (!context.page || context.page !== currentPage) {
+      // Set page context based on route
+      dispatch(updateContext({ 
+        page: currentPage, 
+        section: '' 
+      }));
+    }
+  }, [pathname, isOpen, context.page, dispatch]);
+
+  // Ref for previous context to prevent infinite updates
+  const prevContextRef = useRef<Record<string, any>>({});
+
+  // Update page-specific context only when relevant data changes
+  useEffect(() => {
+    // Don't update if chat is closed
+    if (!isOpen || !context.page) return;
+    
+    let pageSpecificContext: Record<string, any> = {};
+    
+    // Initialize portfolio metrics object
+    const portfolioMetrics: any = {};
+    
+    switch(context.page) {
+      case 'dashboard': {
+        // Only proceed if we have the necessary data
+        if (!portfolioData) return;
+        
+        // Add tax loss harvesting opportunities if available
+        if (portfolioData.taxLossHarvesting?.opportunities?.length) {
+          portfolioMetrics.taxLossHarvesting = {
+            totalOpportunities: portfolioData.taxLossHarvesting.opportunities.length,
+            potentialSavings: portfolioData.taxLossHarvesting.potentialSavings
+          };
+        }
+        
+        // Add dividend forecast if available
+        if (portfolioData.dividends) {
+          portfolioMetrics.dividends = {
+            annualIncome: portfolioData.dividends.annualIncome,
+            yield: portfolioData.dividends.yield,
+            nextPayment: portfolioData.dividends.nextPayment
+          };
+        }
+        
+        // Add summary if available
+        if (portfolioData.portfolioSummary) {
+          portfolioMetrics.summary = {
+            totalValue: portfolioData.portfolioSummary.totalValue,
+            cashBalance: portfolioData.portfolioSummary.cashBalance,
+            dayChange: portfolioData.portfolioSummary.dayChange,
+            dayChangePercent: portfolioData.portfolioSummary.dayChangePercent,
+            totalReturn: portfolioData.portfolioSummary.totalReturn,
+            totalReturnPercent: portfolioData.portfolioSummary.totalReturnPercent,
+            holdings: portfolioData.portfolioSummary.holdings || []
+          };
+        }
+        
+        // Add performance if available
+        if (portfolioData.performance) {
+          portfolioMetrics.performance = {
+            timeframe: portfolioData.performance.timeframe,
+            returnRate: portfolioData.performance.returnRate,
+            benchmarkReturn: portfolioData.performance.benchmarkReturn
+          };
+        }
+        
+        // Add allocation if available
+        if (portfolioData.allocation) {
+          portfolioMetrics.allocation = {
+            assetClasses: portfolioData.allocation.assetClasses || [],
+            sectors: portfolioData.allocation.sectors || [],
+            geographies: portfolioData.allocation.geographies || []
+          };
+        }
+        
+        // Check if we actually have portfolio metrics to add
+        if (Object.keys(portfolioMetrics).length > 0) {
+          pageSpecificContext = {
+            description: 'AssetVision Investment Dashboard with portfolio overview, performance metrics, asset allocation, and market data.',
+            availableData: ['portfolioSummary', 'performanceMetrics', 'assetAllocation', 'dividendForecast', 'taxHarvesting'],
+            portfolioMetrics
+          };
+        }
+        break;
+      }
+      case 'portfolio':
+        // Only update if we have holdings data
+        if (portfolioData?.portfolioSummary?.holdings?.length) {
+          pageSpecificContext = {
+            description: 'Portfolio detail page showing holdings, performance history, and allocation breakdown.',
+            availableData: ['holdings', 'performance', 'allocation', 'dividends', 'transactions'],
+            // Include specific holdings data if available
+            holdings: portfolioData.portfolioSummary.holdings
+          };
+        }
+        break;
+      case 'tax-harvesting':
+        // Only update if we have tax loss harvesting data
+        if (portfolioData?.taxLossHarvesting?.opportunities?.length) {
+          pageSpecificContext = {
+            description: 'Tax harvesting opportunities page showing potential tax loss harvesting actions.',
+            availableData: ['taxLossOpportunities', 'capitalGains', 'taxEfficiency'],
+            // Include tax loss harvesting data
+            taxLossOpportunities: portfolioData.taxLossHarvesting.opportunities
+          };
+        }
+        break;
+      case 'alerts':
+        pageSpecificContext = {
+          description: 'Alerts management page showing portfolio alerts and notification settings.',
+          availableData: ['priceAlerts', 'driftAlerts', 'dividendAlerts', 'taxAlerts']
+        };
+        break;
+      default:
+        // For other pages, just set a basic description
+        pageSpecificContext = {
+          description: `${context.page} page in AssetVision investment management application.`
+        };
+    }
+    
+    // Only dispatch if we have specific context to add AND it's different from current context
+    if (Object.keys(pageSpecificContext).length > 0 && !isEqual(prevContextRef.current, pageSpecificContext)) {
+      prevContextRef.current = pageSpecificContext;
+      dispatch(updateContext(pageSpecificContext));
+    }
+  }, [portfolioData, isOpen, context.page, dispatch]);
+  
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
     if (messagesEndRef.current && isOpen) {
@@ -74,20 +320,156 @@ export function AiChat() {
   const handleToggleChat = () => {
     dispatch(toggleChat());
   };
+  
+  /**
+   * Helper function to format currency values
+   */
+  const formatCurrency = (value: number | undefined | null): string => {
+    if (value === undefined || value === null) return '0.00';
+    return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+  
+  /**
+   * Helper function to format percent values
+   */
+  const formatPercent = (value: number | undefined | null): string => {
+    if (value === undefined || value === null) return 'N/A';
+    const sign = value >= 0 ? '+' : '';
+    return `${sign}${value.toFixed(2)}%`;
+  };
+  
+  /**
+   * Helper function to format change values (both absolute and percent)
+   */
+  const formatChange = (change: number | undefined | null, changePercent: number | undefined | null): string => {
+    const changeStr = change !== undefined && change !== null ? 
+      `${change >= 0 ? '+' : '-'}$${Math.abs(change).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : 
+      'N/A';
+      
+    const percentStr = changePercent !== undefined && changePercent !== null ? 
+      `(${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}%)` : 
+      '';
+      
+    return `${changeStr} ${percentStr}`.trim();
+  };
+  
+  // Reference to the JSON response example the user wants to use
+  const hardcodedPortfolioSummary = useMemo(() => ({
+    total_value: 67807.7,
+    total_cost: 11800.0,
+    total_gain: 56007.7,
+    total_gain_percentage: 474.6415254237288,
+    day_change: 0.0,
+    day_change_percentage: 0.0,
+    dividend_yield: 0.1700396857584021,
+    asset_allocation: {
+      equity: 100.0,
+      bond: 0.0,
+      cash: 0.0,
+      alternative: 0.0,
+      crypto: 0.0,
+      real_estate: 0.0,
+      commodity: 0.0,
+      unknown: 0.0
+    },
+    sector_allocation: {
+      "Technology": 28.494846455491043,
+      "Communication Services": 71.50515354450896
+    },
+    performance: {
+      one_year: 54.45035411492839,
+      three_year: 428.75615794105084,
+      five_year: 147.5813513295228,
+      ytd: 24.481181090642295,
+      total_return: 474.6415254237288
+    }
+  }), []);
+  
+  // Update the context in Redux when chat is opened
+  useEffect(() => {
+    if (isOpen) {
+      // Only pass the page name in context - portfolio data will be in the system message
+      dispatch(updateContext({
+        page: 'Dashboard' // We don't need to pass portfolioSummary here anymore
+      }));
+    }
+  }, [isOpen, dispatch]);
+
+
+  
+  /**
+   * Format context data for the LLM - directly return the hardcoded portfolio summary
+   * @returns A JSON string containing the portfolio summary
+   */
+  const formatContextForLLM = (): string => {
+    // Just return the hardcoded portfolio summary as-is
+    return JSON.stringify(hardcodedPortfolioSummary, null, 2);
+  };
 
   /**
-   * Handle sending a message
-   * @param e - Form submit event
+   * System message to guide the AI's behavior
+   */
+  const getSystemMessage = (): string => {
+    // Get the portfolio summary as formatted JSON
+    const portfolioSummary = formatContextForLLM();
+    
+    // Create a focused system message for portfolio analysis
+    return [
+      "You are AssetVision AI, a portfolio assistant. Provide brief insights based on the portfolio summary.",
+      "",
+      "INSTRUCTIONS:",
+      "1. Reference specific portfolio values from the data provided.",
+      "2. Format your response using markdown for better readability.",
+      "3. Use bold for key numbers and metrics.",
+      "4. Organize content with headings and bullet points where appropriate.",
+      "5. Keep responses clear and structured for easy scanning.",
+      "",
+      "PORTFOLIO SUMMARY:",
+      portfolioSummary
+    ].join('\n');
+  };
+  
+  /**
+   * Format messages for the API call
+   * @param userMessage - The current user message to send
+   * @returns Array of messages formatted for the API
+   */
+  const formatMessagesForApi = (userMessage: string) => {
+    // Get just the user and assistant messages from the history
+    // (excluding any previous system messages to avoid duplication)
+    const chatHistory = messages.filter(msg => 
+      msg.role === 'user' || msg.role === 'assistant'
+    ).slice(-4); // Limit to last 4 messages for context window efficiency
+    
+    // Create the formatted message array with single system message at the start
+    return [
+      {
+        role: 'system',
+        content: getSystemMessage()
+      },
+      ...chatHistory,
+      {
+        role: 'user',
+        content: userMessage.trim()
+      }
+    ];
+  };
+
+  /**
+   * Handle form submission
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!inputValue.trim() || loading) return;
     
-    // Add user message to chat
+    // Get the user's message
+    const userMessage = inputValue.trim();
+    
+    // Add original user message to chat (for display)
     dispatch(addMessage({ 
       role: 'user', 
-      content: inputValue.trim() 
+      content: userMessage
     }));
     
     // Clear input field
@@ -97,31 +479,34 @@ export function AiChat() {
       // Start loading state
       dispatch(setLoading(true));
       
-      // Format messages for API
-      const formattedMessages = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      }));
-      
-      // Add current user message
-      formattedMessages.push({
-        role: 'user' as const,
-        content: inputValue.trim()
-      });
+      // Format messages for API with proper context
+      const formattedMessages = formatMessagesForApi(userMessage);
       
       // Send to backend API which handles the LLM calls
-      const response = await chatApi.sendMessage(formattedMessages, context);
+      // Pass only minimal context (page name) - portfolio data is in system message
+      const minimalContext = { page: context.page || 'Dashboard' };
+      const response = await chatApi.sendMessage(formattedMessages, minimalContext);
       
-      // Add AI response to chat
+      // Format the response to ensure proper markdown rendering
+      // (We're assuming the backend returns markdown-formatted text)
+      const formattedResponse = response.trim();
+      
+      // Add the formatted AI response to chat
       dispatch(addMessage({
         role: 'assistant',
-        content: response
+        content: formattedResponse
       }));
       
       dispatch(setError(null));
     } catch (error) {
       console.error('Error sending message to AI backend:', error);
-      dispatch(setError((error as Error).message));
+      dispatch(setError('Sorry, I encountered an error. Please try again in a moment.'));
+      
+      // Add a helpful error message to the chat
+      dispatch(addMessage({
+        role: 'assistant',
+        content: "I'm sorry, I'm having trouble accessing the information right now. Please try again in a moment or refresh the page if the issue persists."
+      }));
     } finally {
       dispatch(setLoading(false));
     }
@@ -200,7 +585,14 @@ export function AiChat() {
                         ? 'bg-primary text-primary-foreground' 
                         : 'bg-muted'
                     }`}>
-                      <p className="text-sm">{msg.content}</p>
+                      {msg.role === 'assistant' ? (
+                        <div className="text-sm markdown-content">
+                          {/* Using the imported ReactMarkdown component */}
+                          <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        </div>
+                      ) : (
+                        <p className="text-sm">{msg.content}</p>
+                      )}
                     </div>
                     <span className="text-xs text-muted-foreground mt-1 px-1">
                       {formatTime(msg.timestamp)}
