@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
-import { API_BASE_URL } from '@/config/api';
+import { API_BASE_URL, PORTFOLIO_ENDPOINTS } from '@/config/api';
 
 /**
  * Type for a single holding in the portfolio
@@ -84,14 +84,14 @@ export const fetchHoldingsAndBalance = createAsyncThunk(
 
 /**
  * Async thunk to fetch portfolio drift data
- * @param portfolioId The ID of the portfolio to fetch drift data for
+ * Uses the active user's portfolio (no ID parameter needed)
  */
 export const fetchPortfolioDrift = createAsyncThunk(
   'portfolio/fetchDrift',
-  async (portfolioId: string, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      // Use the complete URL with the API_BASE_URL
-      const response = await fetch(`${API_BASE_URL}/portfolios/${portfolioId}/drift`, {
+      // Use the endpoint from our configuration for the active user's portfolio
+      const response = await fetch(PORTFOLIO_ENDPOINTS.DRIFT, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -4,6 +4,7 @@
  */
 
 import { fetchWithAuth } from './api-utils';
+import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
@@ -20,21 +21,21 @@ export const portfolioApi = {
    * Fetches the portfolio summary and transforms snake_case to camelCase
    */
   getPortfolioSummary: () => 
-    fetchWithAuth<PortfolioSummaryResponse>('/portfolio/summary')
+    fetchWithAuth<PortfolioSummaryResponse>(PORTFOLIO_ENDPOINTS.SUMMARY)
       .then(response => convertSnakeToCamelCase<PortfolioSummary>(response)),
   
   /**
    * Get portfolio performance over time
    */
   getPerformance: (period: 'day' | 'week' | 'month' | 'year' | 'all' = 'month') => 
-    fetchWithAuth<any[]>(`/portfolio/performance?period=${period}`)
+    fetchWithAuth<any[]>(`${PORTFOLIO_ENDPOINTS.PERFORMANCE}?period=${period}`)
       .then(response => convertSnakeToCamelCase<PerformanceData[]>(response)),
   
   /**
    * Get asset allocation
    */
   getAssetAllocation: () => 
-    fetchWithAuth<any>('/portfolio/allocation')
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.ALLOCATION)
       .then(response => convertSnakeToCamelCase<AllocationResponse>(response)),
     
   /**
@@ -50,7 +51,7 @@ export const portfolioApi = {
    * Check if user has a portfolio
    */
   hasPortfolio: () => 
-    fetchWithAuth<{ has_portfolio: boolean }>('/portfolio/status')
+    fetchWithAuth<{ has_portfolio: boolean }>(PORTFOLIO_ENDPOINTS.HAS_PORTFOLIO)
       .then(response => convertSnakeToCamelCase<{ hasPortfolio: boolean }>(response))
       .then(response => response.hasPortfolio)
       .catch(() => false),
@@ -60,7 +61,7 @@ export const portfolioApi = {
    * Fetches tax-optimized recommendations for portfolio holdings
    */
   getTaxLossHarvestingOpportunities: () => 
-    fetchWithAuth<any>('/portfolio/tax-loss-harvesting')
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.TAX_LOSS_HARVESTING)
       .then(response => convertSnakeToCamelCase<TaxLossResponse>(response)),
       
   /**
@@ -68,7 +69,7 @@ export const portfolioApi = {
    * Analyzes tax efficiency of asset placement in taxable vs tax-advantaged accounts
    */
   getTaxEfficiencyAnalysis: () => 
-    fetchWithAuth<any>('/portfolio/tax-efficiency-analysis')
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.TAX_EFFICIENCY)
       .then(response => convertSnakeToCamelCase<TaxEfficiencyResponse>(response)),
       
   /**
@@ -76,8 +77,8 @@ export const portfolioApi = {
    * Compares current allocations to target allocations to identify portfolio drift
    * @param portfolioId ID of the portfolio to analyze
    */
-  getPortfolioDrift: (portfolioId: string) => 
-    fetchWithAuth<any>(`/portfolios/${portfolioId}/drift`)
+  getPortfolioDrift: () => 
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.DRIFT)
       .then(response => convertSnakeToCamelCase<DriftResponse>(response)),
       
   /**
@@ -85,7 +86,7 @@ export const portfolioApi = {
    * Uses the summary endpoint since active endpoint was deprecated
    */
   getActivePortfolioId: () => 
-    fetchWithAuth<any>('/portfolio/summary')
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.SUMMARY)
       .then(response => {
         // The summary endpoint doesn't directly return an ID field
         // So we extract from the response structure if available

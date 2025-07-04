@@ -43,7 +43,7 @@ const PortfolioDriftContainer: React.FC = () => {
         
         // Attempt to fetch drift data
         try {
-          await dispatch(fetchPortfolioDrift(activePortfolioId)).unwrap();
+          await dispatch(fetchPortfolioDrift()).unwrap();
         } catch (error) {
           console.error('Error fetching drift data:', error);
           // Automatically fall back to mock data when there's an API error
