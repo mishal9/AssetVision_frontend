@@ -364,10 +364,11 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
               <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
               <XAxis 
                 dataKey="name" 
-                angle={-45} 
+                angle={-35} 
                 textAnchor="end" 
-                height={80} 
-                tick={{ fontSize: 12 }}
+                height={100} 
+                tick={{ fontSize: 11 }}
+                tickMargin={10}
               />
               <YAxis 
                 label={{ value: 'Allocation %', angle: -90, position: 'insideLeft', offset: -5 }}
@@ -409,10 +410,10 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
-                margin={{ top: 20, right: 50, left: 10, bottom: 20 }}
+                margin={{ top: 40, right: 100, left: 30, bottom: 30 }}
                 layout="vertical"
-                barSize={20}
-                barGap={8}
+                barSize={18}
+                barGap={10}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} opacity={0.3} />
                 <XAxis 
@@ -420,22 +421,24 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                   domain={[-thresholdPercent * 2, thresholdPercent * 2]}
                   tick={{ fontSize: 11 }}
                   tickFormatter={(value) => `${value}%`}
+                  tickMargin={5}
+                  padding={{ left: 30, right: 30 }}
                 />
                 <YAxis 
                   dataKey="name" 
                   type="category" 
-                  width={150}
+                  width={200}
                   tick={{ fontSize: 12 }}
                   interval={0} // Show all labels
-                  tickMargin={5}
+                  tickMargin={15}
                 />
                 <RechartsTooltip content={<CustomTooltip />} />
                 <ReferenceLine x={0} stroke="#000" strokeDasharray="3 3" />
                 <ReferenceLine x={thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
-                  <Label value="Threshold" position="insideTopRight" />
+                  <Label value="Threshold" position="top" offset={15} fill="#f97316" fontSize={12} />
                 </ReferenceLine>
                 <ReferenceLine x={-thresholdPercent} stroke="#f97316" strokeDasharray="3 3" >
-                  <Label value="Threshold" position="insideTopLeft" />
+                  <Label value="Threshold" position="top" offset={15} fill="#f97316" fontSize={12} />
                 </ReferenceLine>
                 <Bar 
                   name="Drift" 
@@ -443,9 +446,10 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
                   radius={[0, 4, 4, 0]}
                   label={{
                     position: 'right',
-                    formatter: (value: number) => `${value.toFixed(2)}%`,
+                    formatter: (value: number) => `${value.toFixed(1)}%`,
                     fontSize: 11,
                     fill: '#666',
+                    offset: 15,
                   }}
                 >
                   {chartData.map((entry, index) => {

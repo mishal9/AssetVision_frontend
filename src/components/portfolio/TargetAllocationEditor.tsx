@@ -204,7 +204,7 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
         <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'asset-class' | 'sector')}>
           <TabsList className="mb-4">
             <TabsTrigger value="asset-class">Asset Classes</TabsTrigger>
-            <TabsTrigger value="sector" disabled={activeTab === 'asset-class'}>Sectors</TabsTrigger>
+            <TabsTrigger value="sector">Sectors</TabsTrigger>
           </TabsList>
           
           <TabsContent value="asset-class" className="space-y-4">
@@ -225,7 +225,7 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
                           step="0.1"
                           value={allocations[asset.id] || 0}
                           onChange={(e) => handleAllocationChange(asset.id, parseFloat(e.target.value) || 0)}
-                          className="w-16 text-right mr-2"
+                          className="w-20 text-right mr-2"
                         />
                         <span className="text-muted-foreground">%</span>
                       </div>
@@ -241,10 +241,10 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
                   </div>
                 ))}
                 
-                <div className="mt-6 pt-3 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <div className="mt-6 pt-4 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <div>
                     <span className="font-semibold">Total:</span> 
-                    <span className={`ml-2 ${Math.abs(totalAllocation - 100) > 0.01 ? 'text-red-500 font-bold' : 'text-green-600'}`}>
+                    <span className={`ml-2 text-lg ${Math.abs(totalAllocation - 100) > 0.01 ? 'text-red-500 font-bold' : 'text-green-600'}`}>
                       {totalAllocation.toFixed(1)}%
                     </span>
                   </div>
