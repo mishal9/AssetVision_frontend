@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, MouseEvent } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Bot, X, Send, Loader2 } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
@@ -31,6 +31,29 @@ export function AiChat() {
   const router = useRouter();
   const pathname = usePathname();
   const [selectedPrompt, setSelectedPrompt] = useState('');
+  
+  // State for tracking the chat button position
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  
+  /**
+   * Determines the starting position for the button
+   * Uses local storage to persist position between sessions
+   */
+  useEffect(() => {
+    // Try to load saved position from localStorage
+    const savedPosition = localStorage.getItem('aiChatButtonPosition');
+    if (savedPosition) {
+      try {
+        const position = JSON.parse(savedPosition);
+        setButtonPosition(position);
+      } catch (e) {
+        console.error('Failed to parse saved button position', e);
+      }
+    }
+  }, []);
   
   /**
    * Predefined list of prompts that users can select from
@@ -104,6 +127,16 @@ export function AiChat() {
     setIsApiConfigured(true);
   }, []);
   
+  // Determine if we should show the chat (only on dashboard pages)
+  const isDashboardPage = useMemo(() => {
+    // If pathname is empty or root, it's the main dashboard
+    if (!pathname || pathname === '/') return true;
+    
+    // Check if path starts with /dashboard
+    const pathSegments = pathname.split('/').filter(Boolean);
+    return pathSegments[0] === 'dashboard';
+  }, [pathname]);
+
   // Handle route changes to update basic context
   useEffect(() => {
     if (pathname) {
@@ -325,6 +358,58 @@ export function AiChat() {
       }, 100);
     }
   }, [messages, isOpen, loading]);
+  
+  // Handle draggable AI chat button functionality
+  useEffect(() => {
+    // Handler for mouse move to update button position during drag
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && buttonRef.current) {
+        e.preventDefault();
+        
+        // Get the button dimensions
+        const buttonRect = buttonRef.current.getBoundingClientRect();
+        const buttonWidth = buttonRect.width;
+        const buttonHeight = buttonRect.height;
+        
+        // Calculate new position with offset
+        const newX = e.clientX - dragStartRef.current.x;
+        const newY = e.clientY - dragStartRef.current.y;
+        
+        // Enforce strict viewport boundaries with padding
+        const padding = 10; // 10px padding from viewport edges
+        const maxX = window.innerWidth - buttonWidth - padding;
+        const maxY = window.innerHeight - buttonHeight - padding;
+        
+        // Constrain position to viewport boundaries
+        const constrainedX = Math.max(padding, Math.min(newX, maxX));
+        const constrainedY = Math.max(padding, Math.min(newY, maxY));
+        
+        // Use requestAnimationFrame for smoother updates
+        requestAnimationFrame(() => {
+          setButtonPosition({ x: constrainedX, y: constrainedY });
+        });
+      }
+    };
+    
+    // Handler for mouse up to end dragging
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      // Save position to localStorage
+      localStorage.setItem('aiChatButtonPosition', JSON.stringify(buttonPosition));
+    };
+    
+    // Only attach event listeners when dragging
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove as any);
+      window.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove as any);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
 
   /**
    * Toggle the chat window open/closed
@@ -556,21 +641,81 @@ export function AiChat() {
 
   return (
     <>
-      {/* Floating button */}
-      <Button
-        onClick={handleToggleChat}
-        className={`fixed bottom-6 left-6 rounded-full shadow-lg p-3 z-50 ${
-          isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
-        }`}
-        size="icon"
-        aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
-      >
-        {isOpen ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
-      </Button>
+      {/* Only show the floating button on dashboard pages */}
+      {isDashboardPage && (
+        <Button
+          ref={buttonRef}
+          onClick={handleToggleChat}
+          onMouseDown={(e) => {
+            // Start dragging only with left mouse button
+            if (e.button === 0) {
+              e.preventDefault();
+              setIsDragging(true);
+              // Store initial mouse position
+              dragStartRef.current = { 
+                x: e.clientX - buttonPosition.x, 
+                y: e.clientY - buttonPosition.y 
+              };
+            }
+          }}
+          className={`fixed rounded-full shadow-lg p-3 z-50 cursor-move ${
+            isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
+          }`}
+          style={{
+            bottom: 'auto',
+            left: 'auto',
+            transform: 'none',
+            right: buttonPosition.x === 0 && buttonPosition.y === 0 ? '20px' : 'auto',
+            bottom: buttonPosition.x === 0 && buttonPosition.y === 0 ? '20px' : 'auto',
+            top: buttonPosition.y ? `${buttonPosition.y}px` : 'auto',
+            left: buttonPosition.x ? `${buttonPosition.x}px` : 'auto',
+          }}
+          size="icon"
+          aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}
+        >
+          {isOpen ? <X className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
+        </Button>
+      )}
 
-      {/* Chat window */}
-      {isOpen && (
-        <Card className="fixed bottom-20 left-6 w-96 h-[500px] shadow-xl flex flex-col z-40 overflow-hidden max-h-[70vh]">
+      {/* Chat window - only shown on dashboard pages and when open */}
+      {isOpen && isDashboardPage && (
+        <Card 
+          className="fixed w-96 h-[500px] shadow-xl flex flex-col z-40 overflow-hidden max-h-[70vh]"
+          style={{
+            // Position chat window relative to button with consistent offset
+            bottom: 'auto',
+            top: (() => {
+              // If button is at default position (0,0)
+              if (buttonPosition.x === 0 && buttonPosition.y === 0) {
+                return '100px';
+              }
+              
+              // Calculate position above the button
+              const windowHeight = 500; // Chat window height
+              const offset = 20; // Space between button and window
+              const topPosition = buttonPosition.y - windowHeight - offset;
+              
+              // Ensure window doesn't go above viewport
+              return `${Math.max(10, topPosition)}px`;
+            })(),
+            left: (() => {
+              // If button is at default position (0,0)
+              if (buttonPosition.x === 0 && buttonPosition.y === 0) {
+                return '50%';
+              }
+              
+              // Center the window on the button's x-position
+              // Make sure it doesn't go off-screen
+              const windowWidth = 384; // 96 * 4 = 384px (w-96)
+              const halfWindow = windowWidth / 2;
+              const leftPosition = buttonPosition.x - halfWindow;
+              
+              // Constrain to viewport
+              return `${Math.max(10, Math.min(leftPosition, window.innerWidth - windowWidth - 10))}px`;
+            })(),
+            transform: buttonPosition.x === 0 && buttonPosition.y === 0 ? 'translateX(-50%)' : 'none',
+          }}
+        >
           {/* Chat header */}
           <div className="p-3 border-b flex justify-between items-center bg-primary text-primary-foreground">
             <div className="flex items-center">
