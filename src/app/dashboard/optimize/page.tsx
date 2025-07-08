@@ -76,20 +76,29 @@ export default function OptimizePortfolioPage() {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
   /**
-   * Monte Carlo simulation engine
-   * Generates optimized portfolio scenarios based on user parameters
+   * Real Monte Carlo simulation engine
+   * Runs thousands of random market scenarios to calculate probability outcomes
    */
   const runMonteCarloSimulation = () => {
-    console.log('🚀 Starting optimization...');
+    console.log('🚀 Starting Monte Carlo simulation...');
     dispatch(setSimulationStatus(true));
     
-    // Simulate processing time for realistic UX
+    // Run actual Monte Carlo simulation
     setTimeout(() => {
       try {
         const optimizationData = generateOptimizationScenarios();
         
+        // Run Monte Carlo for each scenario
+        const scenariosWithMonteCarlo = optimizationData.scenarios.map(scenario => {
+          const monteCarloResults = runMonteCarloForScenario(scenario, parameters.timeHorizon);
+          return {
+            ...scenario,
+            monteCarlo: monteCarloResults
+          };
+        });
+        
         const optimizationResults = {
-          scenarios: optimizationData.scenarios,
+          scenarios: scenariosWithMonteCarlo,
           projectedData: optimizationData.projectedData,
           taxSavings: optimizationData.taxSavings,
           rebalancingCost: optimizationData.rebalancingCost,
@@ -97,16 +106,120 @@ export default function OptimizePortfolioPage() {
           generatedAt: Date.now()
         };
         
-        console.log('✅ Optimization complete - scenarios:', optimizationResults.scenarios.length);
+        console.log('✅ Monte Carlo simulation complete - scenarios:', optimizationResults.scenarios.length);
         dispatch(setResults(optimizationResults));
         
       } catch (error) {
-        console.error('Error during optimization:', error);
-        dispatch(setError('Failed to generate optimization results. Please try again.'));
+        console.error('Error during Monte Carlo simulation:', error);
+        dispatch(setError('Failed to generate Monte Carlo results. Please try again.'));
       } finally {
         dispatch(setSimulationStatus(false));
       }
-    }, 2000);
+    }, 3000); // Longer delay for realistic Monte Carlo processing
+  };
+
+  /**
+   * Monte Carlo simulation for a specific portfolio scenario
+   * Runs 5000 iterations of random market returns over the time horizon
+   */
+  const runMonteCarloForScenario = (scenario: any, years: number, iterations: number = 5000) => {
+    const results: number[] = [];
+    const initialValue = 100000; // $100k starting portfolio
+    
+    // Historical asset class parameters (annual returns and volatility)
+    const assetParams = {
+      stocks: { expectedReturn: 0.10, volatility: 0.16 },
+      international: { expectedReturn: 0.08, volatility: 0.18 },
+      bonds: { expectedReturn: 0.04, volatility: 0.06 },
+      alternatives: { expectedReturn: 0.07, volatility: 0.12 }
+    };
+    
+    // Portfolio allocation from scenario
+    const allocation = {
+      stocks: scenario.allocation[0].value / 100,
+      international: scenario.allocation[1].value / 100,
+      bonds: scenario.allocation[2].value / 100,
+      alternatives: scenario.allocation[3].value / 100
+    };
+    
+    // Calculate portfolio expected return and volatility
+    const portfolioReturn = 
+      allocation.stocks * assetParams.stocks.expectedReturn +
+      allocation.international * assetParams.international.expectedReturn +
+      allocation.bonds * assetParams.bonds.expectedReturn +
+      allocation.alternatives * assetParams.alternatives.expectedReturn;
+    
+    const portfolioVolatility = Math.sqrt(
+      Math.pow(allocation.stocks * assetParams.stocks.volatility, 2) +
+      Math.pow(allocation.international * assetParams.international.volatility, 2) +
+      Math.pow(allocation.bonds * assetParams.bonds.volatility, 2) +
+      Math.pow(allocation.alternatives * assetParams.alternatives.volatility, 2)
+    );
+    
+    // Run Monte Carlo iterations
+    for (let i = 0; i < iterations; i++) {
+      let portfolioValue = initialValue;
+      
+      // Simulate each year
+      for (let year = 0; year < years; year++) {
+        // Generate random return using normal distribution
+        const randomReturn = generateNormalRandom(portfolioReturn, portfolioVolatility);
+        portfolioValue *= (1 + randomReturn);
+        
+        // Add some market correlation and sequence risk
+        if (Math.random() < 0.1) { // 10% chance of market stress
+          portfolioValue *= (1 - Math.random() * 0.3); // Up to 30% drawdown
+        }
+      }
+      
+      results.push(portfolioValue);
+    }
+    
+    // Sort results for percentile calculations
+    results.sort((a, b) => a - b);
+    
+    // Calculate key statistics
+    const median = results[Math.floor(iterations * 0.5)];
+    const percentile10 = results[Math.floor(iterations * 0.1)];
+    const percentile25 = results[Math.floor(iterations * 0.25)];
+    const percentile75 = results[Math.floor(iterations * 0.75)];
+    const percentile90 = results[Math.floor(iterations * 0.9)];
+    
+    // Success probability (beating inflation + some growth)
+    const inflationAdjustedTarget = initialValue * Math.pow(1.03, years); // 3% inflation
+    const successCount = results.filter(value => value > inflationAdjustedTarget).length;
+    const successProbability = (successCount / iterations) * 100;
+    
+    // Risk of significant loss (losing more than 20% real value)
+    const lossThreshold = initialValue * Math.pow(1.03, years) * 0.8;
+    const riskOfLoss = (results.filter(value => value < lossThreshold).length / iterations) * 100;
+    
+    return {
+      iterations,
+      median: Math.round(median),
+      percentile10: Math.round(percentile10),
+      percentile25: Math.round(percentile25),
+      percentile75: Math.round(percentile75),
+      percentile90: Math.round(percentile90),
+      successProbability: Math.round(successProbability * 10) / 10,
+      riskOfLoss: Math.round(riskOfLoss * 10) / 10,
+      expectedReturn: Math.round(portfolioReturn * 1000) / 10, // Convert to percentage
+      volatility: Math.round(portfolioVolatility * 1000) / 10,
+      inflationAdjustedTarget: Math.round(inflationAdjustedTarget)
+    };
+  };
+
+  /**
+   * Generate random number from normal distribution
+   * Uses Box-Muller transformation
+   */
+  const generateNormalRandom = (mean: number, stdDev: number): number => {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random(); // Converting [0,1) to (0,1)
+    while(v === 0) v = Math.random();
+    
+    const z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    return mean + z * stdDev;
   };
 
   /**
@@ -541,7 +654,7 @@ This report is for informational purposes only. AssetVision provides portfolio a
               ) : (
                 <TrendingUp className="h-4 w-4" />
               )}
-              {isLoading ? 'Optimizing...' : 'Run Optimization'}
+              {isLoading ? 'Running Monte Carlo...' : 'Run Monte Carlo Analysis'}
             </Button>
             {simulationResults && (
               <Button variant="outline" className="flex items-center gap-2">
@@ -596,6 +709,36 @@ This report is for informational purposes only. AssetVision provides portfolio a
                         <div className="font-medium">{scenario?.taxEfficiency?.toFixed(0) || 0}%</div>
                       </div>
                     </div>
+
+                    {/* Monte Carlo Results */}
+                    {scenario.monteCarlo && (
+                      <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg space-y-2">
+                        <div className="font-medium text-sm text-blue-900 dark:text-blue-100">
+                          📊 Monte Carlo Analysis ({scenario.monteCarlo.iterations.toLocaleString()} simulations)
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div>
+                            <span className="text-muted-foreground">Success Probability:</span>
+                            <div className="font-bold text-green-600">{scenario.monteCarlo.successProbability}%</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Risk of Loss:</span>
+                            <div className="font-bold text-red-600">{scenario.monteCarlo.riskOfLoss}%</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Median Outcome:</span>
+                            <div className="font-medium">${(scenario.monteCarlo.median / 1000).toFixed(0)}k</div>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">90th Percentile:</span>
+                            <div className="font-medium text-green-600">${(scenario.monteCarlo.percentile90 / 1000).toFixed(0)}k</div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Range: ${(scenario.monteCarlo.percentile10 / 1000).toFixed(0)}k - ${(scenario.monteCarlo.percentile90 / 1000).toFixed(0)}k
+                        </div>
+                      </div>
+                    )}
 
                     {/* ESG Score */}
                     <div>
