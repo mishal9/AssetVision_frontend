@@ -5,6 +5,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -25,6 +29,7 @@ export default function DemoPage() {
   const [step, setStep] = useState(0);
   const [animatedValue, setAnimatedValue] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showPortfolioAnalysis, setShowPortfolioAnalysis] = useState(false);
 
   // Demo portfolio data - realistic $100k allocation
   const currentPortfolio = [
@@ -79,6 +84,35 @@ export default function DemoPage() {
   ];
   const totalTaxLossHarvesting = Math.abs(taxLossOpportunities.reduce((sum, stock) => sum + stock.loss, 0));
 
+  // Tax savings data structure
+  const taxSavings = {
+    totalSavings: Math.round(annualTaxSavings + (totalTaxLossHarvesting * 0.24)),
+    harvestingOpportunity: totalTaxLossHarvesting,
+    efficiencyGain: Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100),
+    strategies: [
+      {
+        name: 'Tax-Efficient Fund Selection',
+        description: 'Switch to low-turnover index funds and tax-managed funds to reduce annual tax drag on your investments.',
+        savings: Math.round(annualTaxSavings * 0.4)
+      },
+      {
+        name: 'Tax-Loss Harvesting',
+        description: 'Realize losses on underperforming positions to offset capital gains and reduce your tax liability.',
+        savings: Math.round(totalTaxLossHarvesting * 0.24)
+      },
+      {
+        name: 'Asset Location Optimization',
+        description: 'Place tax-inefficient investments in tax-advantaged accounts and tax-efficient ones in taxable accounts.',
+        savings: Math.round(annualTaxSavings * 0.35)
+      },
+      {
+        name: 'Municipal Bond Allocation',
+        description: 'Add tax-free municipal bonds appropriate for your tax bracket to reduce taxable income.',
+        savings: Math.round(annualTaxSavings * 0.25)
+      }
+    ]
+  };
+
   // Animation effect for dollar amounts
   useEffect(() => {
     if (step >= 2) {
@@ -97,6 +131,9 @@ export default function DemoPage() {
   const handleNextStep = () => {
     if (step < 3) {
       setStep(step + 1);
+      if (step === 0) {
+        setShowPortfolioAnalysis(true);
+      }
       if (step === 2) {
         setTimeout(() => setShowResults(true), 1000);
       }
@@ -108,51 +145,87 @@ export default function DemoPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="text-center space-y-4 py-8">
-          <div className="flex items-center justify-center gap-2">
-            <Sparkles className="h-8 w-8 text-blue-600" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              AssetVision Demo
-            </h1>
-          </div>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Experience drift detection, rebalancing alerts, and tax optimization with our AI-powered portfolio analysis
-          </p>
-          <Badge variant="secondary" className="text-sm">
-            🚀 No signup required • Live drift analysis • Tax optimization
-          </Badge>
-        </div>
+        <Card className="border-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50">
+          <CardContent className="text-center space-y-6 py-12">
+            <div className="flex items-center justify-center gap-3">
+              <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-600 to-indigo-600">
+                <AvatarFallback className="bg-transparent text-white font-bold text-lg">
+                  <Sparkles className="h-6 w-6" />
+                </AvatarFallback>
+              </Avatar>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                AssetVision Demo
+              </h1>
+            </div>
+            <div className="space-y-3">
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Experience intelligent drift detection, automated rebalancing alerts, and advanced tax optimization with our AI-powered portfolio analysis platform
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Badge variant="secondary" className="text-sm font-medium">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  No signup required
+                </Badge>
+                <Badge variant="outline" className="text-sm">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Live drift analysis
+                </Badge>
+                <Badge variant="outline" className="text-sm">
+                  <Calculator className="h-3 w-3 mr-1" />
+                  Tax optimization
+                </Badge>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Progress Steps */}
-        <Card className="border-2 border-blue-200">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-center text-lg font-semibold">Portfolio Analysis Progress</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
               {[1, 2, 3].map((stepNum) => (
                 <div key={stepNum} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
-                    step >= stepNum - 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
+                    step >= stepNum - 1 
+                      ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg scale-110' 
+                      : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                   }`}>
-                    {step > stepNum - 1 ? <CheckCircle className="h-5 w-5" /> : stepNum}
+                    {step > stepNum - 1 ? <CheckCircle className="h-6 w-6" /> : stepNum}
                   </div>
                   {stepNum < 3 && (
-                    <div className={`w-20 h-1 mx-2 ${
-                      step >= stepNum ? 'bg-blue-600' : 'bg-gray-200'
-                    }`} />
+                    <div className="flex-1 mx-4">
+                      <Progress 
+                        value={step >= stepNum ? 100 : 0} 
+                        className="h-2"
+                      />
+                    </div>
                   )}
                 </div>
               ))}
             </div>
-            <div className="text-center">
+            <Separator />
+            <div className="text-center space-y-2">
+              <p className="font-medium text-lg">
+                {step === 0 && "Analyze Portfolio"}
+                {step === 1 && "Detect Drift & Alerts"}
+                {step === 2 && "Calculate Tax Savings"}
+                {step === 3 && "Complete Analysis"}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {step === 0 && "Step 1: Analyze your $100k portfolio"}
-                {step === 1 && "Step 2: Detect portfolio drift & rebalancing needs"}
-                {step === 2 && "Step 3: Calculate tax optimization savings"}
-                {step === 3 && "🎉 See your complete analysis!"}
+                {step === 0 && "Examining your $100k portfolio allocation and performance"}
+                {step === 1 && "Identifying portfolio drift and rebalancing opportunities"}
+                {step === 2 && "Computing tax optimization and savings potential"}
+                {step === 3 && "🎉 Your comprehensive portfolio analysis is ready!"}
               </p>
             </div>
           </CardContent>
         </Card>
 
+        {/* Portfolio Analysis Grid */}
+        {showPortfolioAnalysis && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Left Column - Current Portfolio */}
@@ -225,15 +298,15 @@ export default function DemoPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calculator className="h-5 w-5" />
-                {step >= 2 ? 'Tax-Optimized Portfolio' : 'Optimization Analysis'}
+                {step >= 3 ? 'Tax-Optimized Portfolio' : 'Optimization Analysis'}
               </CardTitle>
               <CardDescription>
-                {step >= 2 ? '$100,000 • Optimized for tax efficiency' : 'AI-powered recommendations'}
+                {step >= 3 ? '$100,000 • Optimized for tax efficiency' : 'AI-powered recommendations'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               
-              {step === 1 && (
+              {(step === 1 || step === 2) && (
                 <div className="space-y-4">
                   <h3 className="font-medium">Tax-Loss Harvesting Opportunities</h3>
                   {taxLossOpportunities.map((stock, index) => (
@@ -261,7 +334,9 @@ export default function DemoPage() {
                 </div>
               )}
 
-              {step >= 2 && (
+
+
+              {step >= 3 && (
                 <>
                   {/* Optimized Portfolio Chart */}
                   <div className="h-64">
@@ -305,222 +380,385 @@ export default function DemoPage() {
             </CardContent>
           </Card>
         </div>
+        )}
 
         {/* Portfolio Drift Analysis */}
-        {step >= 1 && (
+        {step >= 2 && (
           <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                <AlertTriangle className="h-6 w-6 text-orange-600" />
                 Portfolio Drift Analysis
               </CardTitle>
-              <CardDescription>
-                Your portfolio has drifted from your target allocation
+              <CardDescription className="text-base">
+                Your portfolio has drifted from your target allocation - immediate action recommended
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
               {/* Drift Alerts */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  Active Drift Alerts
-                </h3>
-                <div className="grid gap-3">
-                  {driftAlerts.map((alert, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: alert.color }}
-                        />
-                        <span className="font-medium">{alert.name}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm text-muted-foreground">
-                          Target: {alert.target}% • Current: {alert.current}%
-                        </div>
-                        <div className={`font-semibold ${
-                          alert.drift > 0 ? 'text-red-600' : 'text-blue-600'
-                        }`}>
-                          {alert.drift > 0 ? '+' : ''}{alert.drift}% ({alert.driftPercent}% drift)
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <Alert className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle className="text-orange-800 dark:text-orange-300">
+                  {driftAlerts.length} Active Drift Alert{driftAlerts.length !== 1 ? 's' : ''} Detected
+                </AlertTitle>
+                <AlertDescription className="text-orange-700 dark:text-orange-400 mt-2">
+                  Your portfolio allocation has deviated significantly from your target. Consider rebalancing to optimize performance.
+                </AlertDescription>
+              </Alert>
 
-              {/* Target vs Current Allocation Chart */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-lg">Target vs Current Allocation</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Tabs defaultValue="alerts" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="alerts" className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Drift Alerts
+                  </TabsTrigger>
+                  <TabsTrigger value="comparison" className="flex items-center gap-2">
+                    <PieChart className="h-4 w-4" />
+                    Allocation Comparison
+                  </TabsTrigger>
+                  <TabsTrigger value="recommendations" className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Recommendations
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="alerts" className="space-y-4 mt-6">
+                  <div className="grid gap-4">
+                    {driftAlerts.map((alert, index) => (
+                      <Card key={index} className="border-l-4 border-l-orange-500">
+                        <CardContent className="flex items-center justify-between p-4">
+                          <div className="flex items-center gap-3">
+                            <div 
+                              className="w-4 h-4 rounded-full" 
+                              style={{ backgroundColor: alert.color }}
+                            />
+                            <div>
+                              <p className="font-semibold">{alert.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                ${alert.value.toLocaleString()} allocated
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm text-muted-foreground">
+                              Target: {alert.target}% • Current: {alert.current}%
+                            </div>
+                            <Badge variant={alert.drift > 0 ? "destructive" : "secondary"} className="mt-1">
+                              {alert.drift > 0 ? '+' : ''}{alert.drift}% drift
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="comparison" className="space-y-4 mt-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-center text-lg">Target Allocation</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-48">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RechartsPieChart>
+                              <Pie
+                                data={targetAllocation.map(item => ({ ...item, value: item.target }))}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={40}
+                                outerRadius={80}
+                                dataKey="value"
+                              >
+                                {targetAllocation.map((entry, index) => (
+                                  <Cell key={`target-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => `${value}%`} />
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-4">
+                        <CardTitle className="text-center text-lg">Current Allocation</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-48">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <RechartsPieChart>
+                              <Pie
+                                data={targetAllocation.map(item => ({ ...item, value: item.current }))}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={40}
+                                outerRadius={80}
+                                dataKey="value"
+                              >
+                                {targetAllocation.map((entry, index) => (
+                                  <Cell key={`current-${index}`} fill={entry.color} />
+                                ))}
+                              </Pie>
+                              <Tooltip formatter={(value) => `${value}%`} />
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+
+                <TabsContent value="recommendations" className="space-y-4 mt-6">
+                  <Alert className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertTitle className="text-blue-800 dark:text-blue-300">
+                      Smart Rebalancing Strategy
+                    </AlertTitle>
+                    <AlertDescription className="text-blue-700 dark:text-blue-400 mt-2">
+                      Our AI recommends the following trades to restore your target allocation:
+                    </AlertDescription>
+                  </Alert>
                   
-                  {/* Target Allocation */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-center">Target Allocation</h4>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
-                          <Pie
-                            data={targetAllocation.map(item => ({ ...item, value: item.target }))}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={80}
-                            dataKey="value"
-                          >
-                            {targetAllocation.map((entry, index) => (
-                              <Cell key={`target-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => `${value}%`} />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                    </div>
+                  <div className="grid gap-3">
+                    <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 rotate-180" />
+                          Sell Positions
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Large Cap Stocks</span>
+                            <span className="font-medium">-$5,000 (45% → 40%)</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Bonds</span>
+                            <span className="font-medium">-$5,000 (15% → 10%)</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+                      <CardContent className="p-4">
+                        <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4" />
+                          Buy Positions
+                        </h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Small Cap Stocks</span>
+                            <span className="font-medium">+$5,000 (15% → 20%)</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>International</span>
+                            <span className="font-medium">+$5,000 (20% → 25%)</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
-
-                  {/* Current Allocation */}
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-center">Current Allocation</h4>
-                    <div className="h-48">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RechartsPieChart>
-                          <Pie
-                            data={targetAllocation.map(item => ({ ...item, value: item.current }))}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={80}
-                            dataKey="value"
-                          >
-                            {targetAllocation.map((entry, index) => (
-                              <Cell key={`current-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <Tooltip formatter={(value) => `${value}%`} />
-                        </RechartsPieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rebalancing Recommendation */}
-              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200">
-                <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
-                  💡 Rebalancing Recommendation
-                </h4>
-                <div className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                  <p>• <strong>Sell:</strong> $5,000 from Large Cap Stocks (reduce from 45% to 40%)</p>
-                  <p>• <strong>Sell:</strong> $5,000 from Bonds (reduce from 15% to 10%)</p>
-                  <p>• <strong>Buy:</strong> $5,000 Small Cap Stocks (increase from 15% to 20%)</p>
-                  <p>• <strong>Buy:</strong> $5,000 International (increase from 20% to 25%)</p>
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         )}
 
-        {/* Tax Savings Results */}
-        {step >= 2 && (
+        {/* Tax Optimization Results */}
+        {step >= 3 && (
           <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-            <CardContent className="p-8 text-center space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-green-700 dark:text-green-300">
-                  Your Tax Savings Potential
-                </h2>
-                <p className="text-muted-foreground">
-                  Based on your $100k portfolio optimization
-                </p>
-              </div>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calculator className="h-6 w-6 text-green-600" />
+                Tax Optimization Analysis
+              </CardTitle>
+              <CardDescription className="text-base">
+                AI-powered tax optimization identifies significant savings opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              <Alert className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
+                <Calculator className="h-4 w-4" />
+                <AlertTitle className="text-green-800 dark:text-green-300">
+                  ${taxSavings.totalSavings.toLocaleString()} in Tax Savings Identified
+                </AlertTitle>
+                <AlertDescription className="text-green-700 dark:text-green-400 mt-2">
+                  Our analysis found multiple optimization opportunities that could save you significant money on taxes.
+                </AlertDescription>
+              </Alert>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">Annual Savings</div>
-                  <div className="text-3xl font-bold text-green-600">
-                    ${annualTaxSavings.toFixed(0)}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">Tax-Loss Harvesting</div>
-                  <div className="text-3xl font-bold text-blue-600">
-                    ${(totalTaxLossHarvesting * 0.24).toFixed(0)}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground">10-Year Projection</div>
-                  <div className="text-4xl font-bold text-purple-600">
-                    ${Math.round(animatedValue).toLocaleString()}
-                  </div>
-                </div>
-              </div>
-
-              {showResults && (
-                <div className="space-y-4 animate-fade-in">
-                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
-                    <h3 className="font-bold text-lg mb-2">🎯 Key Optimizations</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Switched to tax-efficient index funds</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Added municipal bonds for tax-free income</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Harvested ${totalTaxLossHarvesting} in tax losses</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span>Reduced overall tax drag by 65%</span>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30">
+                  <CardContent className="text-center p-6">
+                    <div className="text-3xl font-bold text-green-600 mb-2">
+                      ${taxSavings.totalSavings.toLocaleString()}
                     </div>
-                  </div>
+                    <div className="text-sm font-medium text-green-700 dark:text-green-300">
+                      Total Tax Savings
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Annual potential
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30">
+                  <CardContent className="text-center p-6">
+                    <div className="text-3xl font-bold text-blue-600 mb-2">
+                      ${taxSavings.harvestingOpportunity.toLocaleString()}
+                    </div>
+                    <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                      Tax Loss Harvesting
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Immediate opportunity
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30">
+                  <CardContent className="text-center p-6">
+                    <div className="text-3xl font-bold text-purple-600 mb-2">
+                      {taxSavings.efficiencyGain}%
+                    </div>
+                    <div className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                      Efficiency Gain
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Portfolio improvement
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <h3 className="font-semibold text-lg">Smart Optimization Strategies</h3>
                 </div>
-              )}
-
+                <div className="grid gap-4">
+                  {taxSavings.strategies.map((strategy, index) => (
+                    <Card key={index} className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+                      <CardContent className="flex items-start gap-4 p-4">
+                        <Avatar className="h-10 w-10 bg-green-100 dark:bg-green-900/30">
+                          <AvatarFallback className="bg-transparent text-green-600 font-bold">
+                            {index + 1}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-semibold">{strategy.name}</h4>
+                            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                              ${strategy.savings.toLocaleString()} saved
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {strategy.description}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* Action Button */}
-        <div className="text-center">
-          {step < 3 ? (
-            <Button 
-              onClick={handleNextStep}
-              size="lg"
-              className="px-8 py-4 text-lg"
-            >
-              {step === 0 && "Analyze My Portfolio"}
-              {step === 1 && "Check Portfolio Drift"}
-              {step === 2 && "Calculate Tax Savings"}
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          ) : (
-            <div className="space-y-4">
-              <Button size="lg" className="px-8 py-4 text-lg bg-gradient-to-r from-blue-600 to-indigo-600">
-                <Sparkles className="mr-2 h-5 w-5" />
-                Get Your Personal Analysis
-              </Button>
-              <p className="text-sm text-muted-foreground">
-                Ready to optimize your real portfolio? Sign up for free detailed analysis.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Disclaimer */}
-        <Card className="bg-gray-50 dark:bg-gray-900">
-          <CardContent className="p-4 text-center">
-            <p className="text-xs text-muted-foreground">
-              This is a demonstration using hypothetical data. Actual results may vary based on your specific situation, 
-              tax bracket, and market conditions. Not investment advice. Consult with a qualified financial advisor.
-            </p>
+        <Card className="border-2 border-dashed border-blue-300 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+          <CardContent className="text-center py-8">
+            {step < 3 ? (
+              <div className="space-y-4">
+                <Button 
+                  onClick={handleNextStep}
+                  size="lg"
+                  className="px-12 py-6 text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  {step === 0 && (
+                    <>
+                      <PieChart className="mr-3 h-6 w-6" />
+                      Analyze My Portfolio
+                    </>
+                  )}
+                  {step === 1 && (
+                    <>
+                      <AlertTriangle className="mr-3 h-6 w-6" />
+                      Detect Portfolio Drift
+                    </>
+                  )}
+                  {step === 2 && (
+                    <>
+                      <Calculator className="mr-3 h-6 w-6" />
+                      Calculate Tax Savings
+                    </>
+                  )}
+                  <ArrowRight className="ml-3 h-6 w-6" />
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  {step === 0 && "Discover your portfolio's current allocation and performance"}
+                  {step === 1 && "Identify drift alerts and rebalancing opportunities"}
+                  {step === 2 && "Uncover tax optimization and savings potential"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    🎉 Analysis Complete!
+                  </h3>
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                    Your portfolio analysis revealed significant optimization opportunities. Ready to apply these insights to your real investments?
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                  <Button size="lg" className="px-8 py-4 text-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300">
+                    <Sparkles className="mr-2 h-5 w-5" />
+                    Get Your Personal Analysis
+                  </Button>
+                  <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <ArrowRight className="mr-2 h-5 w-5" />
+                    Learn More About AssetVision
+                  </Button>
+                </div>
+                <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Free 30-day trial</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>No credit card required</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Cancel anytime</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
+
+        {/* Disclaimer */}
+        <Alert className="bg-amber-50/50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertTitle className="text-amber-800 dark:text-amber-300">
+            Demo Disclaimer
+          </AlertTitle>
+          <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm leading-relaxed">
+            This demonstration uses hypothetical data for illustration purposes. Actual results may vary based on your specific financial situation, 
+            tax bracket, investment timeline, and market conditions. This is not personalized investment advice. 
+            Please consult with a qualified financial advisor before making investment decisions.
+          </AlertDescription>
+        </Alert>
 
       </div>
     </div>
