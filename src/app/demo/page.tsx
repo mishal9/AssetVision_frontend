@@ -638,6 +638,146 @@ export default function DemoPage() {
               
               <Separator />
               
+              {/* Tax Savings Breakdown */}
+              <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
+                    <Calculator className="h-5 w-5" />
+                    How We Calculate Your $2,118 Tax Savings
+                  </CardTitle>
+                  <CardDescription>
+                    Here's the simple math behind your potential annual tax savings
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  
+                  {/* Current vs Optimized Tax Drag */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg flex items-center gap-2">
+                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">1</span>
+                      Reduce Annual Tax Drag: ${Math.round(annualTaxSavings).toLocaleString()}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      "Tax drag" is how much you lose to taxes each year. We can reduce yours significantly:
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Card className="border-red-200 bg-red-50/50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm text-red-800">Current Portfolio (Tax Drag)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {currentPortfolio.map((asset, index) => (
+                            <div key={index} className="flex justify-between text-xs">
+                              <span>{asset.name}:</span>
+                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
+                            </div>
+                          ))}
+                          <Separator />
+                          <div className="flex justify-between font-semibold text-sm text-red-700">
+                            <span>Total Annual Tax Cost:</span>
+                            <span>${Math.round(currentTaxDrag).toLocaleString()}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      
+                      <Card className="border-green-200 bg-green-50/50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-sm text-green-800">Optimized Portfolio (Tax Drag)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-2">
+                          {optimizedPortfolio.map((asset, index) => (
+                            <div key={index} className="flex justify-between text-xs">
+                              <span>{asset.name}:</span>
+                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
+                            </div>
+                          ))}
+                          <Separator />
+                          <div className="flex justify-between font-semibold text-sm text-green-700">
+                            <span>Total Annual Tax Cost:</span>
+                            <span>${Math.round(optimizedTaxDrag).toLocaleString()}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                    
+                    <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">Annual Tax Drag Savings:</span>
+                        <span className="font-bold text-blue-600">
+                          ${Math.round(currentTaxDrag).toLocaleString()} - ${Math.round(optimizedTaxDrag).toLocaleString()} = ${Math.round(annualTaxSavings).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Tax Loss Harvesting */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg flex items-center gap-2">
+                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm">2</span>
+                      Tax-Loss Harvesting: ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()}
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Sell losing investments to offset gains and reduce your tax bill:
+                    </p>
+                    
+                    <Card className="border-orange-200 bg-orange-50/50">
+                      <CardContent className="p-4 space-y-3">
+                        {taxLossOpportunities.map((stock, index) => (
+                          <div key={index} className="flex justify-between items-center text-sm">
+                            <div>
+                              <span className="font-medium">{stock.symbol}</span>
+                              <span className="text-muted-foreground ml-2">
+                                ({stock.shares} shares)
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-red-600 font-medium">
+                                ${Math.abs(stock.loss).toLocaleString()} loss
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                Tax benefit: ${Math.round(Math.abs(stock.loss) * 0.24).toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Total Tax Benefit (24% rate):</span>
+                          <span className="text-green-600">
+                            ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Separator />
+                  
+                  {/* Final Calculation */}
+                  <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 p-6 rounded-lg">
+                    <h4 className="font-bold text-lg mb-4 text-center">Total Annual Tax Savings</h4>
+                    <div className="space-y-2 text-center">
+                      <div className="text-sm text-muted-foreground">
+                        Tax Drag Reduction + Tax-Loss Harvesting
+                      </div>
+                      <div className="text-2xl font-bold">
+                        ${Math.round(annualTaxSavings).toLocaleString()} + ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()} = 
+                        <span className="text-green-600">${taxSavings.totalSavings.toLocaleString()}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        This is money that stays in your pocket instead of going to taxes
+                      </div>
+                    </div>
+                  </div>
+                  
+                </CardContent>
+              </Card>
+              
+              <Separator />
+              
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5 text-green-600" />
