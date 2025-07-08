@@ -53,6 +53,24 @@ export default function DemoPage() {
   const annualTaxSavings = currentTaxDrag - optimizedTaxDrag;
   const tenYearSavings = annualTaxSavings * 10 * 1.05; // With compounding
 
+  // Target allocation vs current allocation for drift analysis
+  const targetAllocation = [
+    { name: 'Large Cap Stocks', target: 40, current: 45, value: 45000, color: '#0088FE' },
+    { name: 'Small Cap Stocks', target: 20, current: 15, value: 15000, color: '#00C49F' },
+    { name: 'International', target: 25, current: 20, value: 20000, color: '#FFBB28' },
+    { name: 'Bonds', target: 10, current: 15, value: 15000, color: '#FF8042' },
+    { name: 'Cash', target: 5, current: 5, value: 5000, color: '#8884D8' }
+  ];
+
+  // Calculate drift alerts
+  const driftAlerts = targetAllocation
+    .map(asset => ({
+      ...asset,
+      drift: asset.current - asset.target,
+      driftPercent: ((asset.current - asset.target) / asset.target * 100).toFixed(1)
+    }))
+    .filter(asset => Math.abs(asset.drift) >= 3); // Alert if drift >= 3%
+
   // Tax-loss harvesting opportunities
   const taxLossOpportunities = [
     { symbol: 'AAPL', shares: 50, costBasis: 180, currentPrice: 165, loss: -750 },
@@ -98,10 +116,10 @@ export default function DemoPage() {
             </h1>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            See how much you could save in taxes with our AI-powered portfolio optimization
+            Experience drift detection, rebalancing alerts, and tax optimization with our AI-powered portfolio analysis
           </p>
           <Badge variant="secondary" className="text-sm">
-            🚀 No signup required • Real portfolio analysis
+            🚀 No signup required • Live drift analysis • Tax optimization
           </Badge>
         </div>
 
@@ -127,9 +145,9 @@ export default function DemoPage() {
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 {step === 0 && "Step 1: Analyze your $100k portfolio"}
-                {step === 1 && "Step 2: Identify tax optimization opportunities"}
-                {step === 2 && "Step 3: Calculate your potential savings"}
-                {step === 3 && "🎉 See your results!"}
+                {step === 1 && "Step 2: Detect portfolio drift & rebalancing needs"}
+                {step === 2 && "Step 3: Calculate tax optimization savings"}
+                {step === 3 && "🎉 See your complete analysis!"}
               </p>
             </div>
           </CardContent>
@@ -288,6 +306,122 @@ export default function DemoPage() {
           </Card>
         </div>
 
+        {/* Portfolio Drift Analysis */}
+        {step >= 1 && (
+          <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-orange-600" />
+                Portfolio Drift Analysis
+              </CardTitle>
+              <CardDescription>
+                Your portfolio has drifted from your target allocation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Drift Alerts */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  Active Drift Alerts
+                </h3>
+                <div className="grid gap-3">
+                  {driftAlerts.map((alert, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-3">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: alert.color }}
+                        />
+                        <span className="font-medium">{alert.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-muted-foreground">
+                          Target: {alert.target}% • Current: {alert.current}%
+                        </div>
+                        <div className={`font-semibold ${
+                          alert.drift > 0 ? 'text-red-600' : 'text-blue-600'
+                        }`}>
+                          {alert.drift > 0 ? '+' : ''}{alert.drift}% ({alert.driftPercent}% drift)
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Target vs Current Allocation Chart */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg">Target vs Current Allocation</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  {/* Target Allocation */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-center">Target Allocation</h4>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPieChart>
+                          <Pie
+                            data={targetAllocation.map(item => ({ ...item, value: item.target }))}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={80}
+                            dataKey="value"
+                          >
+                            {targetAllocation.map((entry, index) => (
+                              <Cell key={`target-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => `${value}%`} />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Current Allocation */}
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-center">Current Allocation</h4>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPieChart>
+                          <Pie
+                            data={targetAllocation.map(item => ({ ...item, value: item.current }))}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={40}
+                            outerRadius={80}
+                            dataKey="value"
+                          >
+                            {targetAllocation.map((entry, index) => (
+                              <Cell key={`current-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => `${value}%`} />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rebalancing Recommendation */}
+              <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200">
+                <h4 className="font-semibold text-blue-800 dark:text-blue-300 mb-2">
+                  💡 Rebalancing Recommendation
+                </h4>
+                <div className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                  <p>• <strong>Sell:</strong> $5,000 from Large Cap Stocks (reduce from 45% to 40%)</p>
+                  <p>• <strong>Sell:</strong> $5,000 from Bonds (reduce from 15% to 10%)</p>
+                  <p>• <strong>Buy:</strong> $5,000 Small Cap Stocks (increase from 15% to 20%)</p>
+                  <p>• <strong>Buy:</strong> $5,000 International (increase from 20% to 25%)</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Tax Savings Results */}
         {step >= 2 && (
           <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
@@ -361,8 +495,8 @@ export default function DemoPage() {
               className="px-8 py-4 text-lg"
             >
               {step === 0 && "Analyze My Portfolio"}
-              {step === 1 && "Find Tax Savings"}
-              {step === 2 && "Show My Results"}
+              {step === 1 && "Check Portfolio Drift"}
+              {step === 2 && "Calculate Tax Savings"}
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           ) : (
