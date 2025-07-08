@@ -31,6 +31,7 @@ export interface AiChatState {
   loading: boolean;
   error: string | null;
   context: ContextInfo;
+  isVisible: boolean;
 }
 
 const initialState: AiChatState = {
@@ -40,7 +41,8 @@ const initialState: AiChatState = {
   error: null,
   context: {
     page: 'dashboard'
-  }
+  },
+  isVisible: false // Set to false to hide the AI chat button
 };
 
 /**
