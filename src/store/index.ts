@@ -5,6 +5,7 @@ import userReducer from './userSlice';
 import portfolioReducer from './portfolioSlice';
 import preferencesReducer from './preferencesSlice';
 import aiChatReducer from './aiChatSlice';
+import optimizationReducer from './optimizationSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     portfolio: portfolioReducer,
     preferences: preferencesReducer,
     aiChat: aiChatReducer,
+    optimization: optimizationReducer,
   },
 });
 

@@ -29,6 +29,12 @@ export function Sidebar() {
 
   const navItems = [
     {
+      name: 'Optimize Portfolio',
+      icon: <Sliders className="h-5 w-5" />,
+      path: '/dashboard/optimize',
+      featured: true, // Mark as the key differentiator
+    },
+    {
       name: 'Tax strategies',
       icon: <Receipt className="h-5 w-5" />,
       path: '/dashboard/tax-strategies',
@@ -37,11 +43,6 @@ export function Sidebar() {
       name: 'Portfolio Drift',
       icon: <PieChart className="h-5 w-5" />,
       path: '/dashboard/portfolio-drift',
-    },
-    {
-      name: 'Optimize portfolio',
-      icon: <Sliders className="h-5 w-5" />,
-      path: '/dashboard/optimize',
     },
     {
       name: 'Drift alerts',
@@ -83,15 +84,25 @@ export function Sidebar() {
           {navItems.map((item) => (
             <Button
               key={item.name}
-              variant="ghost"
+              variant={item.featured ? "default" : "ghost"}
               className={cn(
                 "w-full justify-start",
-                expanded ? "px-3" : "px-0 justify-center"
+                expanded ? "px-3" : "px-0 justify-center",
+                item.featured && "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
               )}
               onClick={() => router.push(item.path)}
             >
               {item.icon}
-              {expanded && <span className="ml-2">{item.name}</span>}
+              {expanded && (
+                <span className="ml-2 flex items-center gap-2">
+                  {item.name}
+                  {item.featured && (
+                    <span className="text-xs bg-primary-foreground/20 px-1.5 py-0.5 rounded-full">
+                      NEW
+                    </span>
+                  )}
+                </span>
+              )}
             </Button>
           ))}
         </div>
