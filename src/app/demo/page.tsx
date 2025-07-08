@@ -773,6 +773,81 @@ export default function DemoPage() {
                     </div>
                   </div>
                   
+                  {/* Efficiency Gain Explanation */}
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg flex items-center gap-2">
+                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">3</span>
+                      Portfolio Tax Efficiency: {taxSavings.efficiencyGain}% Improvement
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      This shows how much more tax-efficient your portfolio becomes after optimization:
+                    </p>
+                    
+                    <Card className="border-purple-200 bg-purple-50/50">
+                      <CardContent className="p-4 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-red-600 mb-2">
+                              ${Math.round(currentTaxDrag).toLocaleString()}
+                            </div>
+                            <div className="text-sm font-medium text-red-700">
+                              Current Annual Tax Cost
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              What you pay now
+                            </div>
+                          </div>
+                          
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600 mb-2">
+                              ${Math.round(optimizedTaxDrag).toLocaleString()}
+                            </div>
+                            <div className="text-sm font-medium text-green-700">
+                              Optimized Annual Tax Cost
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              What you'd pay after optimization
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div className="bg-purple-100 dark:bg-purple-950/30 p-4 rounded-lg">
+                          <div className="text-center space-y-2">
+                            <div className="text-sm text-muted-foreground">
+                              Tax Efficiency Calculation:
+                            </div>
+                            <div className="font-mono text-sm">
+                              ({Math.round(currentTaxDrag).toLocaleString()} - {Math.round(optimizedTaxDrag).toLocaleString()}) ÷ {Math.round(currentTaxDrag).toLocaleString()} × 100
+                            </div>
+                            <div className="text-lg font-bold text-purple-600">
+                              = {taxSavings.efficiencyGain}% More Tax Efficient
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-2">
+                              You're reducing your tax burden by nearly 70%!
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-4 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-purple-100 p-2 rounded-full">
+                              <TrendingUp className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm">What This Means:</div>
+                              <div className="text-xs text-muted-foreground">
+                                For every $100 you used to lose to taxes, you now only lose $31. 
+                                That's a massive improvement in keeping more of your investment returns!
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
                 </CardContent>
               </Card>
               
