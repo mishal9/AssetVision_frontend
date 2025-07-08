@@ -709,6 +709,97 @@ export default function DemoPage() {
                         </span>
                       </div>
                     </div>
+                    
+                    {/* Tax Drag Explanation */}
+                    <Card className="border-blue-200 bg-blue-50/30 dark:bg-blue-950/20">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Calculator className="h-4 w-4" />
+                          How Tax Drag Percentages Work
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-xs text-muted-foreground">
+                          Tax drag is the annual percentage of your investment value lost to taxes. Here's how we calculate it:
+                        </p>
+                        
+                        <div className="space-y-3">
+                          {currentPortfolio.map((asset, index) => (
+                            <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: asset.color }}
+                                  />
+                                  <span className="font-medium text-sm">{asset.name}</span>
+                                </div>
+                                <Badge variant="outline" className="text-xs">
+                                  {asset.taxDrag}% tax drag
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                <div className="flex justify-between">
+                                  <span>Portfolio Value:</span>
+                                  <span className="font-mono">${asset.value.toLocaleString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Tax Drag Calculation:</span>
+                                  <span className="font-mono">${asset.value.toLocaleString()} × {asset.taxDrag}%</span>
+                                </div>
+                                <div className="flex justify-between font-medium text-red-600">
+                                  <span>Annual Tax Cost:</span>
+                                  <span className="font-mono">${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-sm">Why Different Asset Classes Have Different Tax Drag:</h4>
+                          <div className="grid gap-2 text-xs">
+                            <div className="flex justify-between items-center p-2 bg-red-50 dark:bg-red-950/20 rounded">
+                              <span className="font-medium">Cash (4.1%)</span>
+                              <span className="text-muted-foreground">All interest taxed as ordinary income</span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-950/20 rounded">
+                              <span className="font-medium">Bonds (3.2%)</span>
+                              <span className="text-muted-foreground">Interest taxed at higher ordinary rates</span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded">
+                              <span className="font-medium">Small Cap (2.8%)</span>
+                              <span className="text-muted-foreground">Higher turnover creates more taxable events</span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
+                              <span className="font-medium">Large Cap (2.1%)</span>
+                              <span className="text-muted-foreground">Moderate dividends + some capital gains</span>
+                            </div>
+                            <div className="flex justify-between items-center p-2 bg-green-50 dark:bg-green-950/20 rounded">
+                              <span className="font-medium">International (1.9%)</span>
+                              <span className="text-muted-foreground">Often more tax-efficient structures</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-3 rounded-lg">
+                          <div className="flex items-start gap-2">
+                            <div className="bg-blue-100 p-1 rounded-full mt-0.5">
+                              <AlertTriangle className="h-3 w-3 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-xs text-blue-800 dark:text-blue-300">Key Insight:</div>
+                              <div className="text-xs text-blue-700 dark:text-blue-400">
+                                Tax drag represents money that leaves your portfolio every year due to taxes on dividends, 
+                                interest, and capital gains distributions - money that could otherwise compound and grow.
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                   
                   <Separator />
