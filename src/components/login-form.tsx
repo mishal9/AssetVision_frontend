@@ -216,11 +216,20 @@ export function LoginForm({
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
               </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="underline underline-offset-4">
-                  Sign up
-                </Link>
+              <div className="text-center text-sm space-y-2">
+                <div>
+                  Don&apos;t have an account?{" "}
+                  <Link href="/register" className="underline underline-offset-4">
+                    Sign up
+                  </Link>
+                </div>
+                <div className="text-muted-foreground">
+                  Or{" "}
+                  <Link href="/demo" className="text-blue-600 hover:text-blue-800 underline underline-offset-4 font-medium">
+                    try our interactive demo
+                  </Link>
+                  {" "}(no signup required)
+                </div>
               </div>
             </div>
           </form>

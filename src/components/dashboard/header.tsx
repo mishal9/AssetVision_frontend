@@ -36,10 +36,7 @@ export function Header() {
     dispatch(fetchUserInfo());
   }, [dispatch]);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Header - isAuthenticated:', isAuthenticated, 'user:', user);
-  }, [isAuthenticated, user]);
+
 
   return (
     <header className="border-b border-[hsl(var(--border))] relative">
@@ -65,8 +62,8 @@ export function Header() {
               <Moon className="h-5 w-5" />
             )}
           </button>
-          {/* Always show dropdown for debugging, fallback to default user */}
-          <DropdownMenu>
+          {isAuthenticated && user ? (
+            <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button 
                 className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-primary/20 transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
@@ -123,7 +120,12 @@ export function Header() {
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+              <User className="h-5 w-5" />
+            </div>
+          )}
         </div>
       </div>
     </header>

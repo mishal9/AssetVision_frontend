@@ -212,11 +212,20 @@ export function RegisterForm({
                   {isLoading ? 'Creating account...' : 'Create account'}
                 </Button>
               </div>
-              <div className="text-center text-sm">
-                Already have an account?{" "}
-                <Link href="/login" className="underline underline-offset-4">
-                  Login
-                </Link>
+              <div className="text-center text-sm space-y-2">
+                <div>
+                  Already have an account?{" "}
+                  <Link href="/login" className="underline underline-offset-4">
+                    Login
+                  </Link>
+                </div>
+                <div className="text-muted-foreground">
+                  Or{" "}
+                  <Link href="/demo" className="text-blue-600 hover:text-blue-800 underline underline-offset-4 font-medium">
+                    try our interactive demo
+                  </Link>
+                  {" "}(no signup required)
+                </div>
               </div>
             </div>
           </form>
