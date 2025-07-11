@@ -257,6 +257,7 @@ export const plaidApi = {
         symbol: security?.ticker_symbol || holding.symbol || 'UNKNOWN',
         shares: sharesValue,
         purchasePrice: holding.cost_basis || holding.purchase_price || 0,
+        purchaseDate: holding.purchase_date || new Date().toISOString().split('T')[0],
         assetClass: security?.type || holding.asset_class || 'stocks'
       };
     });

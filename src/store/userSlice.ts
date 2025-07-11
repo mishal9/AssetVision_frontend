@@ -269,7 +269,7 @@ export const userSlice = createSlice({
         
         if (userData) {
           state.user = {
-            id: userData.userId,
+            id: typeof userData.userId === 'string' ? parseInt(userData.userId, 10) : userData.userId,
             username: userData.username,
             email: userData.email,
             // Generate avatar from initials if no avatar URL is provided

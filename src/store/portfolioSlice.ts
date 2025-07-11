@@ -102,7 +102,7 @@ export const fetchHoldingsAndBalance = createAsyncThunk(
       const holdings = await plaidApi.getInvestmentHoldings(connectionId);
       // Calculate total balance by summing (shares * purchasePrice) for each holding
       const totalBalance = holdings.reduce((sum, h) => {
-        const shares = parseFloat(h.shares);
+        const shares = parseFloat(h.shares || '0');
         return sum + (shares * (h.purchasePrice || 0));
       }, 0);
       return { holdings, totalBalance };
@@ -181,7 +181,12 @@ export const portfolioSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchHoldingsAndBalance.fulfilled, (state, action) => {
-        state.holdings = action.payload.holdings;
+        // Ensure all required properties are present for the Holding interface
+        state.holdings = action.payload.holdings.map(holding => ({
+          ...holding,
+          shares: holding.shares || '0',
+          assetClass: holding.assetClass || 'stocks'
+        }));
         state.totalBalance = action.payload.totalBalance;
         state.loading = false;
       })
