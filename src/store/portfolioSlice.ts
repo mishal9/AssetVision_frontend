@@ -180,7 +180,7 @@ export const portfolioSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchHoldingsAndBalance.fulfilled, (state, action: PayloadAction<{ holdings: Holding[]; totalBalance: number }>) => {
+      .addCase(fetchHoldingsAndBalance.fulfilled, (state, action) => {
         state.holdings = action.payload.holdings;
         state.totalBalance = action.payload.totalBalance;
         state.loading = false;
@@ -233,7 +233,13 @@ export const portfolioSlice = createSlice({
         state.assetClassesError = null;
       })
       .addCase(fetchAssetClasses.fulfilled, (state, action) => {
-        state.assetClasses = action.payload as AssetClass[];
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          state.assetClasses = action.payload;
+        } else {
+          console.error('Expected array for assetClasses but got:', action.payload);
+          state.assetClasses = [];
+        }
         state.assetClassesLoading = false;
       })
       .addCase(fetchAssetClasses.rejected, (state, action) => {

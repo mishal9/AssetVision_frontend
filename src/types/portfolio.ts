@@ -89,6 +89,15 @@ export interface HoldingInput {
   assetClass?: string;
 }
 
+/**
+ * Holding interface for portfolio display
+ * Extends HoldingInput with required properties for UI rendering
+ */
+export interface Holding extends HoldingInput {
+  shares: string;
+  assetClass: string;
+}
+
 // Drift data types
 export interface DriftItem {
   name: string;
