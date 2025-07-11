@@ -233,12 +233,12 @@ export const portfolioSlice = createSlice({
         state.assetClassesError = null;
       })
       .addCase(fetchAssetClasses.fulfilled, (state, action) => {
-        state.assetClasses = action.payload;
+        state.assetClasses = action.payload as AssetClass[];
         state.assetClassesLoading = false;
       })
       .addCase(fetchAssetClasses.rejected, (state, action) => {
         state.assetClassesLoading = false;
-        state.assetClassesError = action.payload as string;
+        state.assetClassesError = action.payload ? String(action.payload) : 'Failed to fetch asset classes';
       })
       
       // Save target allocations cases
@@ -249,12 +249,13 @@ export const portfolioSlice = createSlice({
       .addCase(saveTargetAllocations.fulfilled, (state, action) => {
         state.targetAllocationsLoading = false;
         // Store the updated asset classes from the response
-        state.assetClasses = action.payload;
+        const assetClasses = action.payload as AssetClass[];
+        state.assetClasses = assetClasses;
         // Update portfolioData with target allocations
-        if (action.payload && action.payload.length > 0) {
+        if (assetClasses && assetClasses.length > 0) {
           // Create a map of target allocations from the response
           const targetAllocations: {[key: string]: number} = {};
-          action.payload.forEach((assetClass: AssetClass) => {
+          assetClasses.forEach((assetClass: AssetClass) => {
             if (assetClass.target_allocation !== undefined) {
               targetAllocations[assetClass.id] = assetClass.target_allocation;
             }

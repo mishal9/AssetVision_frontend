@@ -287,23 +287,34 @@ export const plaidApi = {
       }
       
       // Check response structure
-      let backendAccounts = [];
-      if (response.accounts) {
-        console.log('Plaid API - Found accounts property with', response.accounts.length, 'items');
-        backendAccounts = response.accounts;
-      } else if (response.connections) {
-        console.log('Plaid API - Found connections property with', response.connections.length, 'items');
-        backendAccounts = response.connections;
-      } else if (response.data) {
-        console.log('Plaid API - Found data property with', response.data.length, 'items');
-        backendAccounts = response.data;
-      } else if (Array.isArray(response)) {
+      // Define a type for the response object with possible structures
+      interface PlaidResponse {
+        accounts?: any[];
+        connections?: any[];
+        data?: any[];
+        [key: string]: any;
+      }
+
+      let backendAccounts: any[] = [];
+      // Type assertion for response
+      const typedResponse = response as PlaidResponse;
+      
+      if (typedResponse.accounts && Array.isArray(typedResponse.accounts)) {
+        console.log('Plaid API - Found accounts property with', typedResponse.accounts.length, 'items');
+        backendAccounts = typedResponse.accounts;
+      } else if (typedResponse.connections && Array.isArray(typedResponse.connections)) {
+        console.log('Plaid API - Found connections property with', typedResponse.connections.length, 'items');
+        backendAccounts = typedResponse.connections;
+      } else if (typedResponse.data && Array.isArray(typedResponse.data)) {
+        console.log('Plaid API - Found data property with', typedResponse.data.length, 'items');
+        backendAccounts = typedResponse.data;
+      } else if (Array.isArray(typedResponse)) {
         // Handle case where response is the array directly
-        console.log('Plaid API - Response is direct array with', response.length, 'items');
-        backendAccounts = response;
+        console.log('Plaid API - Response is direct array with', typedResponse.length, 'items');
+        backendAccounts = typedResponse;
       } else {
         // Try to find any array property
-        const arrayProps = Object.entries(response || {})
+        const arrayProps = Object.entries(typedResponse || {})
           .filter(([_, value]) => Array.isArray(value))
           .map(([key, value]) => ({ key, length: (value as any[]).length }));
         
@@ -314,7 +325,7 @@ export const plaidApi = {
           const longestArrayProp = arrayProps.reduce((prev, current) => 
             prev.length > current.length ? prev : current);
           
-          backendAccounts = response[longestArrayProp.key] as any[];
+          backendAccounts = typedResponse[longestArrayProp.key] as any[];
           console.log(`Plaid API - Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
         } else {
           // Unexpected response structure
@@ -337,8 +348,15 @@ export const plaidApi = {
       // Merge accounts (prefer backend accounts if they exist)
       const mergedAccounts = [...localAccounts];
       
+      // Define a type for the account objects
+      interface AccountData {
+        institution_id: string;
+        institution_name?: string;
+        [key: string]: any; // Allow other properties
+      }
+      
       // Add backend accounts that aren't in local storage
-      backendAccounts.forEach(backendAccount => {
+      backendAccounts.forEach((backendAccount: AccountData) => {
         const localIndex = mergedAccounts.findIndex(local => 
           local.institution_id === backendAccount.institution_id);
           
@@ -415,8 +433,18 @@ export const plaidApi = {
     try {
       const accounts = await plaidApi.getLinkedAccounts();
       
+      // Define institution interface
+      interface Institution {
+        id: string;
+        name: string;
+        accounts: any[];
+        lastUpdated: string;
+        status: string;
+        source: string;
+      }
+
       // Group by institution
-      const institutions = accounts.reduce((acc, account) => {
+      const institutions = accounts.reduce<Record<string, Institution>>((acc, account) => {
         const institutionId = account.institution_id;
         
         if (!acc[institutionId]) {

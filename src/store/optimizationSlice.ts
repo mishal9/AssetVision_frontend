@@ -183,9 +183,9 @@ export const optimizationSlice = createSlice({
         // Generate rebalancing trades based on current vs target allocation
         const trades: Trade[] = [];
         const targetAllocations = [
-          { symbol: 'VTI', target: scenario.allocation[0].value },
-          { symbol: 'VTIAX', target: scenario.allocation[1].value },
-          { symbol: 'BND', target: scenario.allocation[2].value },
+          { symbol: 'VTI', target: scenario.allocation[0]?.value || 0 },
+          { symbol: 'VTIAX', target: scenario.allocation[1]?.value || 0 },
+          { symbol: 'BND', target: scenario.allocation[2]?.value || 0 },
           { symbol: 'VNQ', target: scenario.allocation[3]?.value || 0 }
         ];
         
@@ -229,10 +229,15 @@ export const optimizationSlice = createSlice({
                 'Monitor performance for future harvesting opportunities'
               ],
               recommendedAccountTypes: [
-                scenario.allocation.find(a => a.name.includes('Bonds'))?.value > 20 ? 'Place bond investments in 401(k)/IRA to defer taxes on interest income' : '',
+                // Safely check if bonds allocation is > 20%
+                (scenario.allocation.find(a => a.name?.includes('Bonds'))?.value ?? 0) > 20 ? 
+                  'Place bond investments in 401(k)/IRA to defer taxes on interest income' : '',
                 'Rebalance within tax-advantaged accounts first to avoid taxable events',
-                trades.some(t => t.action === 'sell') ? 'Consider executing trades in IRA/401(k) to avoid capital gains taxes' : '',
-                scenario.allocation.find(a => a.name.includes('International'))?.value > 15 ? 'International funds generate foreign tax credits - suitable for taxable accounts' : '',
+                trades.some(t => t.action === 'sell') ? 
+                  'Consider executing trades in IRA/401(k) to avoid capital gains taxes' : '',
+                // Safely check if international allocation is > 15%
+                (scenario.allocation.find(a => a.name?.includes('International'))?.value ?? 0) > 15 ? 
+                  'International funds generate foreign tax credits - suitable for taxable accounts' : '',
                 'Use tax-advantaged space for highest-turnover rebalancing activity'
               ].filter(Boolean)
             }

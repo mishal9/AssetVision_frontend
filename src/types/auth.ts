@@ -25,6 +25,14 @@ export interface AuthResponse {
   firstName?: string;
   lastName?: string;
   profileImage?: string;
+  // Add tokens property for backward compatibility
+  tokens?: {
+    access: string;
+    refresh: string;
+    access_expires_in: number;
+    refresh_expires_in: number;
+  };
+  success?: boolean;
 }
 
 export interface LoginCredentials {

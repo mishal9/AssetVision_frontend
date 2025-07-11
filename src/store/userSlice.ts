@@ -96,21 +96,24 @@ export const fetchLinkedAccounts = createAsyncThunk(
         accountsToProcess = data;
         console.log('Processing array response with', data.length, 'accounts');
       } else if (data && typeof data === 'object') {
-        if (data.accounts && Array.isArray(data.accounts)) {
+        // Use type assertion to access properties on the object
+        const dataObj = data as Record<string, unknown>;
+        
+        if (dataObj.accounts && Array.isArray(dataObj.accounts)) {
           // Object with accounts array
-          accountsToProcess = data.accounts;
-          console.log('Processing object.accounts with', data.accounts.length, 'accounts');
-        } else if (data.connections && Array.isArray(data.connections)) {
+          accountsToProcess = dataObj.accounts;
+          console.log('Processing object.accounts with', dataObj.accounts.length, 'accounts');
+        } else if (dataObj.connections && Array.isArray(dataObj.connections)) {
           // Object with connections array
-          accountsToProcess = data.connections;
-          console.log('Processing object.connections with', data.connections.length, 'accounts');
-        } else if (data.data && Array.isArray(data.data)) {
+          accountsToProcess = dataObj.connections;
+          console.log('Processing object.connections with', dataObj.connections.length, 'accounts');
+        } else if (dataObj.data && Array.isArray(dataObj.data)) {
           // Object with data array (common API pattern)
-          accountsToProcess = data.data;
-          console.log('Processing object.data with', data.data.length, 'accounts');
+          accountsToProcess = dataObj.data;
+          console.log('Processing object.data with', dataObj.data.length, 'accounts');
         } else {
           // Try to extract any array property
-          const arrayProps = Object.entries(data)
+          const arrayProps = Object.entries(dataObj)
             .filter(([_, value]) => Array.isArray(value))
             .map(([key, value]) => ({ key, length: (value as any[]).length }));
           
@@ -121,7 +124,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
             const longestArrayProp = arrayProps.reduce((prev, current) => 
               prev.length > current.length ? prev : current);
             
-            accountsToProcess = data[longestArrayProp.key] as any[];
+            accountsToProcess = dataObj[longestArrayProp.key] as any[];
             console.log(`Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
           } else {
             console.log('No array properties found in response');
@@ -265,13 +268,13 @@ export const userSlice = createSlice({
         // Extract user data from the response
         const userData = action.payload;
         
-        if (userData && userData.user) {
+        if (userData) {
           state.user = {
-            id: userData.user.id,
-            username: userData.user.username,
-            email: userData.user.email,
+            id: userData.userId,
+            username: userData.username,
+            email: userData.email,
             // Generate avatar from initials if no avatar URL is provided
-            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.user.username)}&background=random`,
+            avatar: userData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&background=random`,
           };
         }
       })
