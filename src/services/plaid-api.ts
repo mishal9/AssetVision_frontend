@@ -178,8 +178,8 @@ export const plaidApi = {
         success: true, 
         institutionId: institutionId,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
-        connectionId: response.connection_id,
-        accountIds: response.account_ids || []
+        connectionId: typedResponse.connection_id as string,
+        accountIds: (typedResponse.account_ids as string[]) || []
       };
       
       return result;
@@ -228,15 +228,23 @@ export const plaidApi = {
       }),
     });
     
+    // Type assertion for response
+    interface PlaidHoldingsResponse {
+      holdings?: any[];
+      securities?: any[];
+    }
+    
+    const typedResponse = response as PlaidHoldingsResponse;
+    
     // Check for the complete structure returned by Django
-    if (!response.holdings || !Array.isArray(response.holdings)) {
+    if (!typedResponse.holdings || !Array.isArray(typedResponse.holdings)) {
       throw new Error('Invalid holdings data format received from server');
     }
     
     // Map the holdings to the expected format
-    return response.holdings.map((holding: any) => {
+    return typedResponse.holdings.map((holding: any) => {
       // Find the corresponding security to get the symbol
-      const security = response.securities?.find(
+      const security = typedResponse.securities?.find(
         (s: any) => s.security_id === holding.security_id
       );
       
@@ -364,11 +372,21 @@ export const plaidApi = {
       // Merge accounts (prefer backend accounts if they exist)
       const mergedAccounts = [...localAccounts];
       
-      // Define a type for the account objects
+      // Define types for the account objects
       interface AccountData {
         institution_id: string;
         institution_name?: string;
         [key: string]: any; // Allow other properties
+      }
+      
+      interface MergedAccount {
+        id: any;
+        institution_id: string;
+        institution_name: any;
+        accounts: any;
+        last_updated: any;
+        status: string;
+        source: string;
       }
       
       // Add backend accounts that aren't in local storage
@@ -378,10 +396,26 @@ export const plaidApi = {
           
         if (localIndex >= 0) {
           // Replace local with backend version
-          mergedAccounts[localIndex] = { ...backendAccount, source: 'backend' };
+          mergedAccounts[localIndex] = { 
+            ...backendAccount, 
+            id: backendAccount.id || backendAccount.connection_id || 'unknown',
+            institution_name: backendAccount.institution_name || 'Unknown Institution',
+            accounts: backendAccount.accounts || [],
+            last_updated: backendAccount.last_updated || new Date().toISOString(),
+            status: backendAccount.status || 'active',
+            source: 'backend'
+          } as MergedAccount;
         } else {
           // Add new backend account
-          mergedAccounts.push({ ...backendAccount, source: 'backend' });
+          mergedAccounts.push({ 
+            ...backendAccount, 
+            id: backendAccount.id || backendAccount.connection_id || 'unknown',
+            institution_name: backendAccount.institution_name || 'Unknown Institution',
+            accounts: backendAccount.accounts || [],
+            last_updated: backendAccount.last_updated || new Date().toISOString(),
+            status: backendAccount.status || 'active',
+            source: 'backend'
+          } as MergedAccount);
         }
       });
       

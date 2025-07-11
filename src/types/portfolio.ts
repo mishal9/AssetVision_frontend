@@ -82,9 +82,11 @@ export interface AllocationResponse {
 
 export interface HoldingInput {
   symbol: string;
-  quantity: number;
+  quantity?: number;
+  shares?: string;
   purchasePrice: number;
   purchaseDate: string;
+  assetClass?: string;
 }
 
 // Drift data types
