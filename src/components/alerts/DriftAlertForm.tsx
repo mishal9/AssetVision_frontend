@@ -81,10 +81,10 @@ export function DriftAlertForm({
       driftType: (initialData?.conditionConfig?.driftType as 'absolute' | 'relative') || 'absolute',
       actionType: initialData?.actionType || ActionType.NOTIFICATION,
       sectorId: initialData?.conditionType === ConditionType.SECTOR_DRIFT 
-        ? initialData?.conditionConfig?.sectorId 
+        ? (initialData?.conditionConfig?.sectorId as string | undefined) 
         : undefined,
       assetClassId: initialData?.conditionType === ConditionType.ASSET_CLASS_DRIFT 
-        ? initialData?.conditionConfig?.assetClassId 
+        ? (initialData?.conditionConfig?.assetClassId as string | undefined) 
         : undefined,
     },
   });
