@@ -2,7 +2,7 @@
  * Authentication Type Definitions
  * Contains type definitions for authentication-related data
  */
-
+// AUth
 // API Response Types (snake_case as returned from backend)
 export interface AuthResponseData {
   access_token: string;
