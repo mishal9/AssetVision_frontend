@@ -20,6 +20,7 @@ export interface ContextInfo {
   assetId?: string;
   description?: string;
   availableData?: string[];
+  portfolioMetrics?: any;
 }
 
 /**

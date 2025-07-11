@@ -7,8 +7,7 @@ export const metadata: Metadata = {
   description: 'View and manage alert details',
 };
 
-export default async function AlertDetail({ params }: { params: { id: string } }) {
-  // Await params to satisfy Next.js dynamic API requirements
-  const { id } = await Promise.resolve(params);
+export default async function AlertDetail({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   return <AlertDetailPage id={id} />;
 }

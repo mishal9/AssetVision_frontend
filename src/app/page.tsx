@@ -30,9 +30,10 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="animate-pulse text-center">
-        <h2 className="text-2xl font-semibold mb-2">Asset Vision</h2>
+        <div className="animate-pulse text-center">
+          <h2 className="text-2xl font-semibold mb-2">Asset Vision</h2>
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
       </div>
     );
   }

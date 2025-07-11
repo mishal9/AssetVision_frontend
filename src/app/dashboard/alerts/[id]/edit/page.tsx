@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: 'Edit an existing alert',
 };
 
-export default function EditAlert({ params }: { params: { id: string } }) {
-  return <EditAlertPage id={params.id} />;
+export default async function EditAlert({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <EditAlertPage id={id} />;
 }

@@ -221,7 +221,7 @@ export function AiChat() {
     if (!isOpen) return;
     
     // Only update if we have no page context or it doesn't match current route
-    const currentPage = pathname.split('/')[1] || 'dashboard';
+    const currentPage = pathname?.split('/')[1] || 'dashboard';
     if (!context.page || context.page !== currentPage) {
       // Set page context based on route
       dispatch(updateContext({ 
@@ -538,15 +538,12 @@ export function AiChat() {
       msg.role === 'user' || msg.role === 'assistant'
     ).slice(-4); // Limit to last 4 messages for context window efficiency
     
-    // Create the formatted message array with single system message at the start
+    // Create the formatted message array with only user and assistant messages
+    // The system message will be handled by the backend
     return [
-      {
-        role: 'system',
-        content: getSystemMessage()
-      },
       ...chatHistory,
       {
-        role: 'user',
+        role: 'user' as const,
         content: userMessage.trim()
       }
     ];
@@ -662,13 +659,11 @@ export function AiChat() {
             isOpen ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary/90'
           }`}
           style={{
-            bottom: 'auto',
-            left: 'auto',
             transform: 'none',
-            right: buttonPosition.x === 0 && buttonPosition.y === 0 ? '20px' : 'auto',
+            right: buttonPosition.x === 0 && buttonPosition.y === 0 ? '20px' : (buttonPosition.x ? `${buttonPosition.x}px` : 'auto'),
             bottom: buttonPosition.x === 0 && buttonPosition.y === 0 ? '20px' : 'auto',
             top: buttonPosition.y ? `${buttonPosition.y}px` : 'auto',
-            left: buttonPosition.x ? `${buttonPosition.x}px` : 'auto',
+            left: buttonPosition.x === 0 && buttonPosition.y === 0 ? 'auto' : (buttonPosition.x ? `${buttonPosition.x}px` : 'auto'),
           }}
           size="icon"
           aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant'}

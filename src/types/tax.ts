@@ -50,6 +50,7 @@ export interface TaxAnalysisMetadata {
   daysLeftInTaxYear: number;
   userTaxRate: number;
   userLongTermRate: number;
+  progressPct: number;
 }
 
 // Complete response structure from the API

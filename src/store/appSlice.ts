@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 interface AppState {
-  theme: 'light';
+  theme: 'light' | 'dark';
 }
 
 const initialState: AppState = {
@@ -11,8 +11,12 @@ const initialState: AppState = {
 export const appSlice = createSlice({
   name: 'app',
   initialState,
-  reducers: {},
+  reducers: {
+    toggleTheme: (state) => {
+      state.theme = state.theme === 'light' ? 'dark' : 'light';
+    },
+  },
 });
 
-export const {} = appSlice.actions;
+export const { toggleTheme } = appSlice.actions;
 export default appSlice.reducer;

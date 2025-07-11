@@ -118,9 +118,9 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
       // Convert string values to numbers and add default values for API
       const formattedHoldings = filteredHoldings.map(holding => ({
         symbol: holding.symbol.toUpperCase(),
-        shares: parseFloat(holding.shares),
+        quantity: parseFloat(holding.shares),
         purchasePrice: 0, // Will be fetched from market data
-        assetClass: 'stocks', // Default asset class
+        purchaseDate: new Date().toISOString().split('T')[0], // Default to today
       }));
       
       // Call API to create portfolio

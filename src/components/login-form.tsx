@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authService } from "@/services/auth"
-import { useDispatch } from "react-redux"
+import { useAppDispatch } from "@/store"
 import { fetchLinkedAccounts } from "@/store/userSlice"
 
 export function LoginForm({
@@ -26,7 +26,7 @@ export function LoginForm({
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
   const router = useRouter()
 
   /**

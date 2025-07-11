@@ -119,7 +119,7 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
         dispatch(fetchLinkedAccounts());
         
         toast.success("Account Linked Successfully", {
-          description: `Successfully linked your ${metadata.institution?.name || 'brokerage'} account.`,
+          description: `Successfully linked your ${(metadata.institution as any)?.name || 'brokerage'} account.`,
         });
       } catch (dispatchError) {
         console.error('LinkedAccounts: Error in dispatch or unwrap:', dispatchError);

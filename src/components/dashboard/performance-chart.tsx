@@ -10,7 +10,7 @@ import {
   Tooltip, 
   ResponsiveContainer 
 } from 'recharts';
-import { PerformanceData } from '@/services/api';
+import { PerformanceData } from '@/types/portfolio';
 import { cn } from '@/lib/utils';
 
 /**

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Badge } from '../ui/badge';
 import { Progress } from '../ui/progress';
-import { ArrowRight, TrendingUp, TrendingDown, AlertTriangle, Info } from 'lucide-react';
+import { ArrowRight, TrendingUp, TrendingDown, AlertTriangle, Info, BarChart2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import {
   BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, LabelList,
@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 // Import the existing mock data
 import { mockDriftData } from '../../mock/driftData';
-import { DriftResponse } from '@/types';
+import { DriftResponse } from '@/types/portfolio';
 
 /**
  * DriftVisualization Component
@@ -64,8 +64,11 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   // Only use provided data - no automatic fallback to mock data
   // If data is undefined or null, use an empty structure instead of mock data
   const effectiveData = data || {
-    items: [],
-    thresholds: { absolute: 5, relative: 10 }
+    portfolioId: '',
+    portfolioName: 'No Data',
+    lastUpdated: new Date().toISOString(),
+    totalAbsoluteDrift: 0,
+    items: []
   };
   
   // Log if we're missing data to help debugging
@@ -595,7 +598,7 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
             <ResponsiveContainer width={200} height={120}>
               <PieChart>
                 <Pie
-                  activeIndex={activeIndex}
+                  activeIndex={activeIndex ?? undefined}
                   activeShape={renderActiveShape}
                   data={gaugeData.filter(d => d.name !== 'Actual')}
                   cx="50%"

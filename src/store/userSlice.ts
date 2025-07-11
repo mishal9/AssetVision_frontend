@@ -12,6 +12,7 @@ export interface LinkedAccount {
   id: string;
   institutionId: string;
   institutionName: string;
+  institutionLogoUrl?: string;
   accountName: string;
   accountMask: string;
   accountType: string;

@@ -16,6 +16,19 @@ export interface OptimizationScenario {
     value: number;
     color: string;
   }>;
+  monteCarlo?: {
+    iterations: number;
+    median: number;
+    percentile10: number;
+    percentile25: number;
+    percentile75: number;
+    percentile90: number;
+    successProbability: number;
+    riskOfLoss: number;
+    expectedReturn: number;
+    volatility: number;
+    inflationAdjustedTarget: number;
+  };
 }
 
 /**
