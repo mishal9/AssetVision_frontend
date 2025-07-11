@@ -4,7 +4,7 @@
  */
 
 import { fetchWithAuth } from './api-utils';
-import { HoldingInput } from './api';
+import { HoldingInput } from '@/types/portfolio';
 import { PLAID_ENDPOINTS } from '@/config/api';
 
 // No mock data - API must provide real data
@@ -58,12 +58,20 @@ export const plaidApi = {
         
         if (token) {
           try {
+            // Define interface for decoded JWT payload
+            interface DecodedToken {
+              username?: string;
+              sub?: string;
+              userId?: string;
+              [key: string]: unknown;
+            }
+            
             // Import jwt-decode v4 using the correct export pattern
             const { jwtDecode } = await import('jwt-decode');
-            const decoded = jwtDecode(token);
+            const decoded = jwtDecode<DecodedToken>(token);
             
             // Look for user ID in common JWT claim locations
-            authenticatedUserId = decoded.username;
+            authenticatedUserId = decoded.username || decoded.sub || decoded.userId as string;
           } catch (decodeError) {
             console.error('Failed to decode JWT token:', decodeError);
           }
@@ -86,11 +94,14 @@ export const plaidApi = {
         }),
       });
       
-      if (!response.link_token) {
-        throw new Error('No link token received from server');
+      // Type assertion for response
+      const typedResponse = response as Record<string, unknown>;
+      
+      if (!typedResponse.link_token) {
+        throw new Error('Failed to get link token from server');
       }
       
-      return response.link_token;
+      return typedResponse.link_token as string;
     } catch (error) {
       console.error('Error creating Plaid link token:', error);
       throw error;
@@ -135,11 +146,16 @@ export const plaidApi = {
         credentials: 'include' // Ensure cookies are sent with request
       });
       
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to store connection on server');
+      // Type assertion for response
+      const typedResponse = response as Record<string, unknown>;
+      
+      if (!typedResponse.success) {
+        const errorMessage = typeof typedResponse.message === 'string' ? 
+          typedResponse.message : 'Failed to store connection on server';
+        throw new Error(errorMessage);
       }
       
-      if (!response.connection_id) {
+      if (!typedResponse.connection_id) {
         throw new Error('No connection ID received from server');
       }
       
@@ -149,7 +165,7 @@ export const plaidApi = {
       // Add new connection with institution ID as key
       const institutionId = metadata?.institution?.id || 'unknown_institution';
       existingConnections[institutionId] = {
-        connectionId: response.connection_id,
+        connectionId: typedResponse.connection_id as string,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
         accounts: metadata?.accounts || [],
         lastUpdated: new Date().toISOString()
