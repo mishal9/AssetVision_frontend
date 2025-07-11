@@ -8,7 +8,24 @@ const nextConfig = {
   env: {
     // Use NEXT_PUBLIC_WS_URL if set, otherwise use the Docker service URL if in production, otherwise use the host's IP
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 
-      'ws://localhost:8001/ws/market-data/',
+      'wss://cl3fc954-8000.use.devtunnels.ms/ws/market-data/',
+    // Add backend URL for direct API calls
+    NEXT_PUBLIC_API_URL: 'https://cl3fc954-8000.use.devtunnels.ms/api',
+  },
+  
+  // Add headers for CORS
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Credentials', value: 'true' },
+          { key: 'Access-Control-Allow-Origin', value: 'https://cl3fc954-8000.use.devtunnels.ms' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,DELETE,PATCH,POST,PUT' },
+          { key: 'Access-Control-Allow-Headers', value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version' },
+        ],
+      },
+    ];
   },
   
   // Image optimization

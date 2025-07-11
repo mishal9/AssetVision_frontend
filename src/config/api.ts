@@ -3,12 +3,14 @@
  * Centralized configuration for all API endpoints in the application
  */
 
-// Base API URL - Fallbacks to localhost if not defined
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+// Backend URL configuration
+export const BACKEND_URL = 'https://cl3fc954-8000.use.devtunnels.ms';
 
-// Base URL without /api suffix for direct endpoint construction
-export const API_HOST = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8000';
+// Base API URL - always use the full backend URL
+export const API_BASE_URL = `${BACKEND_URL}/api`;
 
+// API host - used for WebSocket connection
+export const API_HOST = BACKEND_URL.replace(/^https?:\/\//, '');
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {

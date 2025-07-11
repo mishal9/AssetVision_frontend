@@ -4,20 +4,18 @@
  */
 
 import { fetchWithAuth } from './api-utils';
-import { PORTFOLIO_ENDPOINTS } from '@/config/api';
+import { convertSnakeToCamelCase } from '../utils/caseConversions';
+import { AUTH_ENDPOINTS, PORTFOLIO_ENDPOINTS } from '../config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { 
   AuthResponse,
   AuthResponseData,
-  LoginCredentials,
-  UserInfoResponseData,
   UserInfoResponse,
-  UserRegistrationInput
+  UserInfoResponseData
 } from '../types/auth';
+import { MarketRegionSettings, TaxSettings } from '../store/preferencesSlice';
 import { TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
-import { MarketRegionSettings, TaxSettings } from '@/store/preferencesSlice';
-import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 
 /**
  * Portfolio API methods
@@ -170,57 +168,106 @@ export const authApi = {
    * @param username Username or email
    * @param password User password
    */
-  login: (username: string, password: string) => 
-    fetchWithAuth<AuthResponseData>('/auth/login/', {
+  login: (username: string, password: string) => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify({ username, password }),
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
     })
-      .then(response => convertSnakeToCamelCase<AuthResponse>(response)),
+      .then(response => response.json())
+      .then(response => convertSnakeToCamelCase<AuthResponse>(response));
+  },
   
   /**
    * Register new user
    */
-  register: (userData: any) => 
-    fetchWithAuth<AuthResponseData>('/auth/register/', {
+  register: (userData: any) => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.REGISTER, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
       body: JSON.stringify(userData),
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
     })
-      .then(response => convertSnakeToCamelCase<AuthResponse>(response)),
+      .then(response => response.json())
+      .then(response => convertSnakeToCamelCase<AuthResponse>(response));
+  },
   
   /**
    * Refresh authentication token
    */
-  refreshToken: (refreshToken: string) => 
-    fetchWithAuth<any>('/auth/refresh/', {
+  refreshToken: (refreshToken: string) => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.REFRESH, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ refresh: refreshToken }),
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
     })
-      .then(response => convertSnakeToCamelCase<any>(response)),
+      .then(response => response.json())
+      .then(response => convertSnakeToCamelCase<any>(response));
+  },
     
   /**
    * Request password reset
    */
-  requestPasswordReset: (email: string) => 
-    fetchWithAuth<void>('/auth/forgot-password', {
+  requestPasswordReset: (email: string) => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ email }),
-    }),
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
+    });
+  },
     
   /**
    * Get current user information
    */
-  getUserInfo: () => 
-    fetchWithAuth<UserInfoResponseData>('/auth/user/')
-      .then(response => convertSnakeToCamelCase<UserInfoResponse>(response)),
+  getUserInfo: () => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.USER, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
+    })
+      .then(response => response.json())
+      .then(response => convertSnakeToCamelCase<UserInfoResponse>(response));
+  },
     
   /**
    * Logout user
    */
-  logout: () => 
-    fetchWithAuth<any>('/auth/logout/', {
+  logout: () => {
+    // Use centralized AUTH_ENDPOINTS configuration
+    return fetch(AUTH_ENDPOINTS.LOGOUT, {
       method: 'POST',
-    })
-      .then(response => convertSnakeToCamelCase<{ success: boolean }>(response)),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Include cookies
+      mode: 'cors' // Enable CORS
+    });
+  },
 };
 
 /**
