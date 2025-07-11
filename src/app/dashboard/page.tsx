@@ -7,7 +7,7 @@ import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-chart';
-import { BarChart3, Users, TrendingUp, Activity, PieChart } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
 
