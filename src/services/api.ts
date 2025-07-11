@@ -38,10 +38,20 @@ export const portfolioApi = {
   
   /**
    * Get asset allocation
+   * @returns Promise with asset and sector allocation data
    */
   getAssetAllocation: () => 
     fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.ALLOCATION)
-      .then(response => convertSnakeToCamelCase<AllocationResponse>(response)),
+      .then(response => {
+        // Log the raw API response for debugging
+        console.log('Raw allocation API response:', response);
+        
+        // Convert snake_case to camelCase
+        const convertedData = convertSnakeToCamelCase<AllocationResponse>(response);
+        console.log('Converted allocation data:', convertedData);
+        
+        return convertedData;
+      }),
     
   /**
    * Create a new portfolio with holdings

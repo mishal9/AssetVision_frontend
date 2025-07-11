@@ -101,19 +101,44 @@ export function usePortfolioData() {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
         
-        // Check the structure of the response
-        if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
-          setAssetAllocation(data.asset_allocation);
-        } else {
-          console.error('Invalid asset_allocation data structure:', data);
-          setAssetAllocation([]);
-        }
+        console.log('usePortfolioData received allocation data:', data);
         
-        // Check for sector allocation
-        if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
-          setSectorAllocation(data.sector_allocation);
+        // Transform data if needed - handle both direct array and nested object formats
+        if (data) {
+          // Handle asset allocation
+          if (Array.isArray(data.asset_allocation)) {
+            // Direct array format
+            setAssetAllocation(data.asset_allocation);
+          } else if (data.assetAllocation && Array.isArray(data.assetAllocation)) {
+            // Camel case format
+            setAssetAllocation(data.assetAllocation);
+          } else if (typeof data === 'object' && 'assetAllocation' in data && 
+                     data.assetAllocation && Array.isArray(data.assetAllocation)) {
+            // Handle case where data itself is the allocation response
+            setAssetAllocation(data.assetAllocation);
+          } else {
+            console.error('Invalid asset_allocation data structure:', data);
+            setAssetAllocation([]);
+          }
+          
+          // Handle sector allocation
+          if (Array.isArray(data.sector_allocation)) {
+            // Direct array format
+            setSectorAllocation(data.sector_allocation);
+          } else if (data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+            // Camel case format
+            setSectorAllocation(data.sectorAllocation);
+          } else if (typeof data === 'object' && 'sectorAllocation' in data && 
+                     data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+            // Handle case where data itself is the allocation response
+            setSectorAllocation(data.sectorAllocation);
+          } else {
+            console.error('Invalid sector_allocation data structure:', data);
+            setSectorAllocation([]);
+          }
         } else {
-          console.error('Invalid sector_allocation data structure:', data);
+          console.error('No allocation data received');
+          setAssetAllocation([]);
           setSectorAllocation([]);
         }
         
@@ -195,19 +220,44 @@ export function usePortfolioData() {
     // Only fetch allocation data if portfolio exists
     if (portfolioExists === true) {
       portfolioApi.getAssetAllocation().then(data => {
-      // Handle asset allocation
-        if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
-        setAssetAllocation(data.asset_allocation);
+        console.log('refreshData received allocation data:', data);
+        
+        // Transform data if needed - handle both direct array and nested object formats
+        if (data) {
+          // Handle asset allocation
+          if (Array.isArray(data.asset_allocation)) {
+            // Direct array format
+            setAssetAllocation(data.asset_allocation);
+          } else if (data.assetAllocation && Array.isArray(data.assetAllocation)) {
+            // Camel case format
+            setAssetAllocation(data.assetAllocation);
+          } else if (typeof data === 'object' && 'assetAllocation' in data && 
+                     data.assetAllocation && Array.isArray(data.assetAllocation)) {
+            // Handle case where data itself is the allocation response
+            setAssetAllocation(data.assetAllocation);
+          } else {
+            console.error('Invalid asset_allocation data structure (refresh):', data);
+            setAssetAllocation([]);
+          }
+          
+          // Handle sector allocation
+          if (Array.isArray(data.sector_allocation)) {
+            // Direct array format
+            setSectorAllocation(data.sector_allocation);
+          } else if (data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+            // Camel case format
+            setSectorAllocation(data.sectorAllocation);
+          } else if (typeof data === 'object' && 'sectorAllocation' in data && 
+                     data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
+            // Handle case where data itself is the allocation response
+            setSectorAllocation(data.sectorAllocation);
+          } else {
+            console.error('Invalid sector_allocation data structure (refresh):', data);
+            setSectorAllocation([]);
+          }
         } else {
-        console.error('Invalid asset_allocation data structure (refresh):', data);
-        setAssetAllocation([]);
-      }
-      
-      // Handle sector allocation
-        if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
-          setSectorAllocation(data.sector_allocation);
-        } else {
-          console.error('Invalid sector_allocation data structure (refresh):', data);
+          console.error('No allocation data received during refresh');
+          setAssetAllocation([]);
           setSectorAllocation([]);
         }
         
