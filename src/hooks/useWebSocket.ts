@@ -90,7 +90,7 @@ export function useWebSocket<T = unknown>({
   }, []);
   
   // Send message through WebSocket
-  const sendMessage = useCallback(async (event: string, data: any = {}) => {
+  const sendMessage = useCallback(async (event: string, data: Record<string, unknown> = {}) => {
     if (!isConnected && !isConnecting.current) {
       await connect();
     }
@@ -103,10 +103,12 @@ export function useWebSocket<T = unknown>({
     
     // Set up event handlers
     Object.entries(eventHandlers.current).forEach(([event, handler]) => {
-      const unsubscribe = webSocketService.on(event, (data: T) => {
+      const unsubscribe = webSocketService.on(event, (data: unknown) => {
         try {
-          setLastMessage(data);
-          handler(data);
+          // Type assertion from unknown to T
+          const typedData = data as T;
+          setLastMessage(typedData);
+          handler(typedData);
         } catch (err) {
           console.error(`Error in event handler for "${event}":`, err);
         }

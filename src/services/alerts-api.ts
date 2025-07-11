@@ -124,12 +124,18 @@ export const alertsApi = {
     return {
       id: response.id || '',
       name: apiAlertRule.name,
-      description: apiAlertRule.description || '',
       isActive: true,
-      conditions: apiAlertRule.conditions,
-      actions: apiAlertRule.actions,
+      userId: response.userId || '',
+      status: 'active' as AlertStatus,
+      frequency: 'realtime' as AlertFrequency,
+      conditionType: apiAlertRule.condition_type,
+      conditionConfig: apiAlertRule.condition_config,
+      actionType: apiAlertRule.action_type,
+      actionConfig: apiAlertRule.action_config,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      portfolioId: apiAlertRule.portfolio,
+      accountId: apiAlertRule.account
     };
   },
 

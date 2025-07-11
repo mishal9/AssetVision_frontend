@@ -132,7 +132,7 @@ export async function fetchWithAuth<T>(
       
       // JSON parsing error for a successful response
       console.error(`Error parsing JSON from ${url}:`, e);
-      throw new Error(`Failed to parse JSON response: ${e.message}`);
+      throw new Error(`Failed to parse JSON response: ${e instanceof Error ? e.message : String(e)}`);
     }
   } catch (error) {
     // Only log the error once at this level - don't duplicate logs
