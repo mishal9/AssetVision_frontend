@@ -200,14 +200,13 @@ export const linkBrokerageAccount = createAsyncThunk(
           accountName: account.name,
           accountMask: account.mask,
           accountType: account.type || account.subtype || 'unknown',
-          connectionId: result.connectionId,
+          connectionId: result.connectionId || null, // Store the backend connection ID
           lastUpdated: new Date().toISOString(),
           status: 'active',
           balance: {
             available: account.balances?.available || 0,
             current: account.balances?.current || 0
-          },
-          connectionId: result.connectionId || null // Store the backend connection ID
+          }
         } as LinkedAccount;
       });
       

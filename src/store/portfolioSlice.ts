@@ -255,10 +255,12 @@ export const portfolioSlice = createSlice({
       .addCase(saveTargetAllocations.fulfilled, (state, action) => {
         state.targetAllocationsLoading = false;
         // Store the updated asset classes from the response
-        const assetClasses = action.payload as AssetClass[];
-        state.assetClasses = assetClasses;
-        // Update portfolioData with target allocations
-        if (assetClasses && assetClasses.length > 0) {
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          const assetClasses = action.payload;
+          state.assetClasses = assetClasses;
+          // Update portfolioData with target allocations
+          if (assetClasses.length > 0) {
           // Create a map of target allocations from the response
           const targetAllocations: {[key: string]: number} = {};
           assetClasses.forEach((assetClass: AssetClass) => {
@@ -267,6 +269,10 @@ export const portfolioSlice = createSlice({
             }
           });
         }
+      } else {
+        console.error('Expected array for assetClasses but got:', action.payload);
+        state.assetClasses = [];
+      }
       })
       .addCase(saveTargetAllocations.rejected, (state, action) => {
         state.targetAllocationsLoading = false;
