@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { portfolioApi, PortfolioSummary, PerformanceData, AssetAllocation, AllocationResponse } from '@/services/api';
-import { alertsApi, Alert } from '@/services/api';
+import { portfolioApi } from '@/services/api';
+import { PortfolioSummary, PerformanceData, AssetAllocation } from '@/types/portfolio';
+import { alertsApi } from '@/services/api';
+import { Alert } from '@/types/alerts';
 
 /**
  * Custom hook for fetching portfolio data
@@ -43,10 +45,16 @@ export function usePortfolioData() {
         setSummary(data);
         setSummaryError(null);
         setPortfolioExists(true);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Error fetching portfolio summary:', error);
         // Check for 404 specifically to determine portfolio doesn't exist
-        if (error?.status === 404 || error?.message?.includes('404')) {
+        // Define a type for API errors
+        type ApiError = {
+          status?: number;
+          message?: string;
+        };
+        const errorObj = error as ApiError;
+        if (errorObj?.status === 404 || errorObj?.message?.includes('404')) {
           setPortfolioExists(false);
         }
         setSummaryError('Failed to load portfolio summary');
@@ -96,8 +104,6 @@ export function usePortfolioData() {
         // Check the structure of the response
         if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
           setAssetAllocation(data.asset_allocation);
-        } else if (data && data.assetAllocation && Array.isArray(data.assetAllocation)) {
-          setAssetAllocation(data.assetAllocation);
         } else {
           console.error('Invalid asset_allocation data structure:', data);
           setAssetAllocation([]);
@@ -106,8 +112,6 @@ export function usePortfolioData() {
         // Check for sector allocation
         if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
           setSectorAllocation(data.sector_allocation);
-        } else if (data && data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
-          setSectorAllocation(data.sectorAllocation);
         } else {
           console.error('Invalid sector_allocation data structure:', data);
           setSectorAllocation([]);
@@ -192,26 +196,22 @@ export function usePortfolioData() {
     if (portfolioExists === true) {
       portfolioApi.getAssetAllocation().then(data => {
       // Handle asset allocation
-      if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
+        if (data && data.asset_allocation && Array.isArray(data.asset_allocation)) {
         setAssetAllocation(data.asset_allocation);
-      } else if (data && data.assetAllocation && Array.isArray(data.assetAllocation)) {
-        setAssetAllocation(data.assetAllocation);
-      } else {
+        } else {
         console.error('Invalid asset_allocation data structure (refresh):', data);
         setAssetAllocation([]);
       }
       
       // Handle sector allocation
-      if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
-        setSectorAllocation(data.sector_allocation);
-      } else if (data && data.sectorAllocation && Array.isArray(data.sectorAllocation)) {
-        setSectorAllocation(data.sectorAllocation);
-      } else {
-        console.error('Invalid sector_allocation data structure (refresh):', data);
-        setSectorAllocation([]);
-      }
-      
-      setAllocationError(null);
+        if (data && data.sector_allocation && Array.isArray(data.sector_allocation)) {
+          setSectorAllocation(data.sector_allocation);
+        } else {
+          console.error('Invalid sector_allocation data structure (refresh):', data);
+          setSectorAllocation([]);
+        }
+        
+        setAllocationError(null);
     }).catch(error => {
       console.error('Error refreshing asset allocation:', error);
       setAllocationError('Failed to refresh asset allocation');

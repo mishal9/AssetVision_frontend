@@ -244,25 +244,25 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
                   <>
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Drift Type</h3>
-                      <p>{alert.conditionConfig.driftType === 'absolute' ? 'Absolute (% change)' : 'Relative (% from target)'}</p>
+                      <p>{(alert.conditionConfig.driftType as string) === 'absolute' ? 'Absolute (% change)' : 'Relative (% from target)'}</p>
                     </div>
                     
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Threshold</h3>
-                      <p>{alert.conditionConfig.thresholdPercent}%</p>
+                      <p>{Number(alert.conditionConfig.thresholdPercent)}%</p>
                     </div>
                     
-                    {alert.conditionType === ConditionType.SECTOR_DRIFT && alert.conditionConfig.sectorId && (
+                    {alert.conditionType === ConditionType.SECTOR_DRIFT && (alert.conditionConfig.sectorId as string) && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Specific Sector</h3>
-                        <p>Sector ID: {alert.conditionConfig.sectorId}</p>
+                        <p>Sector ID: {alert.conditionConfig.sectorId as string}</p>
                       </div>
                     )}
                     
-                    {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && alert.conditionConfig.assetClassId && (
+                    {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (alert.conditionConfig.assetClassId as string) && (
                       <div>
                         <h3 className="text-sm font-medium text-muted-foreground">Specific Asset Class</h3>
-                        <p>Asset Class ID: {alert.conditionConfig.assetClassId}</p>
+                        <p>Asset Class ID: {alert.conditionConfig.assetClassId as string}</p>
                       </div>
                     )}
                   </>
@@ -392,7 +392,7 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
                 ) : driftData ? (
                   <DriftVisualization 
                     data={driftData}
-                    thresholdPercent={alert.conditionConfig.thresholdPercent || 5}
+                    thresholdPercent={Number(alert.conditionConfig.thresholdPercent) || 5}
                     type={
                       alert.conditionType === ConditionType.SECTOR_DRIFT 
                         ? 'sector'

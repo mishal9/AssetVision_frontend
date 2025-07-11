@@ -39,8 +39,8 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
 
   // Extract drift-specific information
   const { conditionConfig } = alert;
-  const thresholdPercent = conditionConfig.thresholdPercent || 5;
-  const driftType = conditionConfig.driftType || 'absolute';
+  const thresholdPercent = Number(conditionConfig.thresholdPercent) || 5;
+  const driftType = (conditionConfig.driftType as string) || 'absolute';
   
   // Format last triggered time if available
   const lastTriggeredText = alert.lastTriggered
@@ -100,9 +100,9 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
           {alert.conditionType === ConditionType.SECTOR_DRIFT && (
             <div className="mt-2 text-xs">
               <span className="font-medium">Sectors: </span>
-              {conditionConfig.sectorId ? 'Specific sector' : 'All sectors'}
-              {conditionConfig.excludedSectors?.length > 0 && 
-                ` (${conditionConfig.excludedSectors.length} excluded)`
+              {(conditionConfig.sectorId as string) ? 'Specific sector' : 'All sectors'}
+              {Array.isArray(conditionConfig.excludedSectors) && (conditionConfig.excludedSectors as string[]).length > 0 && 
+                ` (${(conditionConfig.excludedSectors as string[]).length} excluded)`
               }
             </div>
           )}
@@ -110,9 +110,9 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
           {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (
             <div className="mt-2 text-xs">
               <span className="font-medium">Asset Classes: </span>
-              {conditionConfig.assetClassId ? 'Specific asset class' : 'All asset classes'}
-              {conditionConfig.excludedAssetClasses?.length > 0 && 
-                ` (${conditionConfig.excludedAssetClasses.length} excluded)`
+              {(conditionConfig.assetClassId as string) ? 'Specific asset class' : 'All asset classes'}
+              {Array.isArray(conditionConfig.excludedAssetClasses) && (conditionConfig.excludedAssetClasses as string[]).length > 0 && 
+                ` (${(conditionConfig.excludedAssetClasses as string[]).length} excluded)`
               }
             </div>
           )}

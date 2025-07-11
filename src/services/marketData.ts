@@ -1,6 +1,6 @@
 import { socketService } from './websocket';
 
-type MarketData = {
+export type MarketData = {
   [symbol: string]: {
     symbol: string;
     price: number;

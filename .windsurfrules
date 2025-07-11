@@ -8,6 +8,8 @@
 - Use Socket.io for real-time communication
 - Use ESLint for code quality
 - Use Next.js for server-side rendering
+- Always use strongly typed interfaces and types
+
 
 # Project structure
 

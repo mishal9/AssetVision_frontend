@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { socketService } from '@/services/websocket';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
@@ -26,6 +26,7 @@ export default function DashboardPage() {
     performance, 
     performanceLoading, 
     assetAllocation, 
+    sectorAllocation,
     allocationLoading,
     refreshData
   } = usePortfolioData();

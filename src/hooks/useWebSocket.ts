@@ -4,11 +4,12 @@ import { WebSocketService } from '@/services/websocket';
 // Create a single instance of WebSocketService
 const webSocketService = WebSocketService.getInstance();
 
-export interface UseWebSocketOptions<T = any> {
+export interface UseWebSocketOptions<T = unknown> {
   /** The WebSocket server URL (optional if already set in the service) */
   url?: string;
   /** Map of event names to event handlers */
   events?: Record<string, (data: T) => void>;
+  onMessage?: (data: unknown) => void;
   /** Whether to automatically connect on mount */
   autoConnect?: boolean;
   /** Callback when connection is established */
@@ -24,16 +25,17 @@ export interface UseWebSocketOptions<T = any> {
  * @param options - Configuration options for the WebSocket connection
  * @returns Object containing connection state and methods
  */
-export function useWebSocket<T = any>({
+export function useWebSocket<T = unknown>({
   url,
   events = {},
+  onMessage,
   autoConnect = true,
   onConnect,
   onDisconnect,
   onError,
 }: UseWebSocketOptions<T> = {}) {
   const [isConnected, setIsConnected] = useState(webSocketService.isConnected);
-  const [lastMessage, setLastMessage] = useState<T | null>(null);
+  const [lastMessage, setLastMessage] = useState<unknown>(null);
   const [error, setError] = useState<Error | null>(null);
   const eventHandlers = useRef(events);
   const isConnecting = useRef(false);
@@ -71,15 +73,16 @@ export function useWebSocket<T = any>({
       } else {
         await webSocketService.connect();
       }
+      // Message handling is done through the service's event system
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error);
-      onError?.(new Event('WebSocket connection error', { error }));
+      onError?.(new Event('WebSocket connection error'));
       throw error;
     } finally {
       isConnecting.current = false;
     }
-  }, [isConnected, onError, url]);
+  }, [isConnected, onError, url, onMessage]);
   
   // Disconnect from WebSocket
   const disconnect = useCallback(() => {
