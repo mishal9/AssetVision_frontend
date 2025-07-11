@@ -6,7 +6,7 @@
 import { authService } from './auth';
 import { store } from '@/store';
 import { clearUser, fetchUserInfo, setUser } from '@/store/userSlice';
-import { UserInfoResponse } from './api';
+import { UserInfoResponse } from '../types/auth';
 
 /**
  * Initialize authentication state from stored tokens
@@ -29,14 +29,14 @@ export const initAuthState = async (): Promise<void> => {
  * Update Redux state after successful login
  */
 export const updateAuthStateAfterLogin = (userData: UserInfoResponse): void => {
-  if (userData && userData.user) {
+  if (userData) {
     store.dispatch(
       setUser({
-        id: userData.user.id,
-        username: userData.user.username,
-        email: userData.user.email,
+        id: userData.userId,
+        username: userData.username,
+        email: userData.email,
         // Generate avatar from initials if no avatar URL is provided
-        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.user.username)}&background=random`,
+        avatar: userData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&background=random`,
       })
     );
   }
