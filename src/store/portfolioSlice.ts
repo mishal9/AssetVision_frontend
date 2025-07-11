@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
-import { API_BASE_URL, PORTFOLIO_ENDPOINTS } from '@/config/api';
+import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
 
 /**

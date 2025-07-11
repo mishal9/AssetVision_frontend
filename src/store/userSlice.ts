@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from '@/services/auth';
 import { type UserInfoResponse } from '@/services/api';
-import { plaidApi, PlaidInstitution } from '@/services/plaid-api';
+import { plaidApi } from '@/services/plaid-api';
 import { PLAID_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
 

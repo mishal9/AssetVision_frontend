@@ -59,13 +59,13 @@ export function LoginForm({
       
       // Redirect to dashboard on successful login
       router.push('/')
-    } catch (err: any) {
+    } catch (error: unknown) {
       // Use the enhanced error messages from the auth service if available
-      if (err.authErrorMessage) {
-        setError(err.authErrorMessage)
-      } else if (err.message && err.message.includes('401')) {
+      if ((error as any).authErrorMessage) {
+        setError((error as any).authErrorMessage)
+      } else if ((error as any).message && (error as any).message.includes('401')) {
         setError('Invalid email or password. Please try again.')
-      } else if (err.message && err.message.includes('network')) {
+      } else if ((error as any).message && (error as any).message.includes('network')) {
         setError('Unable to connect to the server. Please check your internet connection.')
       } else {
         setError('An error occurred during login. Please try again later.')

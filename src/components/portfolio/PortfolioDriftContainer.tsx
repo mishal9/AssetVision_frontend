@@ -41,7 +41,7 @@ const PortfolioDriftContainer: React.FC = () => {
       console.log('Is using mock data?', useMockData);
       
       // Check if we have real asset class data
-      if (driftData.asset_class?.items?.length > 0) {
+      if (driftData.asset_class?.items && driftData.asset_class.items.length > 0) {
         console.log('Real asset class data available:', 
           driftData.asset_class.items.map(item => `${item.name}: ${item.currentAllocation}%`)
         );
@@ -236,7 +236,7 @@ const PortfolioDriftContainer: React.FC = () => {
             onClick={() => {
               setUseMockData(false);
               if (portfolioId) {
-                dispatch(fetchPortfolioDrift(portfolioId));
+                dispatch(fetchPortfolioDrift());
               }
             }}
           >

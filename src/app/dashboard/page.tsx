@@ -2,13 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { socketService } from '@/services/websocket';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-chart';
-import { BarChart3, Users, TrendingUp, Activity, PieChart, Bell, DollarSign } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Activity, PieChart } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
 
@@ -19,7 +18,7 @@ import { portfolioApi } from '@/services/api';
  * If user has no portfolio, shows portfolio setup component
  */
 export default function DashboardPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [hasPortfolio, setHasPortfolio] = useState<boolean | null>(null);
   const { 
     summary, 
@@ -27,10 +26,7 @@ export default function DashboardPage() {
     performance, 
     performanceLoading, 
     assetAllocation, 
-    sectorAllocation, 
     allocationLoading,
-    alerts, 
-    alertsLoading,
     refreshData
   } = usePortfolioData();
   

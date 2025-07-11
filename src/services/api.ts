@@ -8,7 +8,7 @@ import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { AuthResponse, AuthResponseData } from '@/types/auth';
-import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
+import { TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
 import { MarketRegionSettings, TaxSettings } from '@/store/preferencesSlice';
 import { convertSnakeToCamelCase } from '@/utils/caseConversions';
 

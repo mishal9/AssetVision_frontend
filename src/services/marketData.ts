@@ -1,5 +1,4 @@
 import { socketService } from './websocket';
-import { getApiUrl } from '@/lib/utils';
 
 type MarketData = {
   [symbol: string]: {
