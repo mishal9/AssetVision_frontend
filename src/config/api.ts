@@ -41,15 +41,15 @@ export const PORTFOLIO_ENDPOINTS = {
   TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/target-allocations/`,  // Save target allocations
 };
 
-// Plaid endpoints - using API_HOST to avoid double /api prefixing
+// Plaid endpoints - using API_BASE_URL for consistent URL construction
 export const PLAID_ENDPOINTS = {
-  CREATE_LINK_TOKEN: `${API_HOST}/api/plaid/create-link-token/`,
-  EXCHANGE_TOKEN: `${API_HOST}/api/plaid/exchange-token/`,
-  GET_HOLDINGS: `${API_HOST}/api/plaid/get-holdings/`,
-  LINKED_ACCOUNTS: `${API_HOST}/api/plaid/list-connections/`,
-  DISCONNECT_ACCOUNT: (id: string) => `${API_HOST}/api/plaid/disconnect-account/${id}/`,
-  UPDATE_CONNECTION: (id: string) => `${API_HOST}/api/plaid/update-connection/${id}/`,
-  CREATE_PORTFOLIO: `${API_HOST}/api/portfolio/`,
+  CREATE_LINK_TOKEN: `${API_BASE_URL}/plaid/create-link-token/`,
+  EXCHANGE_TOKEN: `${API_BASE_URL}/plaid/exchange-token/`,
+  GET_HOLDINGS: `${API_BASE_URL}/plaid/get-holdings/`,
+  LINKED_ACCOUNTS: `${API_BASE_URL}/plaid/list-connections/`,
+  DISCONNECT_ACCOUNT: (id: string) => `${API_BASE_URL}/plaid/disconnect-account/${id}/`,
+  UPDATE_CONNECTION: (id: string) => `${API_BASE_URL}/plaid/update-connection/${id}/`,
+  CREATE_PORTFOLIO: `${API_BASE_URL}/portfolio/`,
 };
 
 // WebSocket endpoints

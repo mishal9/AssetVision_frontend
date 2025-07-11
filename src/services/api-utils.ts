@@ -73,6 +73,7 @@ export async function fetchWithAuth<T>(
     ...options,
     headers,
     credentials: 'include', // Include cookies in cross-origin requests
+    mode: 'cors', // Enable CORS for all requests
   } as RequestInit;
 
   try {
