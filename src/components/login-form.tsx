@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authService } from "@/services/auth"
-import { useDispatch } from "react-redux"
+import { useAppDispatch } from "@/store"
 import { fetchLinkedAccounts } from "@/store/userSlice"
 
 export function LoginForm({
@@ -26,7 +26,7 @@ export function LoginForm({
   const [email, setEmail] = React.useState<string>('')
   const [password, setPassword] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
-  const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
   const router = useRouter()
 
   /**
@@ -59,13 +59,13 @@ export function LoginForm({
       
       // Redirect to dashboard on successful login
       router.push('/')
-    } catch (err: any) {
+    } catch (error: unknown) {
       // Use the enhanced error messages from the auth service if available
-      if (err.authErrorMessage) {
-        setError(err.authErrorMessage)
-      } else if (err.message && err.message.includes('401')) {
+      if ((error as any).authErrorMessage) {
+        setError((error as any).authErrorMessage)
+      } else if ((error as any).message && (error as any).message.includes('401')) {
         setError('Invalid email or password. Please try again.')
-      } else if (err.message && err.message.includes('network')) {
+      } else if ((error as any).message && (error as any).message.includes('network')) {
         setError('Unable to connect to the server. Please check your internet connection.')
       } else {
         setError('An error occurred during login. Please try again later.')
@@ -216,11 +216,20 @@ export function LoginForm({
                   {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
               </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="underline underline-offset-4">
-                  Sign up
-                </Link>
+              <div className="text-center text-sm space-y-2">
+                <div>
+                  Don&apos;t have an account?{" "}
+                  <Link href="/register" className="underline underline-offset-4">
+                    Sign up
+                  </Link>
+                </div>
+                <div className="text-muted-foreground">
+                  Or{" "}
+                  <Link href="/demo" className="text-blue-600 hover:text-blue-800 underline underline-offset-4 font-medium">
+                    try our interactive demo
+                  </Link>
+                  {" "}(no signup required)
+                </div>
               </div>
             </div>
           </form>

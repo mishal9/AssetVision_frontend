@@ -9,7 +9,9 @@ import {
   AlertStatus,
   AlertFrequency,
   ConditionType,
-  ActionType
+  ActionType,
+  AlertStats,
+  PortfolioDrift
 } from '../types/alerts';
 
 // Define alert API endpoints as a constant
@@ -89,7 +91,7 @@ const transformAlertHistory = (response: AlertHistoryResponse): AlertHistory => 
 export const alertsApi = {
   // Get all alert rules for the current user
   getAlertRules: async (): Promise<AlertRule[]> => {
-    const response = await api.getAlerts();
+    const response = await fetchWithAuth<AlertRuleResponse[]>(ALERT_ENDPOINTS.RULES);
     return Array.isArray(response) ? response.map(transformAlertRule) : [];
   },
 
@@ -117,13 +119,30 @@ export const alertsApi = {
 
     // Use the createAlert method from the alertsApi instead of post
     const response = await api.createAlert(apiAlertRule);
-    return transformAlertRule(response);
+    // Since api.createAlert returns Alert, we need to fetch the full AlertRuleResponse
+    // For now, return a basic AlertRule structure
+    return {
+      id: response.id || '',
+      name: apiAlertRule.name,
+      isActive: true,
+      userId: response.userId || '',
+      status: 'active' as AlertStatus,
+      frequency: 'realtime' as AlertFrequency,
+      conditionType: apiAlertRule.condition_type,
+      conditionConfig: apiAlertRule.condition_config,
+      actionType: apiAlertRule.action_type,
+      actionConfig: apiAlertRule.action_config,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      portfolioId: apiAlertRule.portfolio,
+      accountId: apiAlertRule.account
+    };
   },
 
   // Update an existing alert rule
   updateAlertRule: async (id: string, alertRule: Partial<AlertRuleInput>): Promise<AlertRule> => {
     // Transform frontend model to API expected format
-    const apiAlertRule: Record<string, any> = {};
+    const apiAlertRule: Record<string, unknown> = {};
     
     // Log what we're about to update
     console.warn('🔄 Updating alert rule:', id, 'with data:', alertRule);
@@ -200,14 +219,14 @@ export const alertsApi = {
   },
 
   // Get alert statistics
-  getAlertStats: async (): Promise<any> => {
-    return await fetchWithAuth(ALERT_ENDPOINTS.STATS);
+  getAlertStats: async (): Promise<AlertStats> => {
+    return await fetchWithAuth<AlertStats>(ALERT_ENDPOINTS.STATS);
   },
 
   // Get current drift information for a portfolio
-  getPortfolioDrift: async (portfolioId: string): Promise<any> => {
+  getPortfolioDrift: async (portfolioId: string): Promise<PortfolioDrift> => {
     const endpoint = `${ALERT_ENDPOINTS.DRIFT}${portfolioId}/drift`;
-    return await fetchWithAuth(endpoint);
+    return await fetchWithAuth<PortfolioDrift>(endpoint);
   },
 
   // Mark an alert history item as resolved

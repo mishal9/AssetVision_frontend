@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
-import { API_BASE_URL, PORTFOLIO_ENDPOINTS } from '@/config/api';
+import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
 
 /**
@@ -102,7 +102,7 @@ export const fetchHoldingsAndBalance = createAsyncThunk(
       const holdings = await plaidApi.getInvestmentHoldings(connectionId);
       // Calculate total balance by summing (shares * purchasePrice) for each holding
       const totalBalance = holdings.reduce((sum, h) => {
-        const shares = parseFloat(h.shares);
+        const shares = parseFloat(h.shares || '0');
         return sum + (shares * (h.purchasePrice || 0));
       }, 0);
       return { holdings, totalBalance };
@@ -180,8 +180,13 @@ export const portfolioSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchHoldingsAndBalance.fulfilled, (state, action: PayloadAction<{ holdings: Holding[]; totalBalance: number }>) => {
-        state.holdings = action.payload.holdings;
+      .addCase(fetchHoldingsAndBalance.fulfilled, (state, action) => {
+        // Ensure all required properties are present for the Holding interface
+        state.holdings = action.payload.holdings.map(holding => ({
+          ...holding,
+          shares: holding.shares || '0',
+          assetClass: holding.assetClass || 'stocks'
+        }));
         state.totalBalance = action.payload.totalBalance;
         state.loading = false;
       })
@@ -233,12 +238,18 @@ export const portfolioSlice = createSlice({
         state.assetClassesError = null;
       })
       .addCase(fetchAssetClasses.fulfilled, (state, action) => {
-        state.assetClasses = action.payload;
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          state.assetClasses = action.payload;
+        } else {
+          console.error('Expected array for assetClasses but got:', action.payload);
+          state.assetClasses = [];
+        }
         state.assetClassesLoading = false;
       })
       .addCase(fetchAssetClasses.rejected, (state, action) => {
         state.assetClassesLoading = false;
-        state.assetClassesError = action.payload as string;
+        state.assetClassesError = action.payload ? String(action.payload) : 'Failed to fetch asset classes';
       })
       
       // Save target allocations cases
@@ -249,17 +260,24 @@ export const portfolioSlice = createSlice({
       .addCase(saveTargetAllocations.fulfilled, (state, action) => {
         state.targetAllocationsLoading = false;
         // Store the updated asset classes from the response
-        state.assetClasses = action.payload;
-        // Update portfolioData with target allocations
-        if (action.payload && action.payload.length > 0) {
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          const assetClasses = action.payload;
+          state.assetClasses = assetClasses;
+          // Update portfolioData with target allocations
+          if (assetClasses.length > 0) {
           // Create a map of target allocations from the response
           const targetAllocations: {[key: string]: number} = {};
-          action.payload.forEach((assetClass: AssetClass) => {
+          assetClasses.forEach((assetClass: AssetClass) => {
             if (assetClass.target_allocation !== undefined) {
               targetAllocations[assetClass.id] = assetClass.target_allocation;
             }
           });
         }
+      } else {
+        console.error('Expected array for assetClasses but got:', action.payload);
+        state.assetClasses = [];
+      }
       })
       .addCase(saveTargetAllocations.rejected, (state, action) => {
         state.targetAllocationsLoading = false;

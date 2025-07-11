@@ -1,4 +1,5 @@
-import { authApi, type AuthResponse, type UserInfoResponse } from './api';
+import { authApi } from './api';
+import { AuthResponse, UserInfoResponse } from '../types/auth';
 
 /**
  * Authentication service for Asset Vision

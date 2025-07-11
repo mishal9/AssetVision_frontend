@@ -1,9 +1,9 @@
-type EventHandler = (data: any) => void;
+type EventHandler = (data: unknown) => void;
 
 interface WebSocketMessage {
   type: string;
-  data?: any;
-  [key: string]: any;
+  data?: unknown;
+  [key: string]: unknown;
 }
 
 export class WebSocketService {
@@ -245,7 +245,7 @@ export class WebSocketService {
   }
 
   // Send a message to the server
-  async send(event: string, data: any = {}): Promise<boolean> {
+  async send(event: string, data: Record<string, unknown> = {}): Promise<boolean> {
     const message = { type: event, data };
     
     if (this.socket?.readyState === WebSocket.OPEN) {
@@ -271,7 +271,7 @@ export class WebSocketService {
   }
   
   // Alias for send for backward compatibility
-  emit(event: string, data: any = {}) {
+  emit(event: string, data: Record<string, unknown> = {}) {
     return this.send(event, data);
   }
   

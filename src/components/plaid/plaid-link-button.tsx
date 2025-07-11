@@ -103,7 +103,7 @@ export function PlaidLinkButton({
     <div className="flex flex-col">
       <Button
         onClick={handleClick}
-        disabled={isLoading || isGeneratingToken || (linkToken && !ready)}
+        disabled={isLoading || isGeneratingToken || (!!linkToken && !ready)}
         className={className}
         variant={variant}
       >

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse, TaxEfficientHolding } from '@/types/tax';
+import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
 import { portfolioApi } from '@/services/api';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { ArrowDownIcon, ArrowUpIcon, InfoIcon, AlertTriangleIcon, CheckCircleIcon, DollarSignIcon } from 'lucide-react';
+import { InfoIcon, AlertTriangleIcon, CheckCircleIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { TaxLossDetailsModal } from '@/components/dashboard/tax-loss-details-modal';
@@ -142,15 +142,15 @@ export default function TaxStrategiesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Tax Loss Harvesting</CardTitle>
-          <CardDescription>Optimize your portfolio's tax efficiency</CardDescription>
+          <CardDescription>Optimize your portfolio&apos;s tax efficiency</CardDescription>
         </CardHeader>
         <CardContent>
           <Alert>
             <InfoIcon className="h-4 w-4" />
             <AlertTitle>No Opportunities Found</AlertTitle>
             <AlertDescription>
-              We currently don't see any tax loss harvesting opportunities in your portfolio. 
-              This could be because your investments are performing well or there aren't enough unrealized losses to take advantage of.
+              We currently don&apos;t see any tax loss harvesting opportunities in your portfolio. 
+              This could be because your investments are performing well or there aren&apos;t enough unrealized losses to take advantage of.
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -177,7 +177,8 @@ export default function TaxStrategiesPage() {
     }
   };
 
-  const getAccountTypeDisplay = (accountType: string, isTaxAdvantaged: boolean) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _getAccountTypeDisplay = (accountType: string, isTaxAdvantaged: boolean) => {
     return (
       <div>
         <Badge variant="outline" className={isTaxAdvantaged ? "bg-blue-50" : "bg-amber-50"}>
@@ -200,7 +201,7 @@ export default function TaxStrategiesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Tax Strategies</h1>
         <p className="text-muted-foreground mt-2">
-          Optimize your portfolio's tax efficiency with our recommendations.
+          Optimize your portfolio&apos;s tax efficiency with our recommendations.
         </p>
       </div>
       
@@ -242,15 +243,15 @@ export default function TaxStrategiesPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Tax Loss Harvesting</CardTitle>
-                <CardDescription>Optimize your portfolio's tax efficiency</CardDescription>
+                <CardDescription>Optimize your portfolio&apos;s tax efficiency</CardDescription>
               </CardHeader>
               <CardContent>
                 <Alert>
                   <InfoIcon className="h-4 w-4" />
                   <AlertTitle>No Opportunities Found</AlertTitle>
                   <AlertDescription>
-                    We currently don't see any tax loss harvesting opportunities in your portfolio. 
-                    This could be because your investments are performing well or there aren't enough unrealized losses to take advantage of.
+                    We currently don&apos;t see any tax loss harvesting opportunities in your portfolio. 
+                    This could be because your investments are performing well or there aren&apos;t enough unrealized losses to take advantage of.
                   </AlertDescription>
                 </Alert>
               </CardContent>
@@ -297,7 +298,7 @@ export default function TaxStrategiesPage() {
                         </div>
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>You've harvested {formatCurrency(taxData.realizedLossSummary.appliedAgainstOrdinaryIncome)} / $3,000</span>
+                        <span>You&apos;ve harvested {formatCurrency(taxData.realizedLossSummary.appliedAgainstOrdinaryIncome)} / $3,000</span>
                         <span>{Math.round(taxData.metadata.progressPct)}% complete</span>
                       </div>
                     </div>
@@ -395,7 +396,7 @@ export default function TaxStrategiesPage() {
                       <div>
                         <h4 className="font-medium">Wash Sale Rules</h4>
                         <p className="text-sm text-muted-foreground">
-                          The IRS wash sale rule prohibits claiming a loss if you buy the same or "substantially identical" 
+                          The IRS wash sale rule prohibits claiming a loss if you buy the same or &quot;substantially identical&quot; 
                           security within 30 days before or after the sale. Our recommendations account for this rule.
                         </p>
                       </div>
@@ -506,8 +507,8 @@ export default function TaxStrategiesPage() {
                   <InfoIcon className="h-4 w-4" />
                   <AlertTitle>No Analysis Available</AlertTitle>
                   <AlertDescription>
-                    We couldn't analyze your portfolio for tax efficiency. This might be because you don't have a mix of both
-                    taxable and tax-advantaged accounts, or because there isn't enough data available for the assets in your portfolio.
+                    We couldn&apos;t analyze your portfolio for tax efficiency. This might be because you don&apos;t have a mix of both
+                    taxable and tax-advantaged accounts, or there&apos;s not enough data to make a meaningful analysis.
                   </AlertDescription>
                 </Alert>
               </CardContent>

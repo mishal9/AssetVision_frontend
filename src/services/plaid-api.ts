@@ -4,7 +4,7 @@
  */
 
 import { fetchWithAuth } from './api-utils';
-import { HoldingInput } from './api';
+import { HoldingInput } from '@/types/portfolio';
 import { PLAID_ENDPOINTS } from '@/config/api';
 
 // No mock data - API must provide real data
@@ -58,12 +58,20 @@ export const plaidApi = {
         
         if (token) {
           try {
+            // Define interface for decoded JWT payload
+            interface DecodedToken {
+              username?: string;
+              sub?: string;
+              userId?: string;
+              [key: string]: unknown;
+            }
+            
             // Import jwt-decode v4 using the correct export pattern
             const { jwtDecode } = await import('jwt-decode');
-            const decoded = jwtDecode(token);
+            const decoded = jwtDecode<DecodedToken>(token);
             
             // Look for user ID in common JWT claim locations
-            authenticatedUserId = decoded.username;
+            authenticatedUserId = decoded.username || decoded.sub || decoded.userId as string;
           } catch (decodeError) {
             console.error('Failed to decode JWT token:', decodeError);
           }
@@ -86,11 +94,14 @@ export const plaidApi = {
         }),
       });
       
-      if (!response.link_token) {
-        throw new Error('No link token received from server');
+      // Type assertion for response
+      const typedResponse = response as Record<string, unknown>;
+      
+      if (!typedResponse.link_token) {
+        throw new Error('Failed to get link token from server');
       }
       
-      return response.link_token;
+      return typedResponse.link_token as string;
     } catch (error) {
       console.error('Error creating Plaid link token:', error);
       throw error;
@@ -135,11 +146,16 @@ export const plaidApi = {
         credentials: 'include' // Ensure cookies are sent with request
       });
       
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to store connection on server');
+      // Type assertion for response
+      const typedResponse = response as Record<string, unknown>;
+      
+      if (!typedResponse.success) {
+        const errorMessage = typeof typedResponse.message === 'string' ? 
+          typedResponse.message : 'Failed to store connection on server';
+        throw new Error(errorMessage);
       }
       
-      if (!response.connection_id) {
+      if (!typedResponse.connection_id) {
         throw new Error('No connection ID received from server');
       }
       
@@ -149,7 +165,7 @@ export const plaidApi = {
       // Add new connection with institution ID as key
       const institutionId = metadata?.institution?.id || 'unknown_institution';
       existingConnections[institutionId] = {
-        connectionId: response.connection_id,
+        connectionId: typedResponse.connection_id as string,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
         accounts: metadata?.accounts || [],
         lastUpdated: new Date().toISOString()
@@ -162,8 +178,8 @@ export const plaidApi = {
         success: true, 
         institutionId: institutionId,
         institutionName: metadata?.institution?.name || 'Unknown Institution',
-        connectionId: response.connection_id,
-        accountIds: response.account_ids || []
+        connectionId: typedResponse.connection_id as string,
+        accountIds: (typedResponse.account_ids as string[]) || []
       };
       
       return result;
@@ -212,15 +228,23 @@ export const plaidApi = {
       }),
     });
     
+    // Type assertion for response
+    interface PlaidHoldingsResponse {
+      holdings?: any[];
+      securities?: any[];
+    }
+    
+    const typedResponse = response as PlaidHoldingsResponse;
+    
     // Check for the complete structure returned by Django
-    if (!response.holdings || !Array.isArray(response.holdings)) {
+    if (!typedResponse.holdings || !Array.isArray(typedResponse.holdings)) {
       throw new Error('Invalid holdings data format received from server');
     }
     
     // Map the holdings to the expected format
-    return response.holdings.map((holding: any) => {
+    return typedResponse.holdings.map((holding: any) => {
       // Find the corresponding security to get the symbol
-      const security = response.securities?.find(
+      const security = typedResponse.securities?.find(
         (s: any) => s.security_id === holding.security_id
       );
       
@@ -233,6 +257,7 @@ export const plaidApi = {
         symbol: security?.ticker_symbol || holding.symbol || 'UNKNOWN',
         shares: sharesValue,
         purchasePrice: holding.cost_basis || holding.purchase_price || 0,
+        purchaseDate: holding.purchase_date || new Date().toISOString().split('T')[0],
         assetClass: security?.type || holding.asset_class || 'stocks'
       };
     });
@@ -287,23 +312,34 @@ export const plaidApi = {
       }
       
       // Check response structure
-      let backendAccounts = [];
-      if (response.accounts) {
-        console.log('Plaid API - Found accounts property with', response.accounts.length, 'items');
-        backendAccounts = response.accounts;
-      } else if (response.connections) {
-        console.log('Plaid API - Found connections property with', response.connections.length, 'items');
-        backendAccounts = response.connections;
-      } else if (response.data) {
-        console.log('Plaid API - Found data property with', response.data.length, 'items');
-        backendAccounts = response.data;
-      } else if (Array.isArray(response)) {
+      // Define a type for the response object with possible structures
+      interface PlaidResponse {
+        accounts?: any[];
+        connections?: any[];
+        data?: any[];
+        [key: string]: any;
+      }
+
+      let backendAccounts: any[] = [];
+      // Type assertion for response
+      const typedResponse = response as PlaidResponse;
+      
+      if (typedResponse.accounts && Array.isArray(typedResponse.accounts)) {
+        console.log('Plaid API - Found accounts property with', typedResponse.accounts.length, 'items');
+        backendAccounts = typedResponse.accounts;
+      } else if (typedResponse.connections && Array.isArray(typedResponse.connections)) {
+        console.log('Plaid API - Found connections property with', typedResponse.connections.length, 'items');
+        backendAccounts = typedResponse.connections;
+      } else if (typedResponse.data && Array.isArray(typedResponse.data)) {
+        console.log('Plaid API - Found data property with', typedResponse.data.length, 'items');
+        backendAccounts = typedResponse.data;
+      } else if (Array.isArray(typedResponse)) {
         // Handle case where response is the array directly
-        console.log('Plaid API - Response is direct array with', response.length, 'items');
-        backendAccounts = response;
+        console.log('Plaid API - Response is direct array with', typedResponse.length, 'items');
+        backendAccounts = typedResponse;
       } else {
         // Try to find any array property
-        const arrayProps = Object.entries(response || {})
+        const arrayProps = Object.entries(typedResponse || {})
           .filter(([_, value]) => Array.isArray(value))
           .map(([key, value]) => ({ key, length: (value as any[]).length }));
         
@@ -314,7 +350,7 @@ export const plaidApi = {
           const longestArrayProp = arrayProps.reduce((prev, current) => 
             prev.length > current.length ? prev : current);
           
-          backendAccounts = response[longestArrayProp.key] as any[];
+          backendAccounts = typedResponse[longestArrayProp.key] as any[];
           console.log(`Plaid API - Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
         } else {
           // Unexpected response structure
@@ -337,17 +373,50 @@ export const plaidApi = {
       // Merge accounts (prefer backend accounts if they exist)
       const mergedAccounts = [...localAccounts];
       
+      // Define types for the account objects
+      interface AccountData {
+        institution_id: string;
+        institution_name?: string;
+        [key: string]: any; // Allow other properties
+      }
+      
+      interface MergedAccount {
+        id: any;
+        institution_id: string;
+        institution_name: any;
+        accounts: any;
+        last_updated: any;
+        status: string;
+        source: string;
+      }
+      
       // Add backend accounts that aren't in local storage
-      backendAccounts.forEach(backendAccount => {
+      backendAccounts.forEach((backendAccount: AccountData) => {
         const localIndex = mergedAccounts.findIndex(local => 
           local.institution_id === backendAccount.institution_id);
           
         if (localIndex >= 0) {
           // Replace local with backend version
-          mergedAccounts[localIndex] = { ...backendAccount, source: 'backend' };
+          mergedAccounts[localIndex] = { 
+            ...backendAccount, 
+            id: backendAccount.id || backendAccount.connection_id || 'unknown',
+            institution_name: backendAccount.institution_name || 'Unknown Institution',
+            accounts: backendAccount.accounts || [],
+            last_updated: backendAccount.last_updated || new Date().toISOString(),
+            status: backendAccount.status || 'active',
+            source: 'backend'
+          } as MergedAccount;
         } else {
           // Add new backend account
-          mergedAccounts.push({ ...backendAccount, source: 'backend' });
+          mergedAccounts.push({ 
+            ...backendAccount, 
+            id: backendAccount.id || backendAccount.connection_id || 'unknown',
+            institution_name: backendAccount.institution_name || 'Unknown Institution',
+            accounts: backendAccount.accounts || [],
+            last_updated: backendAccount.last_updated || new Date().toISOString(),
+            status: backendAccount.status || 'active',
+            source: 'backend'
+          } as MergedAccount);
         }
       });
       
@@ -415,8 +484,18 @@ export const plaidApi = {
     try {
       const accounts = await plaidApi.getLinkedAccounts();
       
+      // Define institution interface
+      interface Institution {
+        id: string;
+        name: string;
+        accounts: any[];
+        lastUpdated: string;
+        status: string;
+        source: string;
+      }
+
       // Group by institution
-      const institutions = accounts.reduce((acc, account) => {
+      const institutions = accounts.reduce<Record<string, Institution>>((acc, account) => {
         const institutionId = account.institution_id;
         
         if (!acc[institutionId]) {

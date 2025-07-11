@@ -1,7 +1,6 @@
 import { socketService } from './websocket';
-import { getApiUrl } from '@/lib/utils';
 
-type MarketData = {
+export type MarketData = {
   [symbol: string]: {
     symbol: string;
     price: number;
@@ -71,12 +70,24 @@ export class MarketDataService {
     console.log('MarketDataService: Disconnected from WebSocket server');
   }
 
-  private handleMarketUpdate(data: { data: MarketData }) {
-    this.notifyCallbacks(data.data);
+  private handleMarketUpdate(data: unknown) {
+    // Type guard to ensure data has the expected structure
+    if (data && typeof data === 'object' && 'data' in data) {
+      const typedData = data as { data: MarketData };
+      this.notifyCallbacks(typedData.data);
+    } else {
+      console.error('MarketDataService: Received invalid market update data format');
+    }
   }
 
-  private handleInitialData(data: { data: MarketData }) {
-    this.notifyCallbacks(data.data);
+  private handleInitialData(data: unknown) {
+    // Type guard to ensure data has the expected structure
+    if (data && typeof data === 'object' && 'data' in data) {
+      const typedData = data as { data: MarketData };
+      this.notifyCallbacks(typedData.data);
+    } else {
+      console.error('MarketDataService: Received invalid initial data format');
+    }
   }
 
   private notifyCallbacks(data: MarketData) {

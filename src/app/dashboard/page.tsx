@@ -1,16 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+// import { useRouter } from 'next/navigation';
 import { socketService } from '@/services/websocket';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-chart';
-import { BarChart3, Users, TrendingUp, Activity, PieChart, Bell, DollarSign } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
+
 
 /**
  * Dashboard page component
@@ -18,7 +18,7 @@ import { portfolioApi } from '@/services/api';
  * If user has no portfolio, shows portfolio setup component
  */
 export default function DashboardPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [hasPortfolio, setHasPortfolio] = useState<boolean | null>(null);
   const { 
     summary, 
@@ -26,10 +26,8 @@ export default function DashboardPage() {
     performance, 
     performanceLoading, 
     assetAllocation, 
-    sectorAllocation, 
+    sectorAllocation,
     allocationLoading,
-    alerts, 
-    alertsLoading,
     refreshData
   } = usePortfolioData();
   
@@ -122,24 +120,24 @@ export default function DashboardPage() {
   
   return (
     <div className="min-h-screen bg-background">
-      <div className="px-6 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-        </div>
+        <div className="px-6 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-semibold">Dashboard</h1>
+          </div>
 
-        {/* Portfolio Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
-          {summaryLoading ? (
-            // Loading skeleton for stats cards
-            <>
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="rounded-xl bg-card p-6 shadow-sm border border-border animate-pulse">
-                  <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
-                  <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-muted rounded w-1/4"></div>
-                </div>
-              ))}
-            </>
+          {/* Portfolio Summary Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            {summaryLoading ? (
+              // Loading skeleton for stats cards
+              <>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="rounded-xl bg-card p-6 shadow-sm border border-border animate-pulse">
+                    <div className="h-4 bg-muted rounded w-1/2 mb-4"></div>
+                    <div className="h-8 bg-muted rounded w-3/4 mb-2"></div>
+                    <div className="h-4 bg-muted rounded w-1/4"></div>
+                  </div>
+                ))}
+              </>
           ) : summary ? (
             // Actual stats cards with data
             <>

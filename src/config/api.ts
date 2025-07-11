@@ -3,12 +3,14 @@
  * Centralized configuration for all API endpoints in the application
  */
 
-// Base API URL - Fallbacks to localhost if not defined
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+// Backend URL configuration
+export const BACKEND_URL = 'https://cl3fc954-8000.use.devtunnels.ms';
 
-// Base URL without /api suffix for direct endpoint construction
-export const API_HOST = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:8000';
+// Base API URL - always use the full backend URL
+export const API_BASE_URL = `${BACKEND_URL}/api`;
 
+// API host - used for WebSocket connection
+export const API_HOST = BACKEND_URL.replace(/^https?:\/\//, '');
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
@@ -17,6 +19,7 @@ export const AUTH_ENDPOINTS = {
   LOGOUT: `${API_BASE_URL}/auth/logout/`,
   REFRESH: `${API_BASE_URL}/auth/refresh/`,
   USER: `${API_BASE_URL}/auth/user/`,
+  FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
 };
 
 // Portfolio endpoints
@@ -38,15 +41,15 @@ export const PORTFOLIO_ENDPOINTS = {
   TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/target-allocations/`,  // Save target allocations
 };
 
-// Plaid endpoints - using API_HOST to avoid double /api prefixing
+// Plaid endpoints - using API_BASE_URL for consistent URL construction
 export const PLAID_ENDPOINTS = {
-  CREATE_LINK_TOKEN: `${API_HOST}/api/plaid/create-link-token/`,
-  EXCHANGE_TOKEN: `${API_HOST}/api/plaid/exchange-token/`,
-  GET_HOLDINGS: `${API_HOST}/api/plaid/get-holdings/`,
-  LINKED_ACCOUNTS: `${API_HOST}/api/plaid/list-connections/`,
-  DISCONNECT_ACCOUNT: (id: string) => `${API_HOST}/api/plaid/disconnect-account/${id}/`,
-  UPDATE_CONNECTION: (id: string) => `${API_HOST}/api/plaid/update-connection/${id}/`,
-  CREATE_PORTFOLIO: `${API_HOST}/api/portfolio/`,
+  CREATE_LINK_TOKEN: `${API_BASE_URL}/plaid/create-link-token/`,
+  EXCHANGE_TOKEN: `${API_BASE_URL}/plaid/exchange-token/`,
+  GET_HOLDINGS: `${API_BASE_URL}/plaid/get-holdings/`,
+  LINKED_ACCOUNTS: `${API_BASE_URL}/plaid/list-connections/`,
+  DISCONNECT_ACCOUNT: (id: string) => `${API_BASE_URL}/plaid/disconnect-account/${id}/`,
+  UPDATE_CONNECTION: (id: string) => `${API_BASE_URL}/plaid/update-connection/${id}/`,
+  CREATE_PORTFOLIO: `${API_BASE_URL}/portfolio/`,
 };
 
 // WebSocket endpoints

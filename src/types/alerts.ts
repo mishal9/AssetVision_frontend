@@ -54,9 +54,9 @@ export interface AlertRuleResponse {
   status: string;
   frequency: string;
   condition_type: string;
-  condition_config: Record<string, any>;
+  condition_config: Record<string, ConfigValue>;
   action_type: string;
-  action_config: Record<string, any>;
+  action_config: Record<string, ConfigValue>;
   created_at: string;
   updated_at: string;
   last_triggered?: string;
@@ -71,8 +71,8 @@ export interface AlertHistoryResponse {
   triggered_at: string;
   resolved_at?: string;
   was_triggered: boolean;
-  context_data: Record<string, any>;
-  action_results: Record<string, any>;
+  context_data: Record<string, ConfigValue>;
+  action_results: Record<string, ConfigValue>;
 }
 
 // Frontend Types (camelCase for React components)
@@ -84,9 +84,9 @@ export interface AlertRule {
   status: AlertStatus;
   frequency: AlertFrequency;
   conditionType: ConditionType;
-  conditionConfig: Record<string, any>;
+  conditionConfig: Record<string, ConfigValue>;
   actionType: ActionType;
-  actionConfig: Record<string, any>;
+  actionConfig: Record<string, ConfigValue>;
   createdAt: string;
   updatedAt: string;
   lastTriggered?: string;
@@ -101,21 +101,26 @@ export interface AlertHistory {
   triggeredAt: string;
   resolvedAt?: string;
   wasTriggered: boolean;
-  contextData: Record<string, any>;
-  actionResults: Record<string, any>;
+  contextData: ConfigObject;
+  actionResults: ConfigObject;
+}
+
+// Base configuration types
+export type ConfigValue = string | number | boolean | null | string[] | number[] | ConfigObject;
+export interface ConfigObject {
+  [key: string]: ConfigValue;
 }
 
 // Specific drift alert condition configurations
 export interface DriftConditionConfig {
-  // General drift alert config
   portfolioId: string;
-  thresholdPercent: number; // e.g. 5 means 5% drift
-  driftType: 'absolute' | 'relative'; // absolute = 5% total drift, relative = 5% from target
+  thresholdPercent: number;
+  driftType: 'absolute' | 'relative';
 }
 
 export interface SectorDriftConditionConfig extends DriftConditionConfig {
-  sectorId?: string; // If specified, only track drift for this sector
-  excludedSectors?: string[]; // Sectors to exclude from drift calculation
+  sectorId?: string; 
+  excludedSectors?: string[]; 
 }
 
 export interface AssetClassDriftConditionConfig extends DriftConditionConfig {
@@ -130,9 +135,9 @@ export interface AlertRuleInput {
   status?: AlertStatus;
   frequency?: AlertFrequency;
   conditionType: ConditionType;
-  conditionConfig: Record<string, any>;
+  conditionConfig: Record<string, ConfigValue>;
   actionType: ActionType;
-  actionConfig: Record<string, any>;
+  actionConfig: Record<string, ConfigValue>;
   portfolioId?: string;
   accountId?: string;
 }
@@ -170,4 +175,34 @@ export interface AlertInput {
   thresholdValue: number;
   isActive?: boolean;
   notes?: string;
+}
+
+// Alert statistics interface
+export interface AlertStats {
+  totalAlerts: number;
+  activeAlerts: number;
+  triggeredToday: number;
+  triggeredThisWeek: number;
+  triggeredThisMonth: number;
+  byType: Record<ConditionType, number>;
+  byStatus: Record<AlertStatus, number>;
+}
+
+// Portfolio drift interface
+export interface PortfolioDrift {
+  portfolioId: string;
+  calculatedAt: string;
+  overallDrift: number;
+  assetClassDrift: Array<{
+    assetClass: string;
+    currentAllocation: number;
+    targetAllocation: number;
+    drift: number;
+  }>;
+  sectorDrift: Array<{
+    sector: string;
+    currentAllocation: number;
+    targetAllocation: number;
+    drift: number;
+  }>;
 }

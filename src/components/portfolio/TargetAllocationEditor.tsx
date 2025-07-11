@@ -25,7 +25,7 @@ interface TargetAllocationEditorProps {
 
 const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { portfolioData, assetClasses } = useSelector((state: RootState) => state.portfolio);
+  const { assetClasses } = useSelector((state: RootState) => state.portfolio);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [allocations, setAllocations] = useState<{[key: string]: number}>({}); 

@@ -11,7 +11,6 @@ export function middleware(request: NextRequest) {
   
   // Define route types
   const authRoutes = ['/login', '/register', '/forgot-password'];
-  const protectedRoutes = ['/dashboard', '/dashboard/'];
   
   // Check if user is authenticated by looking for the auth token
   const isAuthenticated = !!request.cookies.get('auth_token')?.value;

@@ -76,15 +76,31 @@ export interface AssetAllocation {
 }
 
 export interface AllocationResponse {
+  // Snake case properties (from backend)
   asset_allocation: AssetAllocation[];
   sector_allocation: AssetAllocation[];
+  
+  // Camel case properties (after conversion)
+  assetAllocation?: AssetAllocation[];
+  sectorAllocation?: AssetAllocation[];
 }
 
 export interface HoldingInput {
   symbol: string;
-  quantity: number;
+  quantity?: number;
+  shares?: string;
   purchasePrice: number;
   purchaseDate: string;
+  assetClass?: string;
+}
+
+/**
+ * Holding interface for portfolio display
+ * Extends HoldingInput with required properties for UI rendering
+ */
+export interface Holding extends HoldingInput {
+  shares: string;
+  assetClass: string;
 }
 
 // Drift data types

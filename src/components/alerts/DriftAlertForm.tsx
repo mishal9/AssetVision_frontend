@@ -77,14 +77,14 @@ export function DriftAlertForm({
       isActive: initialData?.isActive ?? true,
       frequency: initialData?.frequency || AlertFrequency.IMMEDIATE,
       conditionType: initialData?.conditionType || ConditionType.DRIFT,
-      thresholdPercent: initialData?.conditionConfig?.thresholdPercent || 5,
+      thresholdPercent: initialData?.conditionConfig?.thresholdPercent ? Number(initialData.conditionConfig.thresholdPercent) : 5,
       driftType: (initialData?.conditionConfig?.driftType as 'absolute' | 'relative') || 'absolute',
       actionType: initialData?.actionType || ActionType.NOTIFICATION,
       sectorId: initialData?.conditionType === ConditionType.SECTOR_DRIFT 
-        ? initialData?.conditionConfig?.sectorId 
+        ? (initialData?.conditionConfig?.sectorId as string | undefined) 
         : undefined,
       assetClassId: initialData?.conditionType === ConditionType.ASSET_CLASS_DRIFT 
-        ? initialData?.conditionConfig?.assetClassId 
+        ? (initialData?.conditionConfig?.assetClassId as string | undefined) 
         : undefined,
     },
   });
