@@ -899,7 +899,7 @@ export default function DemoPage() {
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 text-center">
                   <div className="text-2xl font-light text-blue-600 mb-1">
-                    {Math.abs(driftAlerts.reduce((sum, alert) => sum + alert.dollarsOverweight, 0) / 1000)}K
+                    {Math.abs(driftAlerts.reduce((sum, alert) => sum + Math.abs(alert.dollarsOverweight), 0) / 1000)}K
                   </div>
                   <div className="text-sm text-blue-700 dark:text-blue-400">
                     Rebalance Amount
