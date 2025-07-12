@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import ClientOnly from "@/components/client-only";
 
 /**
  * Dashboard layout component
@@ -15,9 +16,13 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="relative flex flex-col min-h-screen">
-      <Header />
+      <ClientOnly>
+        <Header />
+      </ClientOnly>
       <div className="flex flex-1">
-        <Sidebar />
+        <ClientOnly>
+          <Sidebar />
+        </ClientOnly>
         <main className="flex-1 ml-16 transition-all duration-300">{children}</main>
       </div>
     </div>
