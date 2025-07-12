@@ -55,13 +55,6 @@ export function ConnectedAccountsPage() {
         </div>
 
         <Tabs defaultValue="accounts" className="w-full">
-          <TabsList className="grid w-full md:w-auto grid-cols-1 mb-6">
-            <TabsTrigger value="accounts" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              <span>Connected Accounts</span>
-            </TabsTrigger>
-          </TabsList>
-          
           <TabsContent value="accounts" className="mt-0">
             <div className="mb-4">
               <Card className="bg-muted/40 border-dashed">
