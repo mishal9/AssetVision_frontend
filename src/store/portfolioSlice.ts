@@ -204,8 +204,8 @@ export const portfolioSlice = createSlice({
         // Process the drift data to ensure all required fields exist
         const processedData: any = { ...action.payload };
         
-        // Ensure proper data structure for each category
-        ['asset_class', 'sector', 'overall'].forEach(category => {
+        // Ensure proper data structure for each category, including holdings
+        ['asset_class', 'sector', 'overall', 'holdings'].forEach(category => {
           if (processedData[category]) {
             // Make sure each item has both current and target allocations
             processedData[category].items = processedData[category].items.map((item: any) => ({

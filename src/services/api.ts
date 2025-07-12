@@ -90,10 +90,11 @@ export const portfolioApi = {
   /**
    * Get portfolio drift analysis
    * Compares current allocations to target allocations to identify portfolio drift
+   * Includes drift data for asset classes, sectors, overall portfolio, and individual holdings
    * @param portfolioId ID of the portfolio to analyze
    */
   getPortfolioDrift: () => 
-    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.DRIFT)
+    fetchWithAuth<any>(`${PORTFOLIO_ENDPOINTS.DRIFT}?include_holdings=true`)
       .then(response => convertSnakeToCamelCase<DriftResponse>(response)),
       
   /**

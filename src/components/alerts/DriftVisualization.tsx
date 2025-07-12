@@ -12,8 +12,7 @@ import {
   Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Label,
   PieChart, Pie, Sector, LineChart, Line, ReferenceLine
 } from 'recharts';
-// Import the existing mock data
-import { mockDriftData } from '../../mock/driftData';
+
 import { DriftResponse } from '@/types/portfolio';
 
 /**
@@ -53,7 +52,7 @@ interface DriftData {
 interface DriftVisualizationProps {
   data?: DriftData; // Made optional to allow default mock data
   thresholdPercent?: number;
-  type?: 'sector' | 'asset-class' | 'overall';
+  type?: 'sector' | 'asset-class' | 'overall' | 'holdings';
 }
 
 export const DriftVisualization: React.FC<DriftVisualizationProps> = ({

@@ -122,7 +122,8 @@ export interface DriftData {
 
 // Backend Drift Response
 export interface DriftResponse {
-  overall: DriftData;
-  asset_class: DriftData;
-  sector: DriftData | null;
+  overall?: DriftData;
+  asset_class?: DriftData;
+  sector?: DriftData | null;
+  holdings?: DriftData;
 }
