@@ -442,205 +442,235 @@ export default function DemoPage() {
 
         {/* Trade Execution Plan Modal */}
         {showTradeExecution && (
-          <Card className="bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  Trade Execution Plan
-                </CardTitle>
-                <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
-                  {tradeExecutionPlan.length} trades
-                </Badge>
-              </div>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Optimized sequence for implementing portfolio changes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              {/* Execution Summary */}
-              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-light text-blue-600 mb-1">
-                      {tradeExecutionPlan.filter(t => t.priority === 'high').length}
-                    </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
-                      High Priority
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-light text-blue-600 mb-1">
-                      ${tradeExecutionPlan.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
-                    </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
-                      Total Value
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-light text-blue-600 mb-1">
-                      7-14
-                    </div>
-                    <div className="text-sm text-blue-700 dark:text-blue-300">
-                      Days to Complete
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Trade List */}
-              <div className="space-y-4">
-                {tradeExecutionPlan.map((trade, index) => (
-                  <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                    <div className="flex items-start gap-4">
-                      
-                      {/* Order Number */}
-                      <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 flex items-center justify-center text-sm font-bold flex-shrink-0">
-                        {trade.order}
-                      </div>
-
-                      {/* Trade Details */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            {getActionIcon(trade.action)}
-                            <div>
-                              <div className="font-medium text-gray-900 dark:text-gray-100">
-                                {trade.action} {trade.asset}
-                              </div>
-                              <div className="text-sm text-gray-600 dark:text-gray-400">
-                                {trade.type} • ${trade.amount.toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                          <Badge className={`${getPriorityColor(trade.priority)} text-xs`}>
-                            {trade.priority} priority
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 mb-1">Account:</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
-                              <Building className="h-3 w-3" />
-                              {trade.account}
-                            </div>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 mb-1">Timing:</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              {trade.timing}
-                            </div>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 mb-1">Reason:</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
-                              {trade.reason}
-                            </div>
-                          </div>
-                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                            <div className="text-xs text-gray-500 mb-1">Tax Impact:</div>
-                            <div className="font-medium text-emerald-600">
-                              {trade.taxImpact}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Asset Location Summary */}
-              <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-700">
+          <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <Card className="bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700">
                 <CardHeader>
-                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <ArrowUpDown className="h-5 w-5 text-purple-600" />
-                    Asset Location Strategy
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-blue-600" />
+                      Trade Execution Plan
+                    </CardTitle>
+                    <div className="flex items-center gap-3">
+                      <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
+                        {tradeExecutionPlan.length} trades
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowTradeExecution(false)}
+                        className="text-gray-400 hover:text-gray-600"
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  </div>
                   <CardDescription className="text-gray-600 dark:text-gray-400">
-                    Optimizing tax efficiency across account types
+                    Optimized sequence for implementing portfolio changes
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Taxable Account
+                <CardContent className="space-y-6">
+                  
+                  {/* Execution Summary */}
+                  <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-light text-blue-600 mb-1">
+                          {tradeExecutionPlan.filter(t => t.priority === 'high').length}
+                        </div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300">
+                          High Priority
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• Tax-efficient index funds</div>
-                        <div>• Municipal bonds</div>
-                        <div>• Tax-managed funds</div>
+                      <div>
+                        <div className="text-2xl font-light text-blue-600 mb-1">
+                          ${tradeExecutionPlan.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300">
+                          Total Value
+                        </div>
                       </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        401(k) / Traditional IRA
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• High-yield bonds</div>
-                        <div>• Dividend stocks</div>
-                        <div>• Commodities</div>
-                      </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Roth IRA
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• High-growth stocks</div>
-                        <div>• International funds</div>
-                        <div>• REITs</div>
+                      <div>
+                        <div className="text-2xl font-light text-blue-600 mb-1">
+                          7-14
+                        </div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300">
+                          Days to Complete
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg p-4">
-                    <div className="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-1">
-                      Annual Tax Savings from Asset Location
-                    </div>
-                    <div className="text-2xl font-light text-emerald-600">
-                      $1,248
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
 
-              {/* Execution Timeline */}
-              <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Implementation Timeline
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+                  {/* Trade List */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">Days 1-2:</span> Execute tax-loss harvesting and high-priority rebalancing
+                    {tradeExecutionPlan.map((trade, index) => (
+                      <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                        <div className="flex items-start gap-4">
+                          
+                          {/* Order Number */}
+                          <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                            {trade.order}
+                          </div>
+
+                          {/* Trade Details */}
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                {getActionIcon(trade.action)}
+                                <div>
+                                  <div className="font-medium text-gray-900 dark:text-gray-100">
+                                    {trade.action} {trade.asset}
+                                  </div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {trade.type} • ${trade.amount.toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              <Badge className={`${getPriorityColor(trade.priority)} text-xs`}>
+                                {trade.priority} priority
+                              </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <div className="text-gray-500 dark:text-gray-400">Account:</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
+                                  <Building className="h-3 w-3" />
+                                  {trade.account}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-gray-500 dark:text-gray-400">Timing:</div>
+                                <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {trade.timing}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                              <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                Reason:
+                              </div>
+                              <div className="text-sm text-gray-900 dark:text-gray-100 mb-2">
+                                {trade.reason}
+                              </div>
+                              <div className="text-sm font-medium text-emerald-600">
+                                Tax Impact: {trade.taxImpact}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">Days 3-7:</span> Implement asset location moves and fund substitutions
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                      <div className="text-sm">
-                        <span className="font-medium">Days 8-14:</span> Complete remaining rebalancing and monitor settlement
-                      </div>
-                    </div>
+                    ))}
                   </div>
+
+                  {/* Asset Location Summary */}
+                  <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-700">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <ArrowUpDown className="h-5 w-5 text-purple-600" />
+                        Asset Location Strategy
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-400">
+                        Optimizing tax efficiency across account types
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                            Taxable Account
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                            <div>• Tax-efficient index funds</div>
+                            <div>• Municipal bonds</div>
+                            <div>• Tax-managed funds</div>
+                          </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                            401(k) / Traditional IRA
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                            <div>• High-yield bonds</div>
+                            <div>• Dividend stocks</div>
+                            <div>• Commodities</div>
+                          </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                            Roth IRA
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                            <div>• High-growth stocks</div>
+                            <div>• International funds</div>
+                            <div>• REITs</div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg p-4">
+                        <div className="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-1">
+                          Annual Tax Savings from Asset Location
+                        </div>
+                        <div className="text-2xl font-light text-emerald-600">
+                          $1,248
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Execution Timeline */}
+                  <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Implementation Timeline
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                          <div className="text-sm">
+                            <span className="font-medium">Days 1-2:</span> Execute tax-loss harvesting and high-priority rebalancing
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                          <div className="text-sm">
+                            <span className="font-medium">Days 3-7:</span> Implement asset location moves and fund substitutions
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                          <div className="text-sm">
+                            <span className="font-medium">Days 8-14:</span> Complete remaining rebalancing and monitor settlement
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end gap-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowTradeExecution(false)}
+                      className="px-6"
+                    >
+                      Review Later
+                    </Button>
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+                    >
+                      Execute Trades
+                    </Button>
+                  </div>
+
                 </CardContent>
               </Card>
-
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Clean Progress Indicator */}
