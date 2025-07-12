@@ -51,9 +51,8 @@ export default function DashboardPage() {
     const connectWebSocket = async () => {
       try {
         console.log('Connecting to WebSocket...');
-        // Get the access token from localStorage
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-        await socketService.connect(undefined, token || undefined);
+        // WebSocket authentication handled by backend via HTTP-only cookies
+        await socketService.connect();
       } catch (error) {
         console.error('Failed to connect to WebSocket:', error);
       }

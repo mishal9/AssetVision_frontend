@@ -188,7 +188,8 @@ export const authApi = {
         'Accept': 'application/json',
       },
       body: JSON.stringify({ username, password }),
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     })
       .then(response => response.json())
       .then(response => convertSnakeToCamelCase<AuthResponse>(response));
@@ -206,7 +207,8 @@ export const authApi = {
         'Accept': 'application/json',
       },
       body: JSON.stringify(userData),
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     })
       .then(response => response.json())
       .then(response => convertSnakeToCamelCase<AuthResponse>(response));
@@ -214,16 +216,17 @@ export const authApi = {
   
   /**
    * Refresh authentication token
+   * Note: Token refresh is now handled automatically by the backend via cookies
    */
-  refreshToken: (refreshToken: string) => {
+  refreshToken: () => {
     // Use centralized AUTH_ENDPOINTS configuration
     return fetch(AUTH_ENDPOINTS.REFRESH, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ refresh: refreshToken }),
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     })
       .then(response => response.json())
       .then(response => convertSnakeToCamelCase<any>(response));
@@ -240,7 +243,8 @@ export const authApi = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email }),
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     });
   },
     
@@ -248,17 +252,15 @@ export const authApi = {
    * Get current user information
    */
   getUserInfo: () => {
-    // Get token from localStorage
-    const token = localStorage.getItem('auth_token');
-    
+    // Authentication is handled via HTTP-only cookies
     // Use centralized AUTH_ENDPOINTS configuration
     return fetch(AUTH_ENDPOINTS.USER, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
       },
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     })
       .then(response => response.json())
       .then(response => convertSnakeToCamelCase<UserInfoResponse>(response));
@@ -268,17 +270,15 @@ export const authApi = {
    * Logout user
    */
   logout: () => {
-    // Get token from localStorage
-    const token = localStorage.getItem('auth_token');
-    
+    // Authentication is handled via HTTP-only cookies
     // Use centralized AUTH_ENDPOINTS configuration
     return fetch(AUTH_ENDPOINTS.LOGOUT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
       },
-      mode: 'cors' // Enable CORS
+      mode: 'cors', // Enable CORS
+      credentials: 'include' // Include HTTP-only cookies
     });
   },
 };

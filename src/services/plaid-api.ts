@@ -6,6 +6,7 @@
 import { fetchWithAuth } from './api-utils';
 import { HoldingInput } from '@/types/portfolio';
 import { PLAID_ENDPOINTS } from '@/config/api';
+import { authApi } from './api';
 
 // No mock data - API must provide real data
 
@@ -50,34 +51,17 @@ export const plaidApi = {
     // Only use provided userId if explicitly passed
     let authenticatedUserId = userId;
     
-    // If no userId provided, extract from JWT token
+    // If no userId provided, get user info from backend API
     if (!authenticatedUserId) {
       try {
-        // Get auth token from localStorage
-        const token = localStorage.getItem('auth_token');
+        // Get user info from backend (uses HTTP-only cookies)
+        const userInfo = await authApi.getUserInfo();
         
-        if (token) {
-          try {
-            // Define interface for decoded JWT payload
-            interface DecodedToken {
-              username?: string;
-              sub?: string;
-              userId?: string;
-              [key: string]: unknown;
-            }
-            
-            // Import jwt-decode v4 using the correct export pattern
-            const { jwtDecode } = await import('jwt-decode');
-            const decoded = jwtDecode<DecodedToken>(token);
-            
-            // Look for user ID in common JWT claim locations
-            authenticatedUserId = decoded.username || decoded.sub || decoded.userId as string;
-          } catch (decodeError) {
-            console.error('Failed to decode JWT token:', decodeError);
-          }
+        if (userInfo && userInfo.userId) {
+          authenticatedUserId = userInfo.userId.toString();
         }
       } catch (error) {
-        console.error('Error extracting user ID from JWT:', error);
+        console.error('Error getting user info from backend:', error);
       }
     }
     try {
@@ -159,20 +143,9 @@ export const plaidApi = {
         throw new Error('No connection ID received from server');
       }
       
-      // Retrieve existing connections or initialize empty object
-      const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-      
-      // Add new connection with institution ID as key
+      // Connection data is now stored on the backend
+      // No need for client-side caching with sessionStorage
       const institutionId = metadata?.institution?.id || 'unknown_institution';
-      existingConnections[institutionId] = {
-        connectionId: typedResponse.connection_id as string,
-        institutionName: metadata?.institution?.name || 'Unknown Institution',
-        accounts: metadata?.accounts || [],
-        lastUpdated: new Date().toISOString()
-      };
-      
-      // Save back to session storage
-      sessionStorage.setItem('plaid_connections', JSON.stringify(existingConnections));
       
       const result = { 
         success: true, 
@@ -199,19 +172,8 @@ export const plaidApi = {
   getInvestmentHoldings: async (connectionId?: string, institutionId?: string): Promise<HoldingInput[]> => {
     let connection_id = connectionId;
     
-    // If no connection ID provided, try to get it from session storage
-    if (!connection_id && institutionId) {
-      try {
-        // Use institutionId to get a specific connection
-        const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-        const institutionData = existingConnections[institutionId];
-        if (institutionData && institutionData.connectionId) {
-          connection_id = institutionData.connectionId;
-        }
-      } catch (error) {
-        console.error('Error getting connection ID from storage:', error);
-      }
-    }
+    // Connection ID must be provided or fetched from backend
+    // No client-side storage lookup needed
     
     if (!connection_id) {
       throw new Error('No connection ID available to fetch holdings');
@@ -358,20 +320,8 @@ export const plaidApi = {
         }
       }
       
-      // Get local accounts from session storage
-      const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-      const localAccounts = Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
-        id: data.connectionId,
-        institution_id: institutionId,
-        institution_name: data.institutionName,
-        accounts: data.accounts,
-        last_updated: data.lastUpdated,
-        status: 'active', // Assume active for session storage accounts
-        source: 'local' // Mark as local to differentiate
-      }));
-      
-      // Merge accounts (prefer backend accounts if they exist)
-      const mergedAccounts = [...localAccounts];
+      // Only use backend accounts - no client-side storage
+      const mergedAccounts = [...backendAccounts];
       
       // Define types for the account objects
       interface AccountData {
@@ -424,22 +374,9 @@ export const plaidApi = {
     } catch (error) {
       console.error('Error fetching linked accounts:', error);
       
-      // Fallback to local accounts if backend request fails
-      try {
-        const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-        return Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
-          id: data.connectionId,
-          institution_id: institutionId,
-          institution_name: data.institutionName,
-          accounts: data.accounts,
-          last_updated: data.lastUpdated,
-          status: 'active',
-          source: 'local'
-        }));
-      } catch (fallbackError) {
-        console.error('Error getting fallback accounts:', fallbackError);
-        return [];
-      }
+      // No fallback to client-side storage - return empty array
+      console.error('Backend request failed and no fallback available');
+      return [];
     }
   },
   

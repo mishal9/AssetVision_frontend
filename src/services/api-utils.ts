@@ -11,8 +11,8 @@ import { API_BASE_URL } from '@/config/api';
  * This function handles API requests to the backend server with automatic authentication.
  * It supports both relative paths (which are appended to API_BASE_URL) and absolute URLs.
  * 
- * Authentication is handled by automatically retrieving JWT tokens from cookies or localStorage
- * and adding them as Authorization Bearer headers to the request.
+ * Authentication is handled automatically via HTTP-only cookies sent with each request.
+ * No client-side token management is required.
  * 
  * @template T - The expected return type of the API call
  * @param {string} endpoint - The API endpoint to call (can be a relative path or full URL)
@@ -34,19 +34,12 @@ export async function fetchWithAuth<T>(
       : `${API_BASE_URL}/${endpoint}`
   );
   
-  // Get the JWT token from localStorage
-  let token;
-  
-  if (typeof localStorage !== 'undefined') {
-    token = localStorage.getItem('auth_token');
-  }
-  
-
+  // Authentication is handled via HTTP-only cookies
+  // No client-side token management needed
   
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
     ...options.headers,
   };
 
@@ -54,6 +47,7 @@ export async function fetchWithAuth<T>(
     ...options,
     headers,
     mode: 'cors', // Enable CORS for all requests
+    credentials: 'include', // Include HTTP-only cookies for authentication
   } as RequestInit;
 
   try {

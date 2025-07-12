@@ -3,17 +3,16 @@ import { AuthResponse, UserInfoResponse } from '../types/auth';
 
 /**
  * Authentication service for Asset Vision
- * Handles user authentication, token management, and session persistence
+ * Handles user authentication and session management via HTTP-only cookies
+ * All authentication tokens are managed server-side through secure cookies
  */
 class AuthService {
   private static instance: AuthService;
   private tokenRefreshTimer: NodeJS.Timeout | null = null;
 
   private constructor() {
-    // Initialize token refresh if tokens exist
-    if (typeof window !== 'undefined' && this.getToken()) {
-      this.setupTokenRefresh();
-    }
+    // Token refresh is handled automatically by the backend via cookies
+    // No client-side token management needed
   }
 
   static getInstance(): AuthService {
@@ -41,17 +40,13 @@ class AuthService {
    */
   async login(username: string, password: string): Promise<AuthResponse> {
     try {
+      console.log('🔐 Auth Service: Starting login process');
       const response = await authApi.login(username, password);
       
-      if (response.success && response.tokens) {
-        this.setTokens(
-          response.tokens.access, 
-          response.tokens.refresh, 
-          response.tokens.access_expires_in,
-          response.tokens.refresh_expires_in
-        );
-        this.setupTokenRefresh(response.tokens.access_expires_in);
-      }
+      console.log('🔐 Auth Service: Login response:', response);
+      
+      // Authentication tokens are now handled via HTTP-only cookies
+      // No client-side token storage needed
       
       return response;
     } catch (error: any) {
@@ -92,15 +87,8 @@ class AuthService {
     try {
       const response = await authApi.register({ username, email, password });
       
-      if (response.success && response.tokens) {
-        this.setTokens(
-          response.tokens.access, 
-          response.tokens.refresh,
-          response.tokens.access_expires_in,
-          response.tokens.refresh_expires_in
-        );
-        this.setupTokenRefresh(response.tokens.access_expires_in);
-      }
+      // Authentication tokens are now handled via HTTP-only cookies
+      // No client-side token storage needed
       
       return response;
     } catch (error) {
@@ -134,109 +122,62 @@ class AuthService {
   }
 
   /**
-   * Logout user and clear tokens from localStorage
+   * Logout user and clear authentication cookies
    */
   async logout(): Promise<void> {
     try {
-      // Call the backend logout endpoint
+      // Call the backend logout endpoint to clear HTTP-only cookies
       await authApi.logout();
     } catch (error) {
-
-      // Continue with local logout even if API call fails
+      // Continue with local cleanup even if API call fails
+      console.error('Logout API call failed:', error);
     } finally {
-      // Clear localStorage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('refresh_token');
-      
+      // Clear any refresh timers
       if (this.tokenRefreshTimer) {
         clearTimeout(this.tokenRefreshTimer);
         this.tokenRefreshTimer = null;
       }
       
-      // Clear Redux state
-      // Note: This requires importing the function in the module that uses this method
-      // to avoid circular dependencies
+      // Redirect to login page to ensure clean state
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
     }
   }
 
   /**
    * Check if user is authenticated
+   * Since tokens are in HTTP-only cookies, we need to make an API call to verify
    */
-  isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
-
-  /**
-   * Get the current authentication token
-   * Gets token from localStorage
-   */
-  getToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Get from localStorage
-    return localStorage.getItem('auth_token');
-  }
-
-  /**
-   * Get the refresh token
-   */
-  getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Get from localStorage
-    return localStorage.getItem('refresh_token');
-  }
-
-  /**
-   * Store authentication tokens in localStorage
-   */
-  private setTokens(
-    accessToken: string, 
-    refreshToken: string, 
-    accessExpiresIn: number = 1800, // 30 minutes in seconds
-    refreshExpiresIn: number = 604800 // 7 days in seconds
-  ): void {
-    // Store in localStorage
-    localStorage.setItem('auth_token', accessToken);
-    localStorage.setItem('refresh_token', refreshToken);
-  }
-
-  /**
-   * Set up automatic token refresh
-   * @param expiresInSeconds Token expiration time in seconds
-   */
-  private setupTokenRefresh(expiresInSeconds: number = 1800): void {
-    // Clear any existing timer
-    if (this.tokenRefreshTimer) {
-      clearTimeout(this.tokenRefreshTimer);
+  async isAuthenticated(): Promise<boolean> {
+    try {
+      console.log('🔍 Auth Service: Checking authentication status');
+      console.log('🔍 Auth Service: Calling getUserInfo...');
+      
+      const userInfo = await authApi.getUserInfo();
+      
+      console.log('🔍 Auth Service: getUserInfo response:', userInfo);
+      console.log('🔍 Auth Service: User authenticated successfully');
+      return true;
+    } catch (error: any) {
+      console.log('🔍 Auth Service: getUserInfo failed');
+      console.log('🔍 Auth Service: Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response,
+        stack: error.stack
+      });
+      return false;
     }
-
-    // Refresh token 5 minutes before expiration
-    const refreshTimeMs = (expiresInSeconds - 300) * 1000; // 5 minutes before expiration
-    
-    this.tokenRefreshTimer = setTimeout(async () => {
-      try {
-        const refreshToken = this.getRefreshToken();
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
-        
-        const response = await authApi.refreshToken(refreshToken);
-        
-        if (response.success) {
-          this.setTokens(
-            response.access, 
-            refreshToken, // Keep the same refresh token
-            response.access_expires_in
-          );
-          this.setupTokenRefresh(response.access_expires_in); // Set up the next refresh
-        }
-      } catch (error) {
-
-        this.logout(); // Force logout on refresh failure
-      }
-    }, refreshTimeMs);
   }
+
+  /**
+   * Token management is now handled entirely by HTTP-only cookies
+   * These methods are no longer needed as tokens are managed server-side
+   */
+  
+  // Note: Token refresh is handled automatically by the backend
+  // The server will refresh tokens and update cookies as needed
 }
 
 export const authService = AuthService.getInstance();

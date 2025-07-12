@@ -51,14 +51,34 @@ export function LoginForm({
         return
       }
 
+      console.log('📝 Login Form: Attempting login with:', { email });
+      
       // Call the authentication service to login
-      await authService.login(email, password)
+      const response = await authService.login(email, password)
       
-      // Fetch linked accounts after successful login
-      dispatch(fetchLinkedAccounts())
+      console.log('📝 Login Form: Login response received:', response);
       
-      // Redirect to dashboard on successful login
-      router.push('/')
+      // Debug: Check if cookies are accessible (HTTP-only cookies won't show here)
+      const allCookies = document.cookie;
+      console.log('📝 Login Form: All accessible cookies:', allCookies);
+      console.log('📝 Login Form: Note: HTTP-only cookies will not appear in document.cookie');
+      
+      if (response.success) {
+        console.log('📝 Login Form: Login successful, redirecting to dashboard');
+        
+        // Cookies are HTTP-only and set by the backend
+        // They will be available on the next request to the server
+        console.log('📝 Login Form: HTTP-only cookies have been set by backend');
+        
+        // Authentication state will be handled by middleware and backend
+        // No need to dispatch linked accounts here
+        
+        // Force a full page navigation to trigger middleware with cookies
+        window.location.href = '/dashboard';
+      } else {
+        console.log('📝 Login Form: Login failed:', response.message);
+        setError(response.message || 'Login failed. Please try again.')
+      }
     } catch (error: unknown) {
       // Use the enhanced error messages from the auth service if available
       if ((error as any).authErrorMessage) {

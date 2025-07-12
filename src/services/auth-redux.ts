@@ -9,19 +9,22 @@ import { clearUser, fetchUserInfo, setUser } from '@/store/userSlice';
 import { UserInfoResponse } from '../types/auth';
 
 /**
- * Initialize authentication state from stored tokens
+ * Initialize authentication state from HTTP-only cookies
  * Should be called when the application starts
  */
 export const initAuthState = async (): Promise<void> => {
-  if (authService.isAuthenticated()) {
-    try {
+  try {
+    // Check authentication status via API call (since tokens are in HTTP-only cookies)
+    const isAuthenticated = await authService.isAuthenticated();
+    
+    if (isAuthenticated) {
       // Dispatch the async thunk to fetch user info
       await store.dispatch(fetchUserInfo()).unwrap();
-    } catch (error) {
-      console.error('Failed to initialize auth state:', error);
-      // If fetching user info fails, clear authentication state
-      store.dispatch(clearUser());
     }
+  } catch (error) {
+    console.error('Failed to initialize auth state:', error);
+    // If authentication check or fetching user info fails, clear authentication state
+    store.dispatch(clearUser());
   }
 };
 

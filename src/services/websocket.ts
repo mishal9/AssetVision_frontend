@@ -24,10 +24,8 @@ export class WebSocketService {
 
   private constructor() {
     this.url = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/';
-    // Try to get token from localStorage if available
-    if (typeof window !== 'undefined') {
-      this.accessToken = localStorage.getItem('auth_token');
-    }
+    // Access token will be provided when connecting
+    // No localStorage dependency - use HTTP-only cookies for auth
   }
 
   static getInstance(): WebSocketService {
@@ -50,10 +48,9 @@ export class WebSocketService {
     // Update access token if provided
     if (accessToken) {
       this.accessToken = accessToken;
-    } else if (typeof window !== 'undefined' && !this.accessToken) {
-      // Try to get token from localStorage if not set
-      this.accessToken = localStorage.getItem('auth_token');
     }
+    // Note: WebSocket authentication should be handled by backend
+    // using HTTP-only cookies during the WebSocket handshake
     
     this.connectionPromise = new Promise((resolve, reject) => {
       this.resolveConnection = resolve;

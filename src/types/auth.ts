@@ -33,6 +33,7 @@ export interface AuthResponse {
     refresh_expires_in: number;
   };
   success?: boolean;
+  message?: string;  // For error messages
 }
 
 export interface LoginCredentials {

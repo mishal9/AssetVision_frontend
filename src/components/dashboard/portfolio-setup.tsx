@@ -168,14 +168,8 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
           </div>
           
           {/* Manual portfolio input removed. Only linking accounts is allowed. */}
-          {/* If user is not authenticated, prompt to log in to link accounts */}
-          {typeof window !== 'undefined' && !localStorage.getItem('auth_token') ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <h3 className="text-lg font-semibold mb-2">Sign in to link your accounts</h3>
-              <p className="text-sm text-muted-foreground mb-4">You must be logged in to link your investment accounts and view your portfolio.</p>
-              <Button onClick={() => router.push('/login')} variant="default" className="px-8 py-2 rounded-md">Login</Button>
-            </div>
-          ) : null}
+          {/* Authentication is now handled by middleware and backend cookies */}
+          {/* No need for client-side auth check here */}
         </CardContent>
       </Card>
     </div>

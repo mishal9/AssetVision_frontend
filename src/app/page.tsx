@@ -16,15 +16,24 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
-    // Check if user is authenticated
-    const isAuthenticated = authService.isAuthenticated();
+    // Check if user is authenticated via HTTP-only cookies
+    const checkAuth = async () => {
+      try {
+        const isAuthenticated = await authService.isAuthenticated();
+        
+        // Redirect authenticated users to dashboard
+        if (isAuthenticated) {
+          router.replace('/dashboard');
+        } else {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        // If auth check fails, assume not authenticated
+        setIsLoading(false);
+      }
+    };
     
-    // Redirect authenticated users to dashboard
-    if (isAuthenticated) {
-      router.replace('/dashboard');
-    } else {
-      setIsLoading(false);
-    }
+    checkAuth();
   }, [router]);
   
   if (isLoading) {
