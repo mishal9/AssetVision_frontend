@@ -48,7 +48,7 @@ export default function Home() {
             <div className="flex items-center justify-center gap-2">
               <Sparkles className="h-12 w-12 text-blue-600" />
               <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                AssetVision
+                AlphaOptimize
               </h1>
             </div>
             <p className="text-2xl text-muted-foreground max-w-2xl mx-auto">

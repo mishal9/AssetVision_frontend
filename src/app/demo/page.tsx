@@ -41,7 +41,7 @@ import {
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } from 'recharts';
 
 /**
- * AssetVision Demo - Minimalistic Design
+ * AlphaOptimize Demo - Minimalistic Design
  * Elegant color palette with clean, sophisticated aesthetics
  */
 export default function DemoPage() {
@@ -367,7 +367,7 @@ export default function DemoPage() {
         <div className="text-center space-y-8 py-16">
           <div className="space-y-4">
             <h1 className="text-6xl font-light text-gray-900 dark:text-gray-100 tracking-tight">
-              AssetVision
+              AlphaOptimize
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 font-light">
               Intelligent portfolio optimization
@@ -1453,7 +1453,7 @@ export default function DemoPage() {
                             We Don't Pick Stocks for You
                           </div>
                           <div className="text-sm text-purple-700 dark:text-purple-300 leading-relaxed">
-                            AssetVision focuses on portfolio allocation optimization, not individual security selection. 
+                            AlphaOptimize focuses on portfolio allocation optimization, not individual security selection. 
                             We work with your existing holdings to find the mathematically optimal weights that maximize 
                             your risk-adjusted returns while minimizing taxes.
                           </div>
@@ -1462,6 +1462,375 @@ export default function DemoPage() {
                     </CardContent>
                   </Card>
 
+                </CardContent>
+              </Card>
+
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Portfolio Tracking Section */}
+        {step >= 4 && (
+          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Continuous Portfolio Tracking
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Monitor your portfolio performance with real-time analytics and visualizations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Key Metrics Dashboard */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-blue-600 mb-1">
+                    10.1%
+                  </div>
+                  <div className="text-sm text-blue-700 dark:text-blue-400">
+                    Current Return
+                  </div>
+                </div>
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-green-600 mb-1">
+                    0.54
+                  </div>
+                  <div className="text-sm text-green-700 dark:text-green-400">
+                    Sharpe Ratio
+                  </div>
+                </div>
+                <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-purple-600 mb-1">
+                    14.2%
+                  </div>
+                  <div className="text-sm text-purple-700 dark:text-purple-400">
+                    Portfolio Risk
+                  </div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-amber-600 mb-1">
+                    2.1%
+                  </div>
+                  <div className="text-sm text-amber-700 dark:text-amber-400">
+                    Drift Alert
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                {/* Portfolio Performance Chart */}
+                <Card className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
+                      Portfolio Performance
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
+                      12-month performance vs benchmark
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={[
+                          { month: 'Jan', portfolio: 100, benchmark: 100 },
+                          { month: 'Feb', portfolio: 102, benchmark: 101 },
+                          { month: 'Mar', portfolio: 105, benchmark: 103 },
+                          { month: 'Apr', portfolio: 103, benchmark: 102 },
+                          { month: 'May', portfolio: 108, benchmark: 105 },
+                          { month: 'Jun', portfolio: 110, benchmark: 107 },
+                          { month: 'Jul', portfolio: 112, benchmark: 108 },
+                          { month: 'Aug', portfolio: 109, benchmark: 106 },
+                          { month: 'Sep', portfolio: 114, benchmark: 109 },
+                          { month: 'Oct', portfolio: 116, benchmark: 111 },
+                          { month: 'Nov', portfolio: 118, benchmark: 112 },
+                          { month: 'Dec', portfolio: 121, benchmark: 114 }
+                        ]}>
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                          <YAxis axisLine={false} tickLine={false} />
+                          <Tooltip />
+                          <Line 
+                            type="monotone" 
+                            dataKey="portfolio" 
+                            stroke="#059669" 
+                            strokeWidth={2}
+                            dot={false}
+                            name="Your Portfolio"
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="benchmark" 
+                            stroke="#6B7280" 
+                            strokeWidth={2}
+                            strokeDasharray="5 5"
+                            dot={false}
+                            name="Benchmark"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-0.5 bg-emerald-600"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Your Portfolio: +21%</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-0.5 bg-gray-400 border-dashed"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Benchmark: +14%</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Asset Allocation Drift Chart */}
+                <Card className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
+                      Allocation Drift Tracking
+                    </CardTitle>
+                    <CardDescription className="text-gray-600 dark:text-gray-400">
+                      Current vs target allocation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={[
+                          { asset: 'Large Cap', current: 45, target: 40, drift: 5 },
+                          { asset: 'Small Cap', current: 15, target: 20, drift: -5 },
+                          { asset: 'Intl', current: 20, target: 25, drift: -5 },
+                          { asset: 'Bonds', current: 15, target: 10, drift: 5 },
+                          { asset: 'Cash', current: 5, target: 5, drift: 0 }
+                        ]}>
+                          <XAxis dataKey="asset" axisLine={false} tickLine={false} />
+                          <YAxis axisLine={false} tickLine={false} />
+                          <Tooltip />
+                          <Bar dataKey="current" fill="#64748B" name="Current %" />
+                          <Bar dataKey="target" fill="#059669" name="Target %" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-slate-500 rounded"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Current Allocation</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-emerald-600 rounded"></div>
+                        <span className="text-gray-600 dark:text-gray-400">Target Allocation</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div>
+
+              {/* Risk Metrics */}
+              <Card className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-950/20 border-slate-200 dark:border-slate-700">
+                <CardHeader>
+                  <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
+                    Risk Analytics
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    Advanced risk metrics and portfolio analysis
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Value at Risk (VaR)
+                      </div>
+                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                        -$12,400
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        95% confidence, 1-month horizon
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Beta vs S&P 500
+                      </div>
+                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                        0.89
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Lower volatility than market
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Maximum Drawdown
+                      </div>
+                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                        -8.2%
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Largest peak-to-trough decline
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Tracking Features */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Real-time Monitoring */}
+                <Card className="bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-700">
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-emerald-600" />
+                      Real-time Monitoring
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Portfolio Value</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">$121,340</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Daily Change</span>
+                        <span className="font-medium text-emerald-600">+$2,150 (+1.8%)</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">Last Updated</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">2 minutes ago</span>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-emerald-200 dark:border-emerald-700">
+                      <div className="text-xs text-emerald-700 dark:text-emerald-400">
+                        ✓ Automatically synced with your brokerage accounts
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Smart Alerts */}
+                <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700">
+                  <CardHeader>
+                    <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-amber-600" />
+                      Smart Alerts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5"></div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Drift Alert
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            Large cap allocation 5% above target
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5"></div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Tax Opportunity
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            $3,200 in harvestable losses available
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                            Rebalance Due
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            Quarterly rebalancing recommended
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </div>
+
+              {/* Comprehensive Reporting */}
+              <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <PieChart className="h-4 w-4 text-gray-600" />
+                    Comprehensive Reporting
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    Detailed analytics and insights for informed decision-making
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Performance Attribution
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• Asset allocation impact</div>
+                        <div>• Security selection effect</div>
+                        <div>• Timing contributions</div>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Risk Decomposition
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• Factor exposure analysis</div>
+                        <div>• Correlation breakdowns</div>
+                        <div>• Stress test scenarios</div>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Tax Efficiency
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• After-tax returns</div>
+                        <div>• Tax-loss harvesting</div>
+                        <div>• Asset location analysis</div>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Benchmarking
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• Index comparisons</div>
+                        <div>• Peer group analysis</div>
+                        <div>• Risk-adjusted metrics</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+                        <Eye className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                          Always-On Portfolio Intelligence
+                        </div>
+                        <div className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                          AlphaOptimize continuously monitors your portfolio 24/7, providing real-time insights, 
+                          automated drift detection, and proactive optimization recommendations. Never miss an 
+                          opportunity to improve your portfolio's performance.
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 

@@ -46,7 +46,7 @@ import {
 /**
  * Portfolio Optimization Page
  * Interactive Monte-Carlo simulations with "what if?" scenarios
- * Key differentiator feature for AssetVision
+ * Key differentiator feature for AlphaOptimize
  */
 export default function OptimizePortfolioPage() {
   // Simulation parameters
@@ -404,7 +404,7 @@ export default function OptimizePortfolioPage() {
     
     // Create downloadable report
     const reportText = `
-AssetVision Portfolio Optimization Report
+AlphaOptimize Portfolio Optimization Report
 ========================================
 
 Strategy: ${reportData.strategy}
@@ -432,7 +432,7 @@ ${reportData.trades.map(trade =>
 ).join('\n')}
 
 DISCLAIMER:
-This report is for informational purposes only. AssetVision provides portfolio analysis and recommendations. You must execute trades through your preferred broker or financial advisor. Past performance does not guarantee future results.
+This report is for informational purposes only. AlphaOptimize provides portfolio analysis and recommendations. You must execute trades through your preferred broker or financial advisor. Past performance does not guarantee future results.
     `;
     
     // Download the report
@@ -440,7 +440,7 @@ This report is for informational purposes only. AssetVision provides portfolio a
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `AssetVision_${selectedStrategy.scenarioName}_Report_${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `AlphaOptimize_${selectedStrategy.scenarioName}_Report_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -1340,7 +1340,7 @@ This report is for informational purposes only. AssetVision provides portfolio a
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Important:</strong> AssetVision provides portfolio analysis and optimization recommendations only. 
+                  <strong>Important:</strong> AlphaOptimize provides portfolio analysis and optimization recommendations only. 
                   You'll need to execute these trades manually through your broker (Fidelity, Schwab, Vanguard, etc.) or financial advisor. 
                   The downloaded report includes all trade details for easy reference.
                   <br /><br />
