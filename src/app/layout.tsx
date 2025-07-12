@@ -7,7 +7,6 @@ import { ThemeProvider } from "@/providers/theme-provider";
 import { PlaidLinkProvider } from "@/context/PlaidLinkContext";
 import { cn } from "@/utils";
 import { Toaster } from "@/components/ui/sonner";
-import { AiChatProvider } from "@/components/ai-chat/ai-chat-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -35,7 +34,6 @@ export default function RootLayout({
             <PlaidLinkProvider>
               <Toaster position="top-right" />
               <main>{children}</main>
-              <AiChatProvider />
             </PlaidLinkProvider>
           </ThemeProvider>
         </ReduxProvider>
