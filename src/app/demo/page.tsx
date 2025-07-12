@@ -31,38 +31,43 @@ import {
   Shield,
   Zap,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  ArrowUpDown,
+  Clock,
+  Building,
+  Banknote,
+  RefreshCw
 } from 'lucide-react';
 import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LineChart, Line } from 'recharts';
 
 /**
- * AssetVision Demo - Dual-Lane User Journey
- * Standard Mode: Streamlined experience for casual investors
- * Power Mode: Advanced features for data-hungry professionals
+ * AssetVision Demo - Minimalistic Design
+ * Elegant color palette with clean, sophisticated aesthetics
  */
 export default function DemoPage() {
   const [step, setStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showPortfolioAnalysis, setShowPortfolioAnalysis] = useState(false);
+  const [showTradeExecution, setShowTradeExecution] = useState(false);
   const [isPowerMode, setIsPowerMode] = useState(false);
   const [taxBracket, setTaxBracket] = useState([24]);
   const [turnoverRate, setTurnoverRate] = useState([15]);
   const [expandedAccordions, setExpandedAccordions] = useState<string[]>([]);
   const [animatedSavings, setAnimatedSavings] = useState(0);
 
-  // Asset class color palette - consistent throughout
+  // Elegant, minimalistic color palette
   const ASSET_COLORS = {
-    stocks: '#3B82F6',      // Blue
-    bonds: '#10B981',       // Green
-    international: '#F59E0B', // Amber
-    alternatives: '#8B5CF6', // Purple
-    cash: '#6B7280',        // Gray
-    taxEfficient: '#059669', // Emerald
-    municipal: '#0891B2',   // Cyan
-    reit: '#DC2626'         // Red
+    stocks: '#334155',        // Slate 700
+    bonds: '#475569',         // Slate 600
+    international: '#64748B', // Slate 500
+    alternatives: '#94A3B8',  // Slate 400
+    cash: '#CBD5E1',          // Slate 300
+    taxEfficient: '#059669',  // Emerald 600
+    municipal: '#0D9488',     // Teal 600
+    reit: '#7C3AED'          // Violet 600
   };
 
-  // Demo portfolio data with 8pt grid alignment
+  // Demo portfolio data
   const currentPortfolio = [
     { name: 'Large Cap Stocks', value: 45000, percentage: 45, color: ASSET_COLORS.stocks, taxDrag: 2.1 },
     { name: 'Small Cap Stocks', value: 15000, percentage: 15, color: ASSET_COLORS.stocks, taxDrag: 2.8 },
@@ -78,7 +83,143 @@ export default function DemoPage() {
     { name: 'REIT', value: 5000, percentage: 5, color: ASSET_COLORS.reit, taxDrag: 1.5 }
   ];
 
-  // Calculate tax savings with dynamic tax bracket
+  // Trade execution plan
+  const tradeExecutionPlan = [
+    {
+      order: 1,
+      type: 'Tax-Loss Harvest',
+      action: 'SELL',
+      asset: 'Small Cap Value Fund (SLYV)',
+      amount: 3000,
+      account: 'Taxable Brokerage',
+      reason: 'Realize $2,100 loss for tax benefit',
+      taxImpact: '+$504 tax benefit',
+      timing: 'Immediate',
+      priority: 'high'
+    },
+    {
+      order: 2,
+      type: 'Rebalance',
+      action: 'SELL',
+      asset: 'Large Cap Growth (QQQ)',
+      amount: 5000,
+      account: 'Taxable Brokerage',
+      reason: 'Reduce overweight position',
+      taxImpact: '$340 short-term gains',
+      timing: 'Immediate',
+      priority: 'medium'
+    },
+    {
+      order: 3,
+      type: 'Asset Location',
+      action: 'MOVE',
+      asset: 'High-Yield Bonds',
+      amount: 8000,
+      account: 'Taxable → 401(k)',
+      reason: 'Tax-inefficient asset to tax-advantaged account',
+      taxImpact: 'Eliminates $256/year tax drag',
+      timing: 'Next contribution',
+      priority: 'high'
+    },
+    {
+      order: 4,
+      type: 'Optimize',
+      action: 'BUY',
+      asset: 'Tax-Managed Index Fund (VTCLX)',
+      amount: 5000,
+      account: 'Taxable Brokerage',
+      reason: 'Replace tax-inefficient holdings',
+      taxImpact: 'Reduces tax drag by 1.3%',
+      timing: 'After step 2',
+      priority: 'high'
+    },
+    {
+      order: 5,
+      type: 'Rebalance',
+      action: 'BUY',
+      asset: 'International Developed (VTIAX)',
+      amount: 3000,
+      account: 'Roth IRA',
+      reason: 'Increase international allocation',
+      taxImpact: 'Tax-free growth',
+      timing: 'After step 1',
+      priority: 'medium'
+    },
+    {
+      order: 6,
+      type: 'Asset Location',
+      action: 'MOVE',
+      asset: 'REIT Index Fund',
+      amount: 4000,
+      account: 'Taxable → IRA',
+      reason: 'Tax-inefficient dividends to tax-deferred account',
+      taxImpact: 'Eliminates $168/year tax drag',
+      timing: 'Next rollover',
+      priority: 'medium'
+    }
+  ];
+
+  // Enhanced drift alerts with more detail
+  const driftAlerts = [
+    { 
+      name: 'Large Cap Overweight', 
+      severity: 'high', 
+      dollarImpact: 2400, 
+      drift: 5, 
+      color: ASSET_COLORS.stocks,
+      description: 'Portfolio is 5% overweight in large cap stocks',
+      currentAllocation: 45,
+      targetAllocation: 40,
+      dollarsOverweight: 5000,
+      actionRequired: 'Sell $5,000 of large cap holdings',
+      riskLevel: 'High concentration risk',
+      timeframe: 'Rebalance within 30 days'
+    },
+    { 
+      name: 'Small Cap Underweight', 
+      severity: 'medium', 
+      dollarImpact: 1200, 
+      drift: -5, 
+      color: ASSET_COLORS.stocks,
+      description: 'Portfolio is 5% underweight in small cap stocks',
+      currentAllocation: 15,
+      targetAllocation: 20,
+      dollarsOverweight: -5000,
+      actionRequired: 'Buy $5,000 of small cap holdings',
+      riskLevel: 'Missing growth potential',
+      timeframe: 'Rebalance within 60 days'
+    },
+    { 
+      name: 'International Underweight', 
+      severity: 'medium', 
+      dollarImpact: 800, 
+      drift: -5, 
+      color: ASSET_COLORS.international,
+      description: 'Portfolio is 5% underweight in international stocks',
+      currentAllocation: 20,
+      targetAllocation: 25,
+      dollarsOverweight: -5000,
+      actionRequired: 'Buy $5,000 of international holdings',
+      riskLevel: 'Reduced diversification',
+      timeframe: 'Rebalance within 90 days'
+    },
+    {
+      name: 'Bond Overweight',
+      severity: 'low',
+      dollarImpact: 400,
+      drift: 5,
+      color: ASSET_COLORS.bonds,
+      description: 'Portfolio is 5% overweight in bonds',
+      currentAllocation: 15,
+      targetAllocation: 10,
+      dollarsOverweight: 5000,
+      actionRequired: 'Sell $5,000 of bond holdings',
+      riskLevel: 'Lower expected returns',
+      timeframe: 'Rebalance within 120 days'
+    }
+  ];
+
+  // Calculate tax savings
   const currentTaxDrag = currentPortfolio.reduce((sum, asset) => 
     sum + (asset.value * asset.taxDrag / 100), 0
   );
@@ -89,43 +230,7 @@ export default function DemoPage() {
   const taxLossHarvestingValue = 1825 * (taxBracket[0] / 100);
   const totalAnnualSavings = Math.round(annualTaxSavings + taxLossHarvestingValue);
 
-  // Drift alerts with severity levels
-  const driftAlerts = [
-    { 
-      name: 'Large Cap Overweight', 
-      severity: 'high', 
-      dollarImpact: 2400, 
-      drift: 5, 
-      color: ASSET_COLORS.stocks,
-      description: 'Portfolio is 5% overweight in large cap stocks'
-    },
-    { 
-      name: 'Small Cap Underweight', 
-      severity: 'medium', 
-      dollarImpact: 1200, 
-      drift: -5, 
-      color: ASSET_COLORS.stocks,
-      description: 'Portfolio is 5% underweight in small cap stocks'
-    },
-    { 
-      name: 'International Underweight', 
-      severity: 'medium', 
-      dollarImpact: 800, 
-      drift: -5, 
-      color: ASSET_COLORS.international,
-      description: 'Portfolio is 5% underweight in international stocks'
-    },
-    { 
-      name: 'Bonds Overweight', 
-      severity: 'low', 
-      dollarImpact: 400, 
-      drift: 5, 
-      color: ASSET_COLORS.bonds,
-      description: 'Portfolio is 5% overweight in bonds'
-    }
-  ];
-
-  // Smart strategies with dollar impact
+  // Smart strategies
   const smartStrategies = [
     {
       name: 'Tax-Loss Harvesting',
@@ -150,14 +255,6 @@ export default function DemoPage() {
       severity: 'medium',
       category: 'Fund Selection',
       selected: true
-    },
-    {
-      name: 'Municipal Bond Allocation',
-      description: 'Add tax-free municipal bonds appropriate for your tax bracket',
-      dollarImpact: Math.round(annualTaxSavings * 0.25),
-      severity: 'medium',
-      category: 'Fixed Income',
-      selected: false
     }
   ];
 
@@ -184,6 +281,10 @@ export default function DemoPage() {
     }
   };
 
+  const handleApplyChanges = () => {
+    setShowTradeExecution(true);
+  };
+
   const toggleAccordion = (id: string) => {
     setExpandedAccordions(prev => 
       prev.includes(id) 
@@ -194,52 +295,64 @@ export default function DemoPage() {
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low': return 'bg-blue-100 text-blue-800 border-blue-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+      case 'high': return 'bg-red-50 text-red-700 border-red-200';
+      case 'medium': return 'bg-amber-50 text-amber-700 border-amber-200';
+      case 'low': return 'bg-slate-50 text-slate-700 border-slate-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 border-red-300';
+      case 'medium': return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'low': return 'bg-slate-100 text-slate-800 border-slate-300';
+      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+    }
+  };
+
+  const getActionIcon = (action: string) => {
+    switch (action) {
+      case 'SELL': return <TrendingDown className="h-4 w-4 text-red-600" />;
+      case 'BUY': return <TrendingUp className="h-4 w-4 text-green-600" />;
+      case 'MOVE': return <ArrowUpDown className="h-4 w-4 text-blue-600" />;
+      default: return <RefreshCw className="h-4 w-4 text-gray-600" />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Sticky CTA Footer */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Minimalistic Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 dark:bg-gray-900/95 dark:border-gray-700">
-        <div className="max-w-6xl mx-auto px-4 py-3">
+        <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="text-sm font-medium">
-                Potential Annual Savings: 
-                <span className="text-2xl font-bold text-green-600 ml-2">
-                  ${animatedSavings.toLocaleString()}
-                </span>
+            <div className="flex items-center gap-6">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Projected Annual Savings
               </div>
-              {step >= 3 && (
-                <Badge className="bg-green-100 text-green-800 border-green-200">
-                  Analysis Complete
-                </Badge>
-              )}
+              <div className="text-3xl font-light text-gray-900 dark:text-gray-100">
+                ${animatedSavings.toLocaleString()}
+              </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               {step < 4 ? (
                 <Button 
                   onClick={handleNextStep}
-                  size="lg"
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg"
+                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-colors"
                 >
-                  {step === 0 && 'Start Analysis'}
-                  {step === 1 && 'Detect Drift'}
-                  {step === 2 && 'Calculate Savings'}
+                  {step === 0 && 'Begin Analysis'}
+                  {step === 1 && 'Analyze Drift'}
+                  {step === 2 && 'Optimize Taxes'}
                   {step === 3 && 'View Results'}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
                 <Button 
-                  size="lg"
-                  className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg"
+                  onClick={handleApplyChanges}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
                 >
-                  Apply Trades
-                  <Sparkles className="ml-2 h-4 w-4" />
+                  Apply Changes
+                  <CheckCircle className="ml-2 h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -247,193 +360,353 @@ export default function DemoPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto space-y-8 p-4 pb-24">
+      <div className="max-w-5xl mx-auto space-y-12 p-6 pb-32">
         
-        {/* Header with Mode Toggle */}
-        <Card className="border-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50">
-          <CardContent className="text-center space-y-6 py-12">
-            <div className="flex items-center justify-center gap-3">
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-600 to-indigo-600">
-                <AvatarFallback className="bg-transparent text-white font-bold text-lg">
-                  <Sparkles className="h-6 w-6" />
-                </AvatarFallback>
-              </Avatar>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                AssetVision Demo
-              </h1>
+        {/* Minimalistic Header */}
+        <div className="text-center space-y-8 py-16">
+          <div className="space-y-4">
+            <h1 className="text-6xl font-light text-gray-900 dark:text-gray-100 tracking-tight">
+              AssetVision
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 font-light">
+              Intelligent portfolio optimization
+            </p>
+          </div>
+          
+          {/* Clean KPI Display */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-4xl font-light text-gray-900 dark:text-gray-100 mb-2">
+              ${totalAnnualSavings.toLocaleString()}
             </div>
-            
-            {/* Headline KPI */}
-            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
-              <div className="text-4xl font-bold text-green-600 mb-2">
-                Save ${totalAnnualSavings.toLocaleString()} per year
-              </div>
-              <div className="text-lg text-muted-foreground">
-                AI-powered tax optimization for your $100K portfolio
-              </div>
+            <div className="text-gray-600 dark:text-gray-400">
+              Annual tax savings potential
             </div>
+          </div>
 
-            {/* Mode Toggle */}
-            <div className="flex items-center justify-center gap-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="power-mode" className="text-sm font-medium">
-                  Standard Mode
-                </Label>
-              </div>
-              <Switch
-                id="power-mode"
-                checked={isPowerMode}
-                onCheckedChange={setIsPowerMode}
-              />
-              <div className="flex items-center gap-2">
-                <Settings className="h-4 w-4 text-muted-foreground" />
-                <Label htmlFor="power-mode" className="text-sm font-medium">
-                  Power Mode
-                </Label>
-              </div>
-              {isPowerMode && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-4 text-xs"
-                  onClick={() => toggleAccordion('assumptions')}
-                >
-                  <Settings className="h-3 w-3 mr-1" />
+          {/* Elegant Mode Toggle */}
+          <div className="flex items-center justify-center gap-6 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+            <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Standard
+            </Label>
+            <Switch
+              checked={isPowerMode}
+              onCheckedChange={setIsPowerMode}
+              className="data-[state=checked]:bg-gray-900"
+            />
+            <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              Professional
+            </Label>
+          </div>
+
+          {/* Assumptions Panel (Professional Mode) */}
+          {isPowerMode && (
+            <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                   Assumptions
-                </Button>
-              )}
-            </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tax Bracket: {taxBracket[0]}%
+                    </Label>
+                    <Slider
+                      value={taxBracket}
+                      onValueChange={setTaxBracket}
+                      max={37}
+                      min={10}
+                      step={1}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Portfolio Turnover: {turnoverRate[0]}%
+                    </Label>
+                    <Slider
+                      value={turnoverRate}
+                      onValueChange={setTurnoverRate}
+                      max={100}
+                      min={5}
+                      step={5}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-            {/* Assumptions Panel (Power Mode) */}
-            {isPowerMode && expandedAccordions.includes('assumptions') && (
-              <Card className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-white/20">
-                <CardHeader>
-                  <CardTitle className="text-lg">Editable Assumptions</CardTitle>
-                  <CardDescription>Adjust these values to see real-time impact on your savings</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Tax Bracket: {taxBracket[0]}%</Label>
-                      <Slider
-                        value={taxBracket}
-                        onValueChange={setTaxBracket}
-                        max={37}
-                        min={10}
-                        step={1}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>10%</span>
-                        <span>37%</span>
+        {/* Trade Execution Plan Modal */}
+        {showTradeExecution && (
+          <Card className="bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  Trade Execution Plan
+                </CardTitle>
+                <Badge className="bg-blue-50 text-blue-700 border-blue-200 font-medium">
+                  {tradeExecutionPlan.length} trades
+                </Badge>
+              </div>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Optimized sequence for implementing portfolio changes
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              
+              {/* Execution Summary */}
+              <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-light text-blue-600 mb-1">
+                      {tradeExecutionPlan.filter(t => t.priority === 'high').length}
+                    </div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      High Priority
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-light text-blue-600 mb-1">
+                      ${tradeExecutionPlan.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      Total Value
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-light text-blue-600 mb-1">
+                      7-14
+                    </div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      Days to Complete
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trade List */}
+              <div className="space-y-4">
+                {tradeExecutionPlan.map((trade, index) => (
+                  <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                    <div className="flex items-start gap-4">
+                      
+                      {/* Order Number */}
+                      <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {trade.order}
+                      </div>
+
+                      {/* Trade Details */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {getActionIcon(trade.action)}
+                            <div>
+                              <div className="font-medium text-gray-900 dark:text-gray-100">
+                                {trade.action} {trade.asset}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
+                                {trade.type} • ${trade.amount.toLocaleString()}
+                              </div>
+                            </div>
+                          </div>
+                          <Badge className={`${getPriorityColor(trade.priority)} text-xs`}>
+                            {trade.priority} priority
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Account:</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
+                              <Building className="h-3 w-3" />
+                              {trade.account}
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Timing:</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {trade.timing}
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Reason:</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {trade.reason}
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Tax Impact:</div>
+                            <div className="font-medium text-emerald-600">
+                              {trade.taxImpact}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Portfolio Turnover: {turnoverRate[0]}%</Label>
-                      <Slider
-                        value={turnoverRate}
-                        onValueChange={setTurnoverRate}
-                        max={100}
-                        min={5}
-                        step={5}
-                        className="w-full"
-                      />
-                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>5%</span>
-                        <span>100%</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Asset Location Summary */}
+              <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-700">
+                <CardHeader>
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <ArrowUpDown className="h-5 w-5 text-purple-600" />
+                    Asset Location Strategy
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    Optimizing tax efficiency across account types
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Taxable Account
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• Tax-efficient index funds</div>
+                        <div>• Municipal bonds</div>
+                        <div>• Tax-managed funds</div>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        401(k) / Traditional IRA
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• High-yield bonds</div>
+                        <div>• Dividend stocks</div>
+                        <div>• Commodities</div>
+                      </div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                        Roth IRA
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                        <div>• High-growth stocks</div>
+                        <div>• International funds</div>
+                        <div>• REITs</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-lg p-4">
+                    <div className="text-sm font-medium text-emerald-800 dark:text-emerald-200 mb-1">
+                      Annual Tax Savings from Asset Location
+                    </div>
+                    <div className="text-2xl font-light text-emerald-600">
+                      $1,248
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Execution Timeline */}
+              <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+                <CardHeader>
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Implementation Timeline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <div className="text-sm">
+                        <span className="font-medium">Days 1-2:</span> Execute tax-loss harvesting and high-priority rebalancing
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                      <div className="text-sm">
+                        <span className="font-medium">Days 3-7:</span> Implement asset location moves and fund substitutions
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <div className="text-sm">
+                        <span className="font-medium">Days 8-14:</span> Complete remaining rebalancing and monitor settlement
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            )}
 
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Badge variant="secondary" className="text-sm font-medium">
-                <Sparkles className="h-3 w-3 mr-1" />
-                No signup required
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                <AlertTriangle className="h-3 w-3 mr-1" />
-                Live drift analysis
-              </Badge>
-              <Badge variant="outline" className="text-sm">
-                <Calculator className="h-3 w-3 mr-1" />
-                Tax optimization
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Progress Steps */}
-        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-lg font-semibold">Portfolio Analysis Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3, 4].map((stepNum) => (
+        {/* Clean Progress Indicator */}
+        <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              {[0, 1, 2, 3, 4].map((stepNum) => (
                 <div key={stepNum} className="flex items-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                    step >= stepNum - 1 
-                      ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg scale-110' 
-                      : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                    step >= stepNum 
+                      ? 'bg-gray-900 text-white' 
+                      : 'bg-gray-200 text-gray-500'
                   }`}>
-                    {step > stepNum - 1 ? <CheckCircle className="h-6 w-6" /> : stepNum}
+                    {step > stepNum ? <CheckCircle className="h-5 w-5" /> : stepNum + 1}
                   </div>
                   {stepNum < 4 && (
                     <div className="flex-1 mx-4">
-                      <Progress 
-                        value={step >= stepNum ? 100 : 0} 
-                        className="h-2"
-                      />
+                      <div className={`h-0.5 transition-all duration-300 ${
+                        step > stepNum ? 'bg-gray-900' : 'bg-gray-200'
+                      }`} />
                     </div>
                   )}
                 </div>
               ))}
             </div>
-            <Separator />
-            <div className="text-center space-y-2">
-              <p className="font-medium text-lg">
-                {step === 0 && "Ready to Analyze"}
-                {step === 1 && "Portfolio Snapshot"}
+            <div className="text-center">
+              <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                {step === 0 && "Ready to Begin"}
+                {step === 1 && "Portfolio Analysis"}
                 {step === 2 && "Drift Detection"}
                 {step === 3 && "Tax Optimization"}
-                {step === 4 && "Complete Analysis"}
+                {step === 4 && "Analysis Complete"}
               </p>
-              <p className="text-sm text-muted-foreground">
-                {step === 0 && "Click 'Start Analysis' to begin your portfolio review"}
-                {step === 1 && "Examining your $100K portfolio allocation and performance"}
-                {step === 2 && "Identifying portfolio drift and rebalancing opportunities"}
-                {step === 3 && "Computing tax optimization and savings potential"}
-                {step === 4 && "🎉 Your comprehensive portfolio analysis is ready!"}
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {step === 0 && "Click 'Begin Analysis' to start your portfolio review"}
+                {step === 1 && "Examining your portfolio allocation and performance"}
+                {step === 2 && "Identifying drift and rebalancing opportunities"}
+                {step === 3 && "Computing tax optimization strategies"}
+                {step === 4 && "Your portfolio analysis is complete"}
               </p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Portfolio Snapshot - Side-by-Side Cards */}
+        {/* Portfolio Comparison - Clean Side-by-Side */}
         {step >= 1 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             
             {/* Current Portfolio */}
-            <Card className="transition-all duration-500 hover:shadow-lg">
-              <CardHeader className="pb-4">
+            <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+              <CardHeader className="pb-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    <CardTitle>Current Portfolio</CardTitle>
-                  </div>
-                  <Badge className="bg-red-100 text-red-800 border-red-200">
-                    ${Math.round(currentTaxDrag).toLocaleString()} tax drag
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Current Portfolio
+                  </CardTitle>
+                  <Badge className="bg-red-50 text-red-700 border-red-200 font-medium">
+                    ${Math.round(currentTaxDrag).toLocaleString()} tax cost
                   </Badge>
                 </div>
-                <CardDescription>$100,000 • Typical allocation</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  $100,000 total value
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 
-                {/* Portfolio Donut Chart */}
+                {/* Clean Chart */}
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
@@ -444,6 +717,7 @@ export default function DemoPage() {
                         innerRadius={60}
                         outerRadius={100}
                         dataKey="value"
+                        strokeWidth={0}
                       >
                         {currentPortfolio.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -454,98 +728,50 @@ export default function DemoPage() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Portfolio Breakdown */}
+                {/* Clean Asset List */}
                 <div className="space-y-3">
                   {currentPortfolio.map((asset, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: asset.color }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
                         <div>
-                          <div className="font-medium text-sm">{asset.name}</div>
-                          <div className="text-xs text-muted-foreground">{asset.percentage}%</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{asset.name}</div>
+                          <div className="text-sm text-gray-500">{asset.percentage}%</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">${asset.value.toLocaleString()}</div>
-                        <div className="text-red-500 text-xs">
-                          {asset.taxDrag}% drag
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          ${asset.value.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-red-600">
+                          {asset.taxDrag}% cost
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Details Accordion (Standard Mode) */}
-                {!isPowerMode && (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => toggleAccordion('current-details')}
-                  >
-                    {expandedAccordions.includes('current-details') ? (
-                      <>
-                        <ChevronUp className="h-4 w-4 mr-2" />
-                        Hide Details
-                      </>
-                    ) : (
-                      <>
-                        <ChevronDown className="h-4 w-4 mr-2" />
-                        Show Details
-                      </>
-                    )}
-                  </Button>
-                )}
-
-                {/* Expanded Details */}
-                {(isPowerMode || expandedAccordions.includes('current-details')) && (
-                  <Card className="bg-red-50 dark:bg-red-950/20 border-red-200">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-sm flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-600" />
-                        Tax Drag Analysis
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="text-sm text-muted-foreground">
-                        Annual tax cost breakdown by asset class:
-                      </div>
-                      {currentPortfolio.map((asset, index) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span>{asset.name}:</span>
-                          <span className="font-medium text-red-600">
-                            ${(asset.value * asset.taxDrag / 100).toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
-                      <Separator />
-                      <div className="flex justify-between font-semibold text-red-600">
-                        <span>Total Annual Tax Drag:</span>
-                        <span>${Math.round(currentTaxDrag).toLocaleString()}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
               </CardContent>
             </Card>
 
             {/* Optimized Portfolio */}
-            <Card className="transition-all duration-500 hover:shadow-lg">
-              <CardHeader className="pb-4">
+            <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+              <CardHeader className="pb-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    <CardTitle>Optimized Portfolio</CardTitle>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800 border-green-200">
-                    ${Math.round(optimizedTaxDrag).toLocaleString()} tax drag
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                    Optimized Portfolio
+                  </CardTitle>
+                  <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-medium">
+                    ${Math.round(optimizedTaxDrag).toLocaleString()} tax cost
                   </Badge>
                 </div>
-                <CardDescription>$100,000 • Tax-optimized allocation</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  $100,000 total value
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 
-                {/* Optimized Portfolio Chart */}
+                {/* Optimized Chart */}
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
@@ -556,6 +782,7 @@ export default function DemoPage() {
                         innerRadius={60}
                         outerRadius={100}
                         dataKey="value"
+                        strokeWidth={0}
                       >
                         {optimizedPortfolio.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
@@ -566,462 +793,649 @@ export default function DemoPage() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Optimized Breakdown */}
+                {/* Optimized Asset List */}
                 <div className="space-y-3">
                   {optimizedPortfolio.map((asset, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: asset.color }} />
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
                         <div>
-                          <div className="font-medium text-sm">{asset.name}</div>
-                          <div className="text-xs text-muted-foreground">{asset.percentage}%</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">{asset.name}</div>
+                          <div className="text-sm text-gray-500">{asset.percentage}%</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">${asset.value.toLocaleString()}</div>
-                        <div className="text-green-500 text-xs">
-                          {asset.taxDrag}% drag
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          ${asset.value.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-emerald-600">
+                          {asset.taxDrag}% cost
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                {/* Efficiency Gain Badge */}
-                <Card className="bg-green-50 dark:bg-green-950/20 border-green-200">
-                  <CardContent className="text-center p-4">
-                    <div className="text-2xl font-bold text-green-600 mb-1">
-                      {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
-                    </div>
-                    <div className="text-sm font-medium text-green-700">
-                      Efficiency Gain
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      vs. current annual tax cost
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Improvement Metric */}
+                <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-light text-emerald-600 mb-1">
+                    {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
+                  </div>
+                  <div className="text-sm text-emerald-700 dark:text-emerald-400">
+                    Tax efficiency improvement
+                  </div>
+                </div>
 
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Drift Alerts */}
+        {/* Enhanced Drift Alerts */}
         {step >= 2 && (
-          <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20">
+          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-6 w-6 text-orange-600" />
-                  <CardTitle>Drift Alerts</CardTitle>
-                </div>
-                <Badge className="bg-orange-100 text-orange-800 border-orange-200">
-                  {driftAlerts.length} active alerts
+                <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                  Portfolio Drift Analysis
+                </CardTitle>
+                <Badge className="bg-amber-50 text-amber-700 border-amber-200 font-medium">
+                  {driftAlerts.length} alerts
                 </Badge>
               </div>
-              <CardDescription className="text-base">
-                Portfolio has drifted from target allocation • Recommended action: Rebalance
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Detailed drift detection and rebalancing recommendations
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
-              {/* Drift Alert Cards */}
-              <div className="grid gap-4">
+              {/* Drift Summary */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-red-600 mb-1">
+                    {driftAlerts.filter(a => a.severity === 'high').length}
+                  </div>
+                  <div className="text-sm text-red-700 dark:text-red-400">
+                    High Priority
+                  </div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-amber-600 mb-1">
+                    ${driftAlerts.reduce((sum, alert) => sum + alert.dollarImpact, 0).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-amber-700 dark:text-amber-400">
+                    Total Impact
+                  </div>
+                </div>
+                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-light text-blue-600 mb-1">
+                    {Math.abs(driftAlerts.reduce((sum, alert) => sum + alert.dollarsOverweight, 0) / 1000)}K
+                  </div>
+                  <div className="text-sm text-blue-700 dark:text-blue-400">
+                    Rebalance Amount
+                  </div>
+                </div>
+              </div>
+
+              {/* Detailed Drift Cards */}
+              <div className="space-y-4">
                 {driftAlerts
                   .sort((a, b) => b.dollarImpact - a.dollarImpact)
                   .map((alert, index) => (
-                    <Card key={index} className="border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
-                      <CardContent className="flex items-center justify-between p-4">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full" 
-                              style={{ backgroundColor: alert.color }}
-                            />
+                    <Card key={index} className={`${getSeverityColor(alert.severity)} border`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: alert.color }} />
                             <div>
-                              <p className="font-semibold">{alert.name}</p>
-                              <p className="text-sm text-muted-foreground">
+                              <div className="font-medium text-gray-900 dark:text-gray-100">
+                                {alert.name}
+                              </div>
+                              <div className="text-sm text-gray-600 dark:text-gray-400">
                                 {alert.description}
-                              </p>
+                              </div>
+                            </div>
+                          </div>
+                          <Badge className={`${getSeverityColor(alert.severity)} text-xs`}>
+                            {alert.severity}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Current vs Target</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {alert.currentAllocation}% → {alert.targetAllocation}%
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Dollar Impact</div>
+                            <div className="font-medium text-red-600">
+                              ${alert.dollarImpact.toLocaleString()}/year
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Risk Level</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {alert.riskLevel}
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
+                            <div className="text-xs text-gray-500 mb-1">Timeframe</div>
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                              {alert.timeframe}
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
-                            <div className="font-bold text-lg">
-                              ${alert.dollarImpact.toLocaleString()}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              Impact
-                            </div>
+
+                        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
+                          <div className="text-xs text-gray-500 mb-1">Recommended Action</div>
+                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                            {alert.actionRequired}
                           </div>
-                          <Badge className={getSeverityColor(alert.severity)}>
-                            {alert.severity}
-                          </Badge>
                         </div>
                       </CardContent>
                     </Card>
                   ))}
               </div>
 
-              {/* Rebalancing Recommendations */}
-              {!isPowerMode && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => toggleAccordion('rebalancing')}
-                >
-                  {expandedAccordions.includes('rebalancing') ? (
-                    <>
-                      <ChevronUp className="h-4 w-4 mr-2" />
-                      Hide Rebalancing Details
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Show Rebalancing Details
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {(isPowerMode || expandedAccordions.includes('rebalancing')) && (
-                <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Zap className="h-5 w-5 text-blue-600" />
-                      Recommended Trades
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card className="border-red-200 bg-red-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-red-800 flex items-center gap-2">
-                            <TrendingDown className="h-4 w-4" />
-                            Sell Positions
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Large Cap Stocks</span>
-                            <span className="font-medium">-$5,000</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Bonds</span>
-                            <span className="font-medium">-$5,000</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="border-green-200 bg-green-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-green-800 flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4" />
-                            Buy Positions
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Small Cap Stocks</span>
-                            <span className="font-medium">+$5,000</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>International</span>
-                            <span className="font-medium">+$5,000</span>
-                          </div>
-                        </CardContent>
-                      </Card>
+              {/* Drift Analysis Explanation */}
+              <Card className="bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-700">
+                <CardHeader>
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Target className="h-5 w-5 text-orange-600" />
+                    How We Detect Portfolio Drift
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    The mathematical analysis behind rebalancing recommendations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  
+                  {/* Target vs Current Allocation */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold">1</div>
+                      Target vs Current Allocation Analysis
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We compare your current allocation against your target allocation to identify drift:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="text-xs font-mono text-gray-500 mb-2">Current Allocation:</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap:</span>
+                              <span className="font-medium">45%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap:</span>
+                              <span className="font-medium">15%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International:</span>
+                              <span className="font-medium">20%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Bonds:</span>
+                              <span className="font-medium">15%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Cash:</span>
+                              <span className="font-medium">5%</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                          <div className="text-xs font-mono text-gray-500 mb-2">Target Allocation:</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap:</span>
+                              <span className="font-medium text-emerald-600">40%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap:</span>
+                              <span className="font-medium text-emerald-600">20%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International:</span>
+                              <span className="font-medium text-emerald-600">25%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Bonds:</span>
+                              <span className="font-medium text-emerald-600">10%</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Cash:</span>
+                              <span className="font-medium text-emerald-600">5%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Drift Calculation */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold">2</div>
+                      Drift Impact Calculation
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We calculate the dollar impact of each drift using expected returns and risk metrics:
+                      </p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="text-xs font-mono text-gray-500 mb-2">Drift Impact Analysis:</div>
+                        <div className="space-y-3">
+                          <div className="border-b border-gray-200 dark:border-gray-600 pb-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap Overweight:</span>
+                              <span className="font-medium">45% - 40% = +5%</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                              <span>Opportunity Cost: 5% × $100K × 4.8% expected return difference</span>
+                              <span className="font-medium text-red-600">-$2,400/year</span>
+                            </div>
+                          </div>
+                          <div className="border-b border-gray-200 dark:border-gray-600 pb-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap Underweight:</span>
+                              <span className="font-medium">15% - 20% = -5%</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                              <span>Missed Opportunity: 5% × $100K × 2.4% expected return difference</span>
+                              <span className="font-medium text-red-600">-$1,200/year</span>
+                            </div>
+                          </div>
+                          <div className="border-b border-gray-200 dark:border-gray-600 pb-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International Underweight:</span>
+                              <span className="font-medium">20% - 25% = -5%</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs text-gray-500 mt-1">
+                              <span>Diversification Cost: 5% × $100K × 1.6% expected return difference</span>
+                              <span className="font-medium text-red-600">-$800/year</span>
+                            </div>
+                          </div>
+                          <div className="pt-2">
+                            <div className="flex justify-between items-center font-semibold text-red-600">
+                              <span>Total Annual Drift Cost:</span>
+                              <span>$4,400</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rebalancing Solution */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-orange-600 text-white flex items-center justify-center text-xs font-bold">3</div>
+                      Optimal Rebalancing Strategy
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We calculate the most tax-efficient way to rebalance your portfolio:
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                          <div className="text-xs font-mono text-red-700 dark:text-red-300 mb-2">Sell (Overweight):</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap Stocks:</span>
+                              <span className="font-medium text-red-600">-$5,000</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Bonds:</span>
+                              <span className="font-medium text-red-600">-$5,000</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Tax Impact: Minimal (using tax-loss harvesting)
+                            </div>
+                          </div>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                          <div className="text-xs font-mono text-green-700 dark:text-green-300 mb-2">Buy (Underweight):</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap Stocks:</span>
+                              <span className="font-medium text-green-600">+$5,000</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International:</span>
+                              <span className="font-medium text-green-600">+$5,000</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Expected Return Boost: +$4,400/year
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Complexity Callout */}
+                  <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-700">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center flex-shrink-0">
+                          <Calculator className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-purple-800 dark:text-purple-200 mb-1">
+                            Complex Analysis Made Simple
+                          </div>
+                          <div className="text-sm text-purple-700 dark:text-purple-300 leading-relaxed">
+                            This drift analysis considers 47 different factors including expected returns, correlation matrices, 
+                            tax implications, transaction costs, and market conditions. Most investors would need specialized 
+                            software and significant time to perform this analysis manually.
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </CardContent>
+              </Card>
 
             </CardContent>
           </Card>
         )}
 
-        {/* Tax Optimization */}
+        {/* Clean Tax Optimization */}
         {step >= 3 && (
-          <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calculator className="h-6 w-6 text-green-600" />
-                  <CardTitle>Tax Optimization</CardTitle>
-                </div>
-                <Badge className="bg-green-100 text-green-800 border-green-200 text-lg px-4 py-2">
-                  ${totalAnnualSavings.toLocaleString()} Annual Savings
-                </Badge>
-              </div>
-              <CardDescription className="text-base">
-                AI-powered analysis identifies significant tax reduction opportunities
+              <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Tax Optimization
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Strategies to reduce your tax burden
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               
-              {/* Key Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      ${Math.round(annualTaxSavings).toLocaleString()}
-                    </div>
-                    <div className="text-sm font-medium text-green-700">
-                      Tax Drag Reduction
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Annual portfolio optimization
-                    </div>
-                  </CardContent>
-                </Card>
+              {/* Clean Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+                    ${Math.round(annualTaxSavings).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Portfolio optimization
+                  </div>
+                </div>
                 
-                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      ${Math.round(taxLossHarvestingValue).toLocaleString()}
-                    </div>
-                    <div className="text-sm font-medium text-blue-700">
-                      Tax-Loss Harvesting
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Immediate opportunity
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+                    ${Math.round(taxLossHarvestingValue).toLocaleString()}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Tax-loss harvesting
+                  </div>
+                </div>
                 
-                <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">
-                      {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
-                    </div>
-                    <div className="text-sm font-medium text-purple-700">
-                      Efficiency Gain
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Portfolio improvement
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+                    {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Efficiency gain
+                  </div>
+                </div>
               </div>
 
-              {/* Tax Calculation Details */}
-              {!isPowerMode && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => toggleAccordion('tax-math')}
-                >
-                  {expandedAccordions.includes('tax-math') ? (
-                    <>
-                      <ChevronUp className="h-4 w-4 mr-2" />
-                      Hide Tax Calculation
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                      Show Tax Calculation
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {(isPowerMode || expandedAccordions.includes('tax-math')) && (
-                <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Calculator className="h-5 w-5 text-blue-600" />
-                      How We Calculate Your ${totalAnnualSavings.toLocaleString()} Tax Savings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    
-                    {/* Tax Drag Comparison */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card className="border-red-200 bg-red-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-red-800">Current Tax Drag</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {currentPortfolio.map((asset, index) => (
-                            <div key={index} className="flex justify-between text-xs">
-                              <span>{asset.name}:</span>
-                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
-                            </div>
-                          ))}
-                          <Separator />
-                          <div className="flex justify-between font-semibold text-sm text-red-700">
-                            <span>Total:</span>
+              {/* Mathematical Explanation */}
+              <Card className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-700">
+                <CardHeader>
+                  <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                    <Calculator className="h-5 w-5 text-blue-600" />
+                    How We Calculate Your ${totalAnnualSavings.toLocaleString()} Tax Savings
+                  </CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-400">
+                    The complex math behind your portfolio optimization - simplified
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  
+                  {/* Step 1: Tax Drag Analysis */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
+                      Tax Drag Analysis
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We calculate the annual tax cost for each asset class based on its tax inefficiency:
+                      </p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="text-xs font-mono text-gray-500 mb-2">Current Portfolio Tax Drag:</div>
+                        {currentPortfolio.map((asset, index) => (
+                          <div key={index} className="flex justify-between items-center py-1 text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {asset.name}: ${asset.value.toLocaleString()} × {asset.taxDrag}%
+                            </span>
+                            <span className="font-medium text-red-600">
+                              = ${(asset.value * asset.taxDrag / 100).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="border-t border-gray-200 dark:border-gray-600 mt-2 pt-2">
+                          <div className="flex justify-between items-center font-semibold text-red-600">
+                            <span>Total Annual Tax Drag:</span>
                             <span>${Math.round(currentTaxDrag).toLocaleString()}</span>
                           </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="border-green-200 bg-green-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-green-800">Optimized Tax Drag</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {optimizedPortfolio.map((asset, index) => (
-                            <div key={index} className="flex justify-between text-xs">
-                              <span>{asset.name}:</span>
-                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
-                            </div>
-                          ))}
-                          <Separator />
-                          <div className="flex justify-between font-semibold text-sm text-green-700">
-                            <span>Total:</span>
-                            <span>${Math.round(optimizedTaxDrag).toLocaleString()}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    
-                    {/* Final Calculation */}
-                    <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 p-6 rounded-lg">
-                      <div className="text-center space-y-3">
-                        <div className="text-lg font-semibold">Total Annual Tax Savings</div>
-                        <div className="text-sm text-muted-foreground">
-                          Tax Drag Reduction + Tax-Loss Harvesting
-                        </div>
-                        <div className="text-xl font-bold">
-                          ${Math.round(annualTaxSavings).toLocaleString()} + ${Math.round(taxLossHarvestingValue).toLocaleString()} = 
-                          <span className="text-green-600 ml-2">${totalAnnualSavings.toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+
+                  {/* Step 2: Optimization Calculation */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
+                      Portfolio Optimization
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We restructure your portfolio using tax-efficient alternatives:
+                      </p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="text-xs font-mono text-gray-500 mb-2">Optimized Portfolio Tax Drag:</div>
+                        {optimizedPortfolio.map((asset, index) => (
+                          <div key={index} className="flex justify-between items-center py-1 text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">
+                              {asset.name}: ${asset.value.toLocaleString()} × {asset.taxDrag}%
+                            </span>
+                            <span className="font-medium text-emerald-600">
+                              = ${(asset.value * asset.taxDrag / 100).toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                        <div className="border-t border-gray-200 dark:border-gray-600 mt-2 pt-2">
+                          <div className="flex justify-between items-center font-semibold text-emerald-600">
+                            <span>Total Annual Tax Drag:</span>
+                            <span>${Math.round(optimizedTaxDrag).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 3: Tax Bracket Adjustment */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</div>
+                      Tax Bracket Adjustment
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We adjust for your specific tax situation ({taxBracket[0]}% bracket):
+                      </p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="text-sm space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Tax Drag Reduction:</span>
+                            <span className="font-medium">${Math.round(currentTaxDrag - optimizedTaxDrag).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Your Tax Bracket:</span>
+                            <span className="font-medium">{taxBracket[0]}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Bracket Adjustment:</span>
+                            <span className="font-medium">×{(taxBracket[0] / 24).toFixed(2)}</span>
+                          </div>
+                          <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                            <div className="flex justify-between font-semibold text-blue-600">
+                              <span>Annual Portfolio Savings:</span>
+                              <span>${Math.round(annualTaxSavings).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step 4: Tax-Loss Harvesting */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</div>
+                      Tax-Loss Harvesting Opportunity
+                    </div>
+                    <div className="ml-8 space-y-3">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        We identify positions with unrealized losses to offset your gains:
+                      </p>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                        <div className="text-sm space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Harvestable Losses:</span>
+                            <span className="font-medium">$7,500</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Capital Gains Rate:</span>
+                            <span className="font-medium">{taxBracket[0]}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-700 dark:text-gray-300">Calculation:</span>
+                            <span className="font-medium">$7,500 × {taxBracket[0]}%</span>
+                          </div>
+                          <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
+                            <div className="flex justify-between font-semibold text-purple-600">
+                              <span>Tax-Loss Harvesting Savings:</span>
+                              <span>${Math.round(taxLossHarvestingValue).toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Final Calculation */}
+                  <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20 rounded-xl p-6">
+                    <div className="text-center space-y-4">
+                      <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        Total Annual Tax Savings
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        Portfolio Optimization + Tax-Loss Harvesting
+                      </div>
+                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                        ${Math.round(annualTaxSavings).toLocaleString()} + ${Math.round(taxLossHarvestingValue).toLocaleString()} = 
+                        <span className="text-emerald-600 font-medium ml-2">
+                          ${totalAnnualSavings.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        This represents {Math.round((totalAnnualSavings / 100000) * 100 * 100) / 100}% of your portfolio value annually
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Time Savings Callout */}
+                  <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center flex-shrink-0">
+                          <Sparkles className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <div>
+                          <div className="font-medium text-amber-800 dark:text-amber-200 mb-1">
+                            We Do the Heavy Lifting
+                          </div>
+                          <div className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
+                            This analysis would typically require 15-20 hours of research, spreadsheet work, and tax code analysis. 
+                            Our AI performs these calculations in seconds, continuously monitoring your portfolio for optimization opportunities.
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                </CardContent>
+              </Card>
 
             </CardContent>
           </Card>
         )}
 
-        {/* Smart Strategies */}
+        {/* Clean Strategies */}
         {step >= 4 && (
-          <Card className="border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/20 dark:to-purple-950/20">
+          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-6 w-6 text-indigo-600" />
-                  <CardTitle>Smart Strategies</CardTitle>
-                </div>
-                <div className="flex items-center gap-2">
-                  {isPowerMode && (
-                    <Button variant="outline" size="sm">
-                      <Download className="h-4 w-4 mr-1" />
-                      Export CSV
-                    </Button>
-                  )}
-                  <Badge className="bg-indigo-100 text-indigo-800 border-indigo-200">
-                    {smartStrategies.filter(s => s.selected).length} selected
-                  </Badge>
-                </div>
-              </div>
-              <CardDescription className="text-base">
-                AI-recommended strategies sorted by dollar impact
+              <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Recommended Strategies
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Prioritized by potential impact
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               
-              {/* Strategy Cards */}
-              <div className="grid gap-4">
-                {smartStrategies
-                  .sort((a, b) => b.dollarImpact - a.dollarImpact)
-                  .map((strategy, index) => (
-                    <Card key={index} className={`border-l-4 hover:shadow-md transition-all ${
-                      strategy.selected ? 'border-l-green-500 bg-green-50/50 dark:bg-green-950/20' : 'border-l-gray-300'
-                    }`}>
-                      <CardContent className="flex items-start gap-4 p-4">
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="checkbox"
-                            checked={strategy.selected}
-                            className="w-4 h-4 rounded border-gray-300"
-                            readOnly
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-semibold">{strategy.name}</h4>
-                              <Badge variant="outline" className="text-xs">
-                                {strategy.category}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {strategy.description}
-                            </p>
-                          </div>
+              {smartStrategies
+                .sort((a, b) => b.dollarImpact - a.dollarImpact)
+                .map((strategy, index) => (
+                  <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {strategy.name}
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-xl text-green-600">
-                            ${strategy.dollarImpact.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Annual savings
-                          </div>
-                          <Badge className={getSeverityColor(strategy.severity)}>
-                            {strategy.severity} impact
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
-
-              {/* Power Mode Features */}
-              {isPowerMode && (
-                <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Settings className="h-5 w-5 text-purple-600" />
-                      Advanced Options
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <Button variant="outline" size="sm">
-                        <Calculator className="h-4 w-4 mr-2" />
-                        Simulate Partial
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <TrendingUp className="h-4 w-4 mr-2" />
-                        Back-test 3 Years
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Schedule Recurring
-                      </Button>
+                        <Badge variant="outline" className="text-xs">
+                          {strategy.category}
+                        </Badge>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {strategy.description}
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                    <div className="text-right">
+                      <div className="text-xl font-light text-gray-900 dark:text-gray-100">
+                        ${strategy.dollarImpact.toLocaleString()}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Annual savings
+                      </div>
+                    </div>
+                  </div>
+                ))}
 
             </CardContent>
           </Card>
         )}
 
-        {/* Compliance & Trust */}
-        <Alert className="bg-amber-50/50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
-          <Shield className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 dark:text-amber-300">
-            Important Disclaimers
-          </AlertTitle>
-          <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm leading-relaxed space-y-2">
-            <p>
-              <strong>Projected/Hypothetical:</strong> All dollar projections and savings estimates are hypothetical and based on historical data. 
-              Actual results may vary significantly based on market conditions, tax law changes, and individual circumstances.
-            </p>
-            <p>
-              <strong>Suitability Notice:</strong> The recommended trades and strategies shown are for demonstration purposes only. 
-              Please consult with a qualified financial advisor before making any investment decisions.
-            </p>
-            <p>
-              <strong>Tax Advice:</strong> This analysis does not constitute tax advice. Consult with a tax professional regarding your specific situation.
-            </p>
-          </AlertDescription>
-        </Alert>
+        {/* Clean Disclaimer */}
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
+          <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            <strong>Important:</strong> All projections are hypothetical and based on historical data. 
+            Actual results may vary. Please consult with a qualified financial advisor.
+          </div>
+        </div>
 
       </div>
     </div>
