@@ -71,90 +71,91 @@ export default function DemoPage() {
   const currentPortfolio = [
     { name: 'Large Cap Stocks', value: 45000, percentage: 45, color: ASSET_COLORS.stocks, taxDrag: 2.1 },
     { name: 'Small Cap Stocks', value: 15000, percentage: 15, color: ASSET_COLORS.stocks, taxDrag: 2.8 },
-    { name: 'International', value: 20000, percentage: 20, color: ASSET_COLORS.international, taxDrag: 1.9 },
+    { name: 'International Stocks', value: 20000, percentage: 20, color: ASSET_COLORS.international, taxDrag: 1.9 },
     { name: 'Bonds', value: 15000, percentage: 15, color: ASSET_COLORS.bonds, taxDrag: 3.2 },
-    { name: 'Cash', value: 5000, percentage: 5, color: ASSET_COLORS.cash, taxDrag: 4.1 }
+    { name: 'Cash & Money Market', value: 5000, percentage: 5, color: ASSET_COLORS.cash, taxDrag: 4.1 }
   ];
 
   const optimizedPortfolio = [
-    { name: 'Tax-Efficient Index', value: 50000, percentage: 50, color: ASSET_COLORS.taxEfficient, taxDrag: 0.8 },
-    { name: 'International ETF', value: 25000, percentage: 25, color: ASSET_COLORS.international, taxDrag: 1.1 },
-    { name: 'Municipal Bonds', value: 20000, percentage: 20, color: ASSET_COLORS.municipal, taxDrag: 0.0 },
-    { name: 'REIT', value: 5000, percentage: 5, color: ASSET_COLORS.reit, taxDrag: 1.5 }
+    { name: 'Large Cap Stocks', value: 40000, percentage: 40, color: ASSET_COLORS.stocks, taxDrag: 2.1 },
+    { name: 'Small Cap Stocks', value: 20000, percentage: 20, color: ASSET_COLORS.stocks, taxDrag: 2.8 },
+    { name: 'International Stocks', value: 25000, percentage: 25, color: ASSET_COLORS.international, taxDrag: 1.9 },
+    { name: 'Bonds', value: 10000, percentage: 10, color: ASSET_COLORS.bonds, taxDrag: 3.2 },
+    { name: 'Cash & Money Market', value: 5000, percentage: 5, color: ASSET_COLORS.cash, taxDrag: 4.1 }
   ];
 
-  // Trade execution plan
+  // Trade execution plan - focused on rebalancing and asset location
   const tradeExecutionPlan = [
     {
       order: 1,
-      type: 'Tax-Loss Harvest',
+      type: 'Rebalance',
       action: 'SELL',
-      asset: 'Small Cap Value Fund (SLYV)',
-      amount: 3000,
+      asset: 'Large Cap Stocks',
+      amount: 5000,
       account: 'Taxable Brokerage',
-      reason: 'Realize $2,100 loss for tax benefit',
-      taxImpact: '+$504 tax benefit',
+      reason: 'Reduce overweight position from 45% to target 40%',
+      taxImpact: 'Harvest $1,200 in losses',
       timing: 'Immediate',
       priority: 'high'
     },
     {
       order: 2,
       type: 'Rebalance',
-      action: 'SELL',
-      asset: 'Large Cap Growth (QQQ)',
+      action: 'BUY',
+      asset: 'Small Cap Stocks',
       amount: 5000,
       account: 'Taxable Brokerage',
-      reason: 'Reduce overweight position',
-      taxImpact: '$340 short-term gains',
+      reason: 'Increase underweight position from 15% to target 20%',
+      taxImpact: 'No tax impact (purchase)',
+      timing: 'After step 1',
+      priority: 'high'
+    },
+    {
+      order: 3,
+      type: 'Rebalance',
+      action: 'SELL',
+      asset: 'Bonds',
+      amount: 5000,
+      account: 'Taxable Brokerage',
+      reason: 'Reduce overweight position from 15% to target 10%',
+      taxImpact: 'Minimal gains on bond holdings',
       timing: 'Immediate',
       priority: 'medium'
     },
     {
-      order: 3,
-      type: 'Asset Location',
-      action: 'MOVE',
-      asset: 'High-Yield Bonds',
-      amount: 8000,
-      account: 'Taxable → 401(k)',
-      reason: 'Tax-inefficient asset to tax-advantaged account',
-      taxImpact: 'Eliminates $256/year tax drag',
-      timing: 'Next contribution',
-      priority: 'high'
-    },
-    {
       order: 4,
-      type: 'Optimize',
+      type: 'Rebalance',
       action: 'BUY',
-      asset: 'Tax-Managed Index Fund (VTCLX)',
+      asset: 'International Stocks',
       amount: 5000,
       account: 'Taxable Brokerage',
-      reason: 'Replace tax-inefficient holdings',
-      taxImpact: 'Reduces tax drag by 1.3%',
-      timing: 'After step 2',
-      priority: 'high'
+      reason: 'Increase underweight position from 20% to target 25%',
+      taxImpact: 'No tax impact (purchase)',
+      timing: 'After step 3',
+      priority: 'medium'
     },
     {
       order: 5,
-      type: 'Rebalance',
-      action: 'BUY',
-      asset: 'International Developed (VTIAX)',
-      amount: 3000,
-      account: 'Roth IRA',
-      reason: 'Increase international allocation',
-      taxImpact: 'Tax-free growth',
-      timing: 'After step 1',
-      priority: 'medium'
+      type: 'Asset Location',
+      action: 'MOVE',
+      asset: 'High-Dividend Stocks (portion of Large Cap)',
+      amount: 8000,
+      account: 'Taxable → 401(k)',
+      reason: 'Move dividend-heavy holdings to tax-deferred account',
+      taxImpact: 'Eliminates $320/year in dividend taxes',
+      timing: 'Next 401(k) contribution',
+      priority: 'high'
     },
     {
       order: 6,
       type: 'Asset Location',
       action: 'MOVE',
-      asset: 'REIT Index Fund',
-      amount: 4000,
-      account: 'Taxable → IRA',
-      reason: 'Tax-inefficient dividends to tax-deferred account',
-      taxImpact: 'Eliminates $168/year tax drag',
-      timing: 'Next rollover',
+      asset: 'Bond Holdings',
+      amount: 6000,
+      account: 'Taxable → Traditional IRA',
+      reason: 'Move tax-inefficient bonds to tax-deferred account',
+      taxImpact: 'Eliminates $192/year in interest taxes',
+      timing: 'Next rollover opportunity',
       priority: 'medium'
     }
   ];
@@ -573,7 +574,7 @@ export default function DemoPage() {
                         Asset Location Strategy
                       </CardTitle>
                       <CardDescription className="text-gray-600 dark:text-gray-400">
-                        Optimizing tax efficiency across account types
+                        Optimizing tax efficiency by moving assets to appropriate account types
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -584,8 +585,9 @@ export default function DemoPage() {
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                             <div>• Tax-efficient index funds</div>
+                            <div>• Growth stocks (low dividends)</div>
                             <div>• Municipal bonds</div>
-                            <div>• Tax-managed funds</div>
+                            <div>• International stocks</div>
                           </div>
                         </div>
                         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
@@ -593,8 +595,9 @@ export default function DemoPage() {
                             401(k) / Traditional IRA
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                            <div>• High-yield bonds</div>
-                            <div>• Dividend stocks</div>
+                            <div>• High-dividend stocks</div>
+                            <div>• Corporate bonds</div>
+                            <div>• REITs</div>
                             <div>• Commodities</div>
                           </div>
                         </div>
@@ -603,9 +606,10 @@ export default function DemoPage() {
                             Roth IRA
                           </div>
                           <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                            <div>• High-growth stocks</div>
-                            <div>• International funds</div>
-                            <div>• REITs</div>
+                            <div>• High-growth small caps</div>
+                            <div>• Emerging markets</div>
+                            <div>• Alternative investments</div>
+                            <div>• Highest expected return assets</div>
                           </div>
                         </div>
                       </div>
@@ -614,7 +618,10 @@ export default function DemoPage() {
                           Annual Tax Savings from Asset Location
                         </div>
                         <div className="text-2xl font-light text-emerald-600">
-                          $1,248
+                          $512
+                        </div>
+                        <div className="text-xs text-emerald-700 dark:text-emerald-400 mt-1">
+                          By moving tax-inefficient assets to tax-advantaged accounts
                         </div>
                       </div>
                     </CardContent>
@@ -727,11 +734,11 @@ export default function DemoPage() {
                     Current Portfolio
                   </CardTitle>
                   <Badge className="bg-red-50 text-red-700 border-red-200 font-medium">
-                    ${Math.round(currentTaxDrag).toLocaleString()} tax cost
+                    Suboptimal weights
                   </Badge>
                 </div>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  $100,000 total value
+                  $100,000 total value • Same assets, unoptimized allocation
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -774,7 +781,7 @@ export default function DemoPage() {
                           ${asset.value.toLocaleString()}
                         </div>
                         <div className="text-sm text-red-600">
-                          {asset.taxDrag}% cost
+                          Risk/Return: Suboptimal
                         </div>
                       </div>
                     </div>
@@ -792,11 +799,11 @@ export default function DemoPage() {
                     Optimized Portfolio
                   </CardTitle>
                   <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-medium">
-                    ${Math.round(optimizedTaxDrag).toLocaleString()} tax cost
+                    Optimal weights
                   </Badge>
                 </div>
                 <CardDescription className="text-gray-600 dark:text-gray-400">
-                  $100,000 total value
+                  $100,000 total value • Same assets, optimized allocation
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -839,7 +846,7 @@ export default function DemoPage() {
                           ${asset.value.toLocaleString()}
                         </div>
                         <div className="text-sm text-emerald-600">
-                          {asset.taxDrag}% cost
+                          Risk/Return: Optimal
                         </div>
                       </div>
                     </div>
@@ -849,10 +856,10 @@ export default function DemoPage() {
                 {/* Improvement Metric */}
                 <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-4 text-center">
                   <div className="text-2xl font-light text-emerald-600 mb-1">
-                    {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
+                    +1.2%
                   </div>
                   <div className="text-sm text-emerald-700 dark:text-emerald-400">
-                    Tax efficiency improvement
+                    Expected annual return improvement
                   </div>
                 </div>
 
@@ -1224,106 +1231,132 @@ export default function DemoPage() {
                 <CardHeader>
                   <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                     <Calculator className="h-5 w-5 text-blue-600" />
-                    How We Calculate Your ${totalAnnualSavings.toLocaleString()} Tax Savings
+                    Portfolio Weight Optimization Explained
                   </CardTitle>
                   <CardDescription className="text-gray-600 dark:text-gray-400">
-                    The complex math behind your portfolio optimization - simplified
+                    How we calculate optimal allocation weights for maximum risk-adjusted returns
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   
-                  {/* Step 1: Tax Drag Analysis */}
+                  {/* Step 1: Risk-Return Analysis */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                       <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">1</div>
-                      Tax Drag Analysis
+                      Risk-Return Profile Analysis
                     </div>
                     <div className="ml-8 space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        We calculate the annual tax cost for each asset class based on its tax inefficiency:
+                        We analyze the expected return and risk for each asset class in your portfolio:
                       </p>
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-xs font-mono text-gray-500 mb-2">Current Portfolio Tax Drag:</div>
-                        {currentPortfolio.map((asset, index) => (
-                          <div key={index} className="flex justify-between items-center py-1 text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {asset.name}: ${asset.value.toLocaleString()} × {asset.taxDrag}%
-                            </span>
-                            <span className="font-medium text-red-600">
-                              = ${(asset.value * asset.taxDrag / 100).toLocaleString()}
-                            </span>
+                        <div className="text-xs font-mono text-gray-500 mb-2">Asset Class Risk-Return Metrics:</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap Stocks:</span>
+                              <span className="font-medium">10.2% return, 16.1% risk</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap Stocks:</span>
+                              <span className="font-medium">12.1% return, 20.9% risk</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International Stocks:</span>
+                              <span className="font-medium">8.7% return, 17.8% risk</span>
+                            </div>
                           </div>
-                        ))}
-                        <div className="border-t border-gray-200 dark:border-gray-600 mt-2 pt-2">
-                          <div className="flex justify-between items-center font-semibold text-red-600">
-                            <span>Total Annual Tax Drag:</span>
-                            <span>${Math.round(currentTaxDrag).toLocaleString()}</span>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Bonds:</span>
+                              <span className="font-medium">4.2% return, 6.1% risk</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Cash:</span>
+                              <span className="font-medium">2.1% return, 1.0% risk</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Risk measured as standard deviation
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 2: Optimization Calculation */}
+                  {/* Step 2: Correlation Analysis */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                       <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">2</div>
-                      Portfolio Optimization
+                      Asset Correlation Analysis
                     </div>
                     <div className="ml-8 space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        We restructure your portfolio using tax-efficient alternatives:
+                        We calculate how different assets move together to optimize diversification:
                       </p>
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-xs font-mono text-gray-500 mb-2">Optimized Portfolio Tax Drag:</div>
-                        {optimizedPortfolio.map((asset, index) => (
-                          <div key={index} className="flex justify-between items-center py-1 text-sm">
-                            <span className="text-gray-700 dark:text-gray-300">
-                              {asset.name}: ${asset.value.toLocaleString()} × {asset.taxDrag}%
-                            </span>
-                            <span className="font-medium text-emerald-600">
-                              = ${(asset.value * asset.taxDrag / 100).toLocaleString()}
-                            </span>
+                        <div className="text-xs font-mono text-gray-500 mb-2">Correlation Matrix (selected pairs):</div>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">Large Cap ↔ Small Cap:</span>
+                            <span className="font-medium">0.82 (high correlation)</span>
                           </div>
-                        ))}
-                        <div className="border-t border-gray-200 dark:border-gray-600 mt-2 pt-2">
-                          <div className="flex justify-between items-center font-semibold text-emerald-600">
-                            <span>Total Annual Tax Drag:</span>
-                            <span>${Math.round(optimizedTaxDrag).toLocaleString()}</span>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">US Stocks ↔ International:</span>
+                            <span className="font-medium">0.71 (moderate correlation)</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300">Stocks ↔ Bonds:</span>
+                            <span className="font-medium">0.15 (low correlation)</span>
+                          </div>
+                          <div className="text-xs text-gray-500 mt-2">
+                            Lower correlation = better diversification benefit
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Step 3: Tax Bracket Adjustment */}
+                  {/* Step 3: Optimization Calculation */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                       <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">3</div>
-                      Tax Bracket Adjustment
+                      Modern Portfolio Theory Optimization
                     </div>
                     <div className="ml-8 space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        We adjust for your specific tax situation ({taxBracket[0]}% bracket):
+                        We use mathematical optimization to find the allocation that maximizes your Sharpe ratio:
                       </p>
                       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Tax Drag Reduction:</span>
-                            <span className="font-medium">${Math.round(currentTaxDrag - optimizedTaxDrag).toLocaleString()}</span>
+                        <div className="text-sm space-y-3">
+                          <div className="border-b border-gray-200 dark:border-gray-600 pb-2">
+                            <div className="font-medium mb-1">Current Portfolio Performance:</div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Expected Return:</span>
+                              <span className="font-medium">8.9%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Portfolio Risk:</span>
+                              <span className="font-medium">14.2%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Sharpe Ratio:</span>
+                              <span className="font-medium text-red-600">0.47</span>
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Your Tax Bracket:</span>
-                            <span className="font-medium">{taxBracket[0]}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Bracket Adjustment:</span>
-                            <span className="font-medium">×{(taxBracket[0] / 24).toFixed(2)}</span>
-                          </div>
-                          <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
-                            <div className="flex justify-between font-semibold text-blue-600">
-                              <span>Annual Portfolio Savings:</span>
-                              <span>${Math.round(annualTaxSavings).toLocaleString()}</span>
+                          <div className="pt-2">
+                            <div className="font-medium mb-1">Optimized Portfolio Performance:</div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Expected Return:</span>
+                              <span className="font-medium">10.1%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Portfolio Risk:</span>
+                              <span className="font-medium">14.2%</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700 dark:text-gray-300">Sharpe Ratio:</span>
+                              <span className="font-medium text-emerald-600">0.54</span>
                             </div>
                           </div>
                         </div>
@@ -1331,34 +1364,46 @@ export default function DemoPage() {
                     </div>
                   </div>
 
-                  {/* Step 4: Tax-Loss Harvesting */}
+                  {/* Step 4: Weight Changes */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                       <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">4</div>
-                      Tax-Loss Harvesting Opportunity
+                      Optimal Weight Allocation
                     </div>
                     <div className="ml-8 space-y-3">
                       <p className="text-sm text-gray-600 dark:text-gray-400">
-                        We identify positions with unrealized losses to offset your gains:
+                        The optimization algorithm determines these weight changes:
                       </p>
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                        <div className="text-sm space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Harvestable Losses:</span>
-                            <span className="font-medium">$7,500</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                          <div className="text-xs font-mono text-red-700 dark:text-red-300 mb-2">Reduce Weights:</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Large Cap:</span>
+                              <span className="font-medium text-red-600">45% → 40% (-5%)</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Bonds:</span>
+                              <span className="font-medium text-red-600">15% → 10% (-5%)</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Overweight positions reducing efficiency
+                            </div>
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Capital Gains Rate:</span>
-                            <span className="font-medium">{taxBracket[0]}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-700 dark:text-gray-300">Calculation:</span>
-                            <span className="font-medium">$7,500 × {taxBracket[0]}%</span>
-                          </div>
-                          <div className="border-t border-gray-200 dark:border-gray-600 pt-2">
-                            <div className="flex justify-between font-semibold text-purple-600">
-                              <span>Tax-Loss Harvesting Savings:</span>
-                              <span>${Math.round(taxLossHarvestingValue).toLocaleString()}</span>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                          <div className="text-xs font-mono text-green-700 dark:text-green-300 mb-2">Increase Weights:</div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">Small Cap:</span>
+                              <span className="font-medium text-green-600">15% → 20% (+5%)</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span className="text-gray-700 dark:text-gray-300">International:</span>
+                              <span className="font-medium text-green-600">20% → 25% (+5%)</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mt-2">
+                              Underweight positions with better risk-adjusted returns
                             </div>
                           </div>
                         </div>
@@ -1366,41 +1411,51 @@ export default function DemoPage() {
                     </div>
                   </div>
 
-                  {/* Final Calculation */}
+                  {/* Final Result */}
                   <div className="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-950/20 dark:to-blue-950/20 rounded-xl p-6">
                     <div className="text-center space-y-4">
                       <div className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        Total Annual Tax Savings
+                        Optimization Result
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        Portfolio Optimization + Tax-Loss Harvesting
+                        Same assets, better allocation
                       </div>
-                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
-                        ${Math.round(annualTaxSavings).toLocaleString()} + ${Math.round(taxLossHarvestingValue).toLocaleString()} = 
-                        <span className="text-emerald-600 font-medium ml-2">
-                          ${totalAnnualSavings.toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        This represents {Math.round((totalAnnualSavings / 100000) * 100 * 100) / 100}% of your portfolio value annually
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-light text-emerald-600">
+                            +1.2%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Annual return improvement
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-light text-blue-600">
+                            +15%
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Sharpe ratio improvement
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Time Savings Callout */}
-                  <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700">
+                  {/* No Stock Picking Callout */}
+                  <Card className="bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-700">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center flex-shrink-0">
-                          <Sparkles className="h-4 w-4 text-amber-600" />
+                        <div className="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900 flex items-center justify-center flex-shrink-0">
+                          <Shield className="h-4 w-4 text-purple-600" />
                         </div>
                         <div>
-                          <div className="font-medium text-amber-800 dark:text-amber-200 mb-1">
-                            We Do the Heavy Lifting
+                          <div className="font-medium text-purple-800 dark:text-purple-200 mb-1">
+                            We Don't Pick Stocks for You
                           </div>
-                          <div className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">
-                            This analysis would typically require 15-20 hours of research, spreadsheet work, and tax code analysis. 
-                            Our AI performs these calculations in seconds, continuously monitoring your portfolio for optimization opportunities.
+                          <div className="text-sm text-purple-700 dark:text-purple-300 leading-relaxed">
+                            AssetVision focuses on portfolio allocation optimization, not individual security selection. 
+                            We work with your existing holdings to find the mathematically optimal weights that maximize 
+                            your risk-adjusted returns while minimizing taxes.
                           </div>
                         </div>
                       </div>
