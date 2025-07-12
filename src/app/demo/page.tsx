@@ -325,21 +325,21 @@ export default function DemoPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Minimalistic Sticky Footer */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-t border-gray-200 dark:bg-gray-900/95 dark:border-gray-700">
-        <div className="max-w-5xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6">
+              <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                 Projected Annual Savings
               </div>
-              <div className="text-3xl font-light text-gray-900 dark:text-gray-100">
+              <div className="text-2xl sm:text-3xl font-light text-gray-900 dark:text-gray-100">
                 ${animatedSavings.toLocaleString()}
               </div>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 w-full sm:w-auto">
               {step < 4 ? (
                 <Button 
                   onClick={handleNextStep}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                  className="bg-gray-900 hover:bg-gray-800 text-white px-6 sm:px-8 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto"
                 >
                   {step === 0 && 'Begin Analysis'}
                   {step === 1 && 'Analyze Drift'}
@@ -350,7 +350,7 @@ export default function DemoPage() {
               ) : (
                 <Button 
                   onClick={handleApplyChanges}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg font-medium transition-colors"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 sm:px-8 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto"
                 >
                   Apply Changes
                   <CheckCircle className="ml-2 h-4 w-4" />
@@ -361,31 +361,31 @@ export default function DemoPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto space-y-12 p-6 pb-32">
+      <div className="max-w-5xl mx-auto space-y-8 sm:space-y-12 p-4 sm:p-6 pb-24 sm:pb-32">
         
         {/* Minimalistic Header */}
-        <div className="text-center space-y-8 py-16">
+        <div className="text-center space-y-6 sm:space-y-8 py-8 sm:py-16">
           <div className="space-y-4">
-            <h1 className="text-6xl font-light text-gray-900 dark:text-gray-100 tracking-tight">
-              AlphaOptimize
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-gray-900 dark:text-gray-100 tracking-tight">
+              AssetVision
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 font-light">
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 font-light">
               Intelligent portfolio optimization
             </p>
           </div>
           
           {/* Clean KPI Display */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="text-4xl font-light text-gray-900 dark:text-gray-100 mb-2">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-3xl sm:text-4xl font-light text-gray-900 dark:text-gray-100 mb-2">
               ${totalAnnualSavings.toLocaleString()}
             </div>
-            <div className="text-gray-600 dark:text-gray-400">
+            <div className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
               Annual tax savings potential
             </div>
           </div>
 
           {/* Elegant Mode Toggle */}
-          <div className="flex items-center justify-center gap-6 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-center gap-4 sm:gap-6 bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-gray-700">
             <Label className="text-sm font-medium text-gray-600 dark:text-gray-400">
               Standard
             </Label>
@@ -408,7 +408,7 @@ export default function DemoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                   <div className="space-y-3">
                     <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Tax Bracket: {taxBracket[0]}%
@@ -446,9 +446,9 @@ export default function DemoPage() {
           <div className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
             <div className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <Card className="bg-white dark:bg-gray-800 shadow-2xl border border-gray-200 dark:border-gray-700">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <CardHeader className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <CardTitle className="text-lg sm:text-xl font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                       <Clock className="h-5 w-5 text-blue-600" />
                       Trade Execution Plan
                     </CardTitle>
@@ -470,13 +470,13 @@ export default function DemoPage() {
                     Optimized sequence for implementing portfolio changes
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 p-4 sm:p-6">
                   
                   {/* Execution Summary */}
-                  <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div className="bg-blue-50 dark:bg-blue-950/20 rounded-xl p-4 sm:p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                       <div>
-                        <div className="text-2xl font-light text-blue-600 mb-1">
+                        <div className="text-xl sm:text-2xl font-light text-blue-600 mb-1">
                           {tradeExecutionPlan.filter(t => t.priority === 'high').length}
                         </div>
                         <div className="text-sm text-blue-700 dark:text-blue-300">
@@ -484,7 +484,7 @@ export default function DemoPage() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-2xl font-light text-blue-600 mb-1">
+                        <div className="text-xl sm:text-2xl font-light text-blue-600 mb-1">
                           ${tradeExecutionPlan.reduce((sum, t) => sum + t.amount, 0).toLocaleString()}
                         </div>
                         <div className="text-sm text-blue-700 dark:text-blue-300">
@@ -492,7 +492,7 @@ export default function DemoPage() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-2xl font-light text-blue-600 mb-1">
+                        <div className="text-xl sm:text-2xl font-light text-blue-600 mb-1">
                           7-14
                         </div>
                         <div className="text-sm text-blue-700 dark:text-blue-300">
@@ -506,7 +506,7 @@ export default function DemoPage() {
                   <div className="space-y-4">
                     {tradeExecutionPlan.map((trade, index) => (
                       <div key={index} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <div className="flex items-start gap-4">
+                        <div className="flex flex-col sm:flex-row items-start gap-4">
                           
                           {/* Order Number */}
                           <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 flex items-center justify-center text-sm font-bold flex-shrink-0">
@@ -514,8 +514,8 @@ export default function DemoPage() {
                           </div>
 
                           {/* Trade Details */}
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center justify-between">
+                          <div className="flex-1 space-y-3 w-full">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                               <div className="flex items-center gap-3">
                                 {getActionIcon(trade.action)}
                                 <div>
@@ -532,7 +532,7 @@ export default function DemoPage() {
                               </Badge>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                               <div>
                                 <div className="text-gray-500 dark:text-gray-400">Account:</div>
                                 <div className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-1">
@@ -682,19 +682,19 @@ export default function DemoPage() {
 
         {/* Clean Progress Indicator */}
         <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-          <CardContent className="p-8">
-            <div className="flex items-center justify-between mb-6">
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex items-center justify-between mb-6 overflow-x-auto">
               {[0, 1, 2, 3, 4].map((stepNum) => (
-                <div key={stepNum} className="flex items-center">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                <div key={stepNum} className="flex items-center min-w-0">
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-medium transition-all duration-300 ${
                     step >= stepNum 
                       ? 'bg-gray-900 text-white' 
                       : 'bg-gray-200 text-gray-500'
                   }`}>
-                    {step > stepNum ? <CheckCircle className="h-5 w-5" /> : stepNum + 1}
+                    {step > stepNum ? <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5" /> : stepNum + 1}
                   </div>
                   {stepNum < 4 && (
-                    <div className="flex-1 mx-4">
+                    <div className="flex-1 mx-2 sm:mx-4 min-w-[20px]">
                       <div className={`h-0.5 transition-all duration-300 ${
                         step > stepNum ? 'bg-gray-900' : 'bg-gray-200'
                       }`} />
@@ -704,7 +704,7 @@ export default function DemoPage() {
               ))}
             </div>
             <div className="text-center">
-              <p className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              <p className="text-base sm:text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                 {step === 0 && "Ready to Begin"}
                 {step === 1 && "Portfolio Analysis"}
                 {step === 2 && "Drift Detection"}
@@ -724,12 +724,12 @@ export default function DemoPage() {
 
         {/* Portfolio Comparison - Clean Side-by-Side */}
         {step >= 1 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             
             {/* Current Portfolio */}
             <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-              <CardHeader className="pb-6">
-                <div className="flex items-center justify-between">
+              <CardHeader className="pb-4 sm:pb-6 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Current Portfolio
                   </CardTitle>
@@ -741,18 +741,18 @@ export default function DemoPage() {
                   $100,000 total value • Same assets, unoptimized allocation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-4 sm:p-6">
                 
                 {/* Clean Chart */}
-                <div className="h-64">
+                <div className="h-48 sm:h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie
                         data={currentPortfolio}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
+                        innerRadius={40}
+                        outerRadius={80}
                         dataKey="value"
                         strokeWidth={0}
                       >
@@ -770,17 +770,17 @@ export default function DemoPage() {
                   {currentPortfolio.map((asset, index) => (
                     <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-gray-100">{asset.name}</div>
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: asset.color }} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">{asset.name}</div>
                           <div className="text-sm text-gray-500">{asset.percentage}%</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                           ${asset.value.toLocaleString()}
                         </div>
-                        <div className="text-sm text-red-600">
+                        <div className="text-xs sm:text-sm text-red-600">
                           Risk/Return: Suboptimal
                         </div>
                       </div>
@@ -793,8 +793,8 @@ export default function DemoPage() {
 
             {/* Optimized Portfolio */}
             <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-              <CardHeader className="pb-6">
-                <div className="flex items-center justify-between">
+              <CardHeader className="pb-4 sm:pb-6 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     Optimized Portfolio
                   </CardTitle>
@@ -806,18 +806,18 @@ export default function DemoPage() {
                   $100,000 total value • Same assets, optimized allocation
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-6 p-4 sm:p-6">
                 
                 {/* Optimized Chart */}
-                <div className="h-64">
+                <div className="h-48 sm:h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie
                         data={optimizedPortfolio}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
+                        innerRadius={40}
+                        outerRadius={80}
                         dataKey="value"
                         strokeWidth={0}
                       >
@@ -835,17 +835,17 @@ export default function DemoPage() {
                   {optimizedPortfolio.map((asset, index) => (
                     <div key={index} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                       <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-gray-100">{asset.name}</div>
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: asset.color }} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base truncate">{asset.name}</div>
                           <div className="text-sm text-gray-500">{asset.percentage}%</div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                      <div className="text-right flex-shrink-0">
+                        <div className="font-medium text-gray-900 dark:text-gray-100 text-sm sm:text-base">
                           ${asset.value.toLocaleString()}
                         </div>
-                        <div className="text-sm text-emerald-600">
+                        <div className="text-xs sm:text-sm text-emerald-600">
                           Risk/Return: Optimal
                         </div>
                       </div>
@@ -855,7 +855,7 @@ export default function DemoPage() {
 
                 {/* Improvement Metric */}
                 <div className="bg-emerald-50 dark:bg-emerald-950/20 rounded-xl p-4 text-center">
-                  <div className="text-2xl font-light text-emerald-600 mb-1">
+                  <div className="text-xl sm:text-2xl font-light text-emerald-600 mb-1">
                     +1.2%
                   </div>
                   <div className="text-sm text-emerald-700 dark:text-emerald-400">
@@ -871,8 +871,8 @@ export default function DemoPage() {
         {/* Enhanced Drift Alerts */}
         {step >= 2 && (
           <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <div className="flex items-center justify-between">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                 <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                   Portfolio Drift Analysis
                 </CardTitle>
@@ -884,12 +884,12 @@ export default function DemoPage() {
                 Detailed drift detection and rebalancing recommendations
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-4 sm:p-6">
               
               {/* Drift Summary */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-red-50 dark:bg-red-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-red-600 mb-1">
+                  <div className="text-xl sm:text-2xl font-light text-red-600 mb-1">
                     {driftAlerts.filter(a => a.severity === 'high').length}
                   </div>
                   <div className="text-sm text-red-700 dark:text-red-400">
@@ -897,7 +897,7 @@ export default function DemoPage() {
                   </div>
                 </div>
                 <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-amber-600 mb-1">
+                  <div className="text-xl sm:text-2xl font-light text-amber-600 mb-1">
                     ${driftAlerts.reduce((sum, alert) => sum + alert.dollarImpact, 0).toLocaleString()}
                   </div>
                   <div className="text-sm text-amber-700 dark:text-amber-400">
@@ -905,7 +905,7 @@ export default function DemoPage() {
                   </div>
                 </div>
                 <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-blue-600 mb-1">
+                  <div className="text-xl sm:text-2xl font-light text-blue-600 mb-1">
                     {Math.abs(driftAlerts.reduce((sum, alert) => sum + Math.abs(alert.dollarsOverweight), 0) / 1000)}K
                   </div>
                   <div className="text-sm text-blue-700 dark:text-blue-400">
@@ -921,10 +921,10 @@ export default function DemoPage() {
                   .map((alert, index) => (
                     <Card key={index} className={`${getSeverityColor(alert.severity)} border`}>
                       <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-4">
+                        <div className="flex flex-col sm:flex-row items-start justify-between mb-4 gap-2">
                           <div className="flex items-center gap-3">
-                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: alert.color }} />
-                            <div>
+                            <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: alert.color }} />
+                            <div className="min-w-0">
                               <div className="font-medium text-gray-900 dark:text-gray-100">
                                 {alert.name}
                               </div>
@@ -933,12 +933,12 @@ export default function DemoPage() {
                               </div>
                             </div>
                           </div>
-                          <Badge className={`${getSeverityColor(alert.severity)} text-xs`}>
+                          <Badge className={`${getSeverityColor(alert.severity)} text-xs flex-shrink-0`}>
                             {alert.severity}
                           </Badge>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                             <div className="text-xs text-gray-500 mb-1">Current vs Target</div>
                             <div className="font-medium text-gray-900 dark:text-gray-100">
@@ -953,13 +953,13 @@ export default function DemoPage() {
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                             <div className="text-xs text-gray-500 mb-1">Risk Level</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
                               {alert.riskLevel}
                             </div>
                           </div>
                           <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
                             <div className="text-xs text-gray-500 mb-1">Timeframe</div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 text-xs sm:text-sm">
                               {alert.timeframe}
                             </div>
                           </div>
@@ -967,7 +967,7 @@ export default function DemoPage() {
 
                         <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg">
                           <div className="text-xs text-gray-500 mb-1">Recommended Action</div>
-                          <div className="font-medium text-gray-900 dark:text-gray-100">
+                          <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                             {alert.actionRequired}
                           </div>
                         </div>
@@ -1186,7 +1186,7 @@ export default function DemoPage() {
         {/* Clean Tax Optimization */}
         {step >= 3 && (
           <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Tax Optimization
               </CardTitle>
@@ -1194,12 +1194,12 @@ export default function DemoPage() {
                 Strategies to reduce your tax burden
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-4 sm:p-6">
               
               {/* Clean Metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                <div className="text-center p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-2xl sm:text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
                     ${Math.round(annualTaxSavings).toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -1207,8 +1207,8 @@ export default function DemoPage() {
                   </div>
                 </div>
                 
-                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+                <div className="text-center p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-2xl sm:text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
                     ${Math.round(taxLossHarvestingValue).toLocaleString()}
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -1216,8 +1216,8 @@ export default function DemoPage() {
                   </div>
                 </div>
                 
-                <div className="text-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                  <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
+                <div className="text-center p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-2xl sm:text-3xl font-light text-gray-900 dark:text-gray-100 mb-2">
                     {Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100)}%
                   </div>
                   <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -1472,7 +1472,7 @@ export default function DemoPage() {
         {/* Portfolio Tracking Section */}
         {step >= 4 && (
           <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Continuous Portfolio Tracking
               </CardTitle>
@@ -1480,39 +1480,39 @@ export default function DemoPage() {
                 Monitor your portfolio performance with real-time analytics and visualizations
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-4 sm:p-6">
               
               {/* Key Metrics Dashboard */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-blue-600 mb-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-light text-blue-600 mb-1">
                     10.1%
                   </div>
-                  <div className="text-sm text-blue-700 dark:text-blue-400">
+                  <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-400">
                     Current Return
                   </div>
                 </div>
-                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-green-600 mb-1">
+                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-light text-green-600 mb-1">
                     0.54
                   </div>
-                  <div className="text-sm text-green-700 dark:text-green-400">
+                  <div className="text-xs sm:text-sm text-green-700 dark:text-green-400">
                     Sharpe Ratio
                   </div>
                 </div>
-                <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-purple-600 mb-1">
+                <div className="bg-purple-50 dark:bg-purple-950/20 rounded-lg p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-light text-purple-600 mb-1">
                     14.2%
                   </div>
-                  <div className="text-sm text-purple-700 dark:text-purple-400">
+                  <div className="text-xs sm:text-sm text-purple-700 dark:text-purple-400">
                     Portfolio Risk
                   </div>
                 </div>
-                <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-light text-amber-600 mb-1">
+                <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3 sm:p-4 text-center">
+                  <div className="text-xl sm:text-2xl font-light text-amber-600 mb-1">
                     2.1%
                   </div>
-                  <div className="text-sm text-amber-700 dark:text-amber-400">
+                  <div className="text-xs sm:text-sm text-amber-700 dark:text-amber-400">
                     Drift Alert
                   </div>
                 </div>
@@ -1523,7 +1523,7 @@ export default function DemoPage() {
                 
                 {/* Portfolio Performance Chart */}
                 <Card className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
                       Portfolio Performance
                     </CardTitle>
@@ -1531,8 +1531,8 @@ export default function DemoPage() {
                       12-month performance vs benchmark
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-48">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="h-40 sm:h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={[
                           { month: 'Jan', portfolio: 100, benchmark: 100 },
@@ -1548,8 +1548,8 @@ export default function DemoPage() {
                           { month: 'Nov', portfolio: 118, benchmark: 112 },
                           { month: 'Dec', portfolio: 121, benchmark: 114 }
                         ]}>
-                          <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                          <YAxis axisLine={false} tickLine={false} />
+                          <XAxis dataKey="month" axisLine={false} tickLine={false} fontSize={12} />
+                          <YAxis axisLine={false} tickLine={false} fontSize={12} />
                           <Tooltip />
                           <Line 
                             type="monotone" 
@@ -1571,7 +1571,7 @@ export default function DemoPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="mt-4 flex items-center justify-between text-sm">
+                    <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-0.5 bg-emerald-600"></div>
                         <span className="text-gray-600 dark:text-gray-400">Your Portfolio: +21%</span>
@@ -1586,7 +1586,7 @@ export default function DemoPage() {
 
                 {/* Asset Allocation Drift Chart */}
                 <Card className="bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600">
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
                       Allocation Drift Tracking
                     </CardTitle>
@@ -1594,8 +1594,8 @@ export default function DemoPage() {
                       Current vs target allocation
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="h-48">
+                  <CardContent className="p-4 sm:p-6">
+                    <div className="h-40 sm:h-48">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={[
                           { asset: 'Large Cap', current: 45, target: 40, drift: 5 },
@@ -1604,15 +1604,15 @@ export default function DemoPage() {
                           { asset: 'Bonds', current: 15, target: 10, drift: 5 },
                           { asset: 'Cash', current: 5, target: 5, drift: 0 }
                         ]}>
-                          <XAxis dataKey="asset" axisLine={false} tickLine={false} />
-                          <YAxis axisLine={false} tickLine={false} />
+                          <XAxis dataKey="asset" axisLine={false} tickLine={false} fontSize={12} />
+                          <YAxis axisLine={false} tickLine={false} fontSize={12} />
                           <Tooltip />
                           <Bar dataKey="current" fill="#64748B" name="Current %" />
                           <Bar dataKey="target" fill="#059669" name="Target %" />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="mt-4 flex items-center justify-between text-sm">
+                    <div className="mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
                       <div className="flex items-center gap-2">
                         <div className="w-3 h-3 bg-slate-500 rounded"></div>
                         <span className="text-gray-600 dark:text-gray-400">Current Allocation</span>
@@ -1629,7 +1629,7 @@ export default function DemoPage() {
 
               {/* Risk Metrics */}
               <Card className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-blue-950/20 border-slate-200 dark:border-slate-700">
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100">
                     Risk Analytics
                   </CardTitle>
@@ -1637,13 +1637,13 @@ export default function DemoPage() {
                     Advanced risk metrics and portfolio analysis
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                     <div className="space-y-3">
                       <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Value at Risk (VaR)
                       </div>
-                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                      <div className="text-xl sm:text-2xl font-light text-gray-900 dark:text-gray-100">
                         -$12,400
                       </div>
                       <div className="text-xs text-gray-500">
@@ -1654,7 +1654,7 @@ export default function DemoPage() {
                       <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Beta vs S&P 500
                       </div>
-                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                      <div className="text-xl sm:text-2xl font-light text-gray-900 dark:text-gray-100">
                         0.89
                       </div>
                       <div className="text-xs text-gray-500">
@@ -1665,7 +1665,7 @@ export default function DemoPage() {
                       <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Maximum Drawdown
                       </div>
-                      <div className="text-2xl font-light text-gray-900 dark:text-gray-100">
+                      <div className="text-xl sm:text-2xl font-light text-gray-900 dark:text-gray-100">
                         -8.2%
                       </div>
                       <div className="text-xs text-gray-500">
@@ -1681,13 +1681,13 @@ export default function DemoPage() {
                 
                 {/* Real-time Monitoring */}
                 <Card className="bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-700">
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                       <RefreshCw className="h-4 w-4 text-emerald-600" />
                       Real-time Monitoring
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 p-4 sm:p-6">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600 dark:text-gray-400">Portfolio Value</span>
@@ -1712,17 +1712,17 @@ export default function DemoPage() {
 
                 {/* Smart Alerts */}
                 <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-700">
-                  <CardHeader>
+                  <CardHeader className="p-4 sm:p-6">
                     <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-amber-600" />
                       Smart Alerts
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4 p-4 sm:p-6">
                     <div className="space-y-3">
                       <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5"></div>
-                        <div>
+                        <div className="w-2 h-2 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></div>
+                        <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             Drift Alert
                           </div>
@@ -1732,8 +1732,8 @@ export default function DemoPage() {
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5"></div>
-                        <div>
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                        <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             Tax Opportunity
                           </div>
@@ -1743,8 +1743,8 @@ export default function DemoPage() {
                         </div>
                       </div>
                       <div className="flex items-start gap-3">
-                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5"></div>
-                        <div>
+                        <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                        <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                             Rebalance Due
                           </div>
@@ -1759,81 +1759,83 @@ export default function DemoPage() {
 
               </div>
 
-              {/* Comprehensive Reporting */}
-              <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <PieChart className="h-4 w-4 text-gray-600" />
-                    Comprehensive Reporting
-                  </CardTitle>
-                  <CardDescription className="text-gray-600 dark:text-gray-400">
-                    Detailed analytics and insights for informed decision-making
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Performance Attribution
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• Asset allocation impact</div>
-                        <div>• Security selection effect</div>
-                        <div>• Timing contributions</div>
-                      </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Risk Decomposition
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• Factor exposure analysis</div>
-                        <div>• Correlation breakdowns</div>
-                        <div>• Stress test scenarios</div>
-                      </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Tax Efficiency
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• After-tax returns</div>
-                        <div>• Tax-loss harvesting</div>
-                        <div>• Asset location analysis</div>
-                      </div>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                        Benchmarking
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                        <div>• Index comparisons</div>
-                        <div>• Peer group analysis</div>
-                        <div>• Risk-adjusted metrics</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-                        <Eye className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
-                          Always-On Portfolio Intelligence
-                        </div>
-                        <div className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
-                          AlphaOptimize continuously monitors your portfolio 24/7, providing real-time insights, 
-                          automated drift detection, and proactive optimization recommendations. Never miss an 
-                          opportunity to improve your portfolio's performance.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            </CardContent>
+          </Card>
+        )}
 
+        {/* Comprehensive Reporting */}
+        {step >= 4 && (
+          <Card className="bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <PieChart className="h-4 w-4 text-gray-600" />
+                Comprehensive Reporting
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
+                Detailed analytics and insights for informed decision-making
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Performance Attribution
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div>• Asset allocation impact</div>
+                    <div>• Security selection effect</div>
+                    <div>• Timing contributions</div>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Risk Decomposition
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div>• Factor exposure analysis</div>
+                    <div>• Correlation breakdowns</div>
+                    <div>• Stress test scenarios</div>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Tax Efficiency
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div>• After-tax returns</div>
+                    <div>• Tax-loss harvesting</div>
+                    <div>• Asset location analysis</div>
+                  </div>
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+                    Benchmarking
+                  </div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <div>• Index comparisons</div>
+                    <div>• Peer group analysis</div>
+                    <div>• Risk-adjusted metrics</div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg p-4">
+                <div className="flex flex-col sm:flex-row items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
+                    <Eye className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                      Always-On Portfolio Intelligence
+                    </div>
+                    <div className="text-sm text-blue-700 dark:text-blue-300 leading-relaxed">
+                      AssetVision continuously monitors your portfolio 24/7, providing real-time insights, 
+                      automated drift detection, and proactive optimization recommendations. Never miss an 
+                      opportunity to improve your portfolio's performance.
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -1841,7 +1843,7 @@ export default function DemoPage() {
         {/* Clean Strategies */}
         {step >= 4 && (
           <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <CardTitle className="text-lg font-medium text-gray-900 dark:text-gray-100">
                 Recommended Strategies
               </CardTitle>
@@ -1849,14 +1851,14 @@ export default function DemoPage() {
                 Prioritized by potential impact
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               
               {smartStrategies
                 .sort((a, b) => b.dollarImpact - a.dollarImpact)
                 .map((strategy, index) => (
-                  <div key={index} className="flex items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
+                  <div key={index} className="flex flex-col sm:flex-row items-start gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 mb-2">
                         <div className="font-medium text-gray-900 dark:text-gray-100">
                           {strategy.name}
                         </div>
@@ -1868,7 +1870,7 @@ export default function DemoPage() {
                         {strategy.description}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right flex-shrink-0">
                       <div className="text-xl font-light text-gray-900 dark:text-gray-100">
                         ${strategy.dollarImpact.toLocaleString()}
                       </div>
@@ -1884,7 +1886,7 @@ export default function DemoPage() {
         )}
 
         {/* Clean Disclaimer */}
-        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-6 text-center">
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 sm:p-6 text-center">
           <div className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
             <strong>Important:</strong> All projections are hypothetical and based on historical data. 
             Actual results may vary. Please consult with a qualified financial advisor.
