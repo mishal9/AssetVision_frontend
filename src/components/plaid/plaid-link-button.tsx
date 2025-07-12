@@ -45,15 +45,15 @@ export function PlaidLinkButton({
 
   // Customize the onSuccess handler with more detailed logging
   const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
-    console.log('PlaidLinkButton: onPlaidSuccess called with token', publicToken.substring(0, 5) + '...');
-    console.log('PlaidLinkButton: metadata:', JSON.stringify(metadata).substring(0, 100) + '...');
+
+
     
     // Explicitly check for the callback before calling
     if (typeof onSuccess === 'function') {
-      console.log('PlaidLinkButton: Calling parent onSuccess callback...');
+
       try {
         onSuccess(publicToken, metadata);
-        console.log('PlaidLinkButton: Parent onSuccess callback completed');
+
       } catch (error) {
         console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
       }
@@ -64,7 +64,7 @@ export function PlaidLinkButton({
 
   // Handle Plaid exit
   const onPlaidExit = useCallback(() => {
-    console.log('User exited Plaid Link');
+
     if (onExit) onExit();
   }, [onExit]);
   
@@ -79,7 +79,7 @@ export function PlaidLinkButton({
   }, [linkToken, generateLinkToken, isGeneratingToken, userId, forUpdate, accountId]);
 
   const handleClick = useCallback(() => {
-    console.log('PlaidLinkButton: Button clicked');
+
     
     if (error) {
       // If there was an error, retry generating the token

@@ -77,15 +77,15 @@ export const fetchLinkedAccounts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Using centralized API configuration and enhanced fetchWithAuth
-      console.log('Fetching linked accounts from:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+
       const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       
-      console.log('Linked accounts response:', data);
-      console.log('Response type:', typeof data);
-      console.log('Is array?', Array.isArray(data));
+
+
+
       
       if (typeof data === 'object' && data !== null) {
-        console.log('Keys:', Object.keys(data));
+
       }
       
       // Handle different response structures
@@ -94,7 +94,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
       if (Array.isArray(data)) {
         // Direct array response
         accountsToProcess = data;
-        console.log('Processing array response with', data.length, 'accounts');
+
       } else if (data && typeof data === 'object') {
         // Use type assertion to access properties on the object
         const dataObj = data as Record<string, unknown>;
@@ -102,22 +102,22 @@ export const fetchLinkedAccounts = createAsyncThunk(
         if (dataObj.accounts && Array.isArray(dataObj.accounts)) {
           // Object with accounts array
           accountsToProcess = dataObj.accounts;
-          console.log('Processing object.accounts with', dataObj.accounts.length, 'accounts');
+
         } else if (dataObj.connections && Array.isArray(dataObj.connections)) {
           // Object with connections array
           accountsToProcess = dataObj.connections;
-          console.log('Processing object.connections with', dataObj.connections.length, 'accounts');
+
         } else if (dataObj.data && Array.isArray(dataObj.data)) {
           // Object with data array (common API pattern)
           accountsToProcess = dataObj.data;
-          console.log('Processing object.data with', dataObj.data.length, 'accounts');
+
         } else {
           // Try to extract any array property
           const arrayProps = Object.entries(dataObj)
             .filter(([_, value]) => Array.isArray(value))
             .map(([key, value]) => ({ key, length: (value as any[]).length }));
           
-          console.log('Found array properties:', arrayProps);
+
           
           if (arrayProps.length > 0) {
             // Use the longest array property
@@ -125,23 +125,23 @@ export const fetchLinkedAccounts = createAsyncThunk(
               prev.length > current.length ? prev : current);
             
             accountsToProcess = dataObj[longestArrayProp.key] as any[];
-            console.log(`Using longest array property '${longestArrayProp.key}' with ${longestArrayProp.length} items`);
+
           } else {
-            console.log('No array properties found in response');
+
           }
         }
       }
       
-      console.log('Final accounts to process:', accountsToProcess);
+
       
       if (!accountsToProcess.length) {
-        console.warn('No accounts found in API response');
+
         return [];
       }
       
       // Map backend response to our frontend model
       return accountsToProcess.map((account: any) => {
-        console.log('Processing account:', account);
+
         return {
           id: account.id || account.account_id || '',
           institutionId: account.institution_id || '',
@@ -159,7 +159,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
         };
       });
     } catch (error) {
-      console.error('Error fetching linked accounts:', error);
+
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch linked accounts');
     }
   }
@@ -182,7 +182,7 @@ export const linkBrokerageAccount = createAsyncThunk(
         throw new Error('Failed to exchange public token');
       }
       
-      console.log('Account successfully linked with institution:', result.institutionName);
+
     
       // Handle multiple accounts if provided in metadata
       const accounts = Array.isArray(metadata.accounts) ? metadata.accounts : [metadata.accounts];
@@ -293,9 +293,9 @@ export const userSlice = createSlice({
         // Ensure we have valid accounts data
         if (Array.isArray(action.payload)) {
           state.linkedAccounts = action.payload;
-          console.log('Updated linkedAccounts in Redux store:', action.payload);
+
         } else {
-          console.error('Invalid accounts data received:', action.payload);
+
         }
       })
       .addCase(fetchLinkedAccounts.rejected, (state, action) => {
@@ -315,11 +315,11 @@ export const userSlice = createSlice({
           if (existingIndex >= 0) {
             // Update existing account
             state.linkedAccounts[existingIndex] = action.payload;
-            console.log('Updated existing account in Redux store:', action.payload);
+
           } else {
             // Add new account
             state.linkedAccounts.push(action.payload);
-            console.log('Added new account to Redux store:', action.payload);
+
           }
         }
       })

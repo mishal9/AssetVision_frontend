@@ -123,7 +123,7 @@ export const fetchAssetClasses = createAsyncThunk(
       // Use fetchWithAuth to handle authentication consistently
       return await fetchWithAuth(PORTFOLIO_ENDPOINTS.ASSET_CLASSES);
     } catch (error: any) {
-      console.error('Asset classes fetch error:', error);
+
       return rejectWithValue(error.message || 'Failed to fetch asset classes');
     }
   }
@@ -143,7 +143,7 @@ export const saveTargetAllocations = createAsyncThunk(
         body: JSON.stringify(allocations)
       });
     } catch (error: any) {
-      console.error('Target allocation save error:', error);
+
       return rejectWithValue(error.message || 'Failed to save target allocations');
     }
   }
@@ -160,7 +160,7 @@ export const fetchPortfolioDrift = createAsyncThunk(
       // Use fetchWithAuth to handle authentication consistently
       return await fetchWithAuth(PORTFOLIO_ENDPOINTS.DRIFT);
     } catch (error: any) {
-      console.error('Portfolio drift fetch error:', error);
+
       return rejectWithValue(error.message || 'Failed to fetch portfolio drift');
     }
   }
@@ -223,7 +223,7 @@ export const portfolioSlice = createSlice({
           }
         });
         
-        console.log('Processed drift data:', processedData);
+
         state.driftData = processedData;
         state.driftLoading = false;
       })
@@ -242,7 +242,7 @@ export const portfolioSlice = createSlice({
         if (Array.isArray(action.payload)) {
           state.assetClasses = action.payload;
         } else {
-          console.error('Expected array for assetClasses but got:', action.payload);
+
           state.assetClasses = [];
         }
         state.assetClassesLoading = false;

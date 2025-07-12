@@ -110,14 +110,14 @@ export class WebSocketService {
         this.socket = new WebSocket(wsUrl.toString());
 
         const onOpen = () => {
-          console.log('Connected to WebSocket server at', connectUrl);
+
           this.reconnectAttempts = 0;
           this.notifyConnectionChange(true);
           resolve();
         };
 
         const onError = (error: Event) => {
-          console.error('WebSocket error:', error);
+
           this.notifyConnectionChange(false);
           if (!this.socket || this.socket.readyState === WebSocket.CLOSED) {
             reject(new Error('WebSocket connection failed'));
@@ -125,7 +125,7 @@ export class WebSocketService {
         };
 
         const onClose = (event: CloseEvent) => {
-          console.log('WebSocket connection closed:', event.code, event.reason);
+
           this.notifyConnectionChange(false);
           this.attemptReconnect();
           if (event.code >= 4000) {
@@ -143,11 +143,11 @@ export class WebSocketService {
             const handlers = this.eventHandlers.get(message.type) || [];
             handlers.forEach(handler => handler(message.data));
           } catch (error) {
-            console.error('Error processing WebSocket message:', error);
+
           }
         };
       } catch (error) {
-        console.error('Failed to create WebSocket:', error);
+
         reject(error);
         this.attemptReconnect();
       }
@@ -175,13 +175,13 @@ export class WebSocketService {
   private attemptReconnect() {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
-      console.log(`Attempting to reconnect (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+
       
       this.reconnectTimeout = setTimeout(() => {
         this.connect(this.url);
       }, this.reconnectDelay * this.reconnectAttempts);
     } else {
-      console.error('Max reconnection attempts reached');
+
     }
   }
 
@@ -239,7 +239,7 @@ export class WebSocketService {
       this.socket.send(JSON.stringify(message));
       return true;
     } catch (error) {
-      console.error('Error sending WebSocket message:', error);
+
       return false;
     }
   }
@@ -262,7 +262,7 @@ export class WebSocketService {
           await this.connect();
           return true;
         } catch (error) {
-          console.error('Failed to reconnect:', error);
+
           return false;
         }
       }

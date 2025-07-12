@@ -41,9 +41,9 @@ export class MarketDataService {
     const unsubscribe = socketService.onConnectionChange((connected) => {
       this.isConnected = connected;
       if (connected) {
-        console.log('MarketDataService: WebSocket connected');
+
       } else {
-        console.log('MarketDataService: WebSocket disconnected');
+
       }
     });
     this.unsubscribeCallbacks.push(unsubscribe);
@@ -62,12 +62,12 @@ export class MarketDataService {
 
   private handleConnect() {
     this.isConnected = true;
-    console.log('MarketDataService: Connected to WebSocket server');
+
   }
 
   private handleDisconnect() {
     this.isConnected = false;
-    console.log('MarketDataService: Disconnected from WebSocket server');
+
   }
 
   private handleMarketUpdate(data: unknown) {
@@ -76,7 +76,7 @@ export class MarketDataService {
       const typedData = data as { data: MarketData };
       this.notifyCallbacks(typedData.data);
     } else {
-      console.error('MarketDataService: Received invalid market update data format');
+
     }
   }
 
@@ -86,7 +86,7 @@ export class MarketDataService {
       const typedData = data as { data: MarketData };
       this.notifyCallbacks(typedData.data);
     } else {
-      console.error('MarketDataService: Received invalid initial data format');
+
     }
   }
 

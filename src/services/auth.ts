@@ -80,7 +80,7 @@ class AuthService {
       error.authErrorType = authError.type;
       error.authErrorMessage = authError.message;
       
-      console.error('Login failed:', authError.type, authError.message);
+
       throw error;
     }
   }
@@ -104,7 +104,7 @@ class AuthService {
       
       return response;
     } catch (error) {
-      console.error('Registration failed:', error);
+
       throw error;
     }
   }
@@ -116,7 +116,7 @@ class AuthService {
     try {
       await authApi.requestPasswordReset(email);
     } catch (error) {
-      console.error('Password reset request failed:', error);
+
       throw error;
     }
   }
@@ -128,7 +128,7 @@ class AuthService {
     try {
       return await authApi.getUserInfo();
     } catch (error) {
-      console.error('Failed to get user info:', error);
+
       throw error;
     }
   }
@@ -141,7 +141,7 @@ class AuthService {
       // Call the backend logout endpoint
       await authApi.logout();
     } catch (error) {
-      console.error('Logout API call failed:', error);
+
       // Continue with local logout even if API call fails
     } finally {
       // Clear cookies
@@ -254,7 +254,7 @@ class AuthService {
           this.setupTokenRefresh(response.access_expires_in); // Set up the next refresh
         }
       } catch (error) {
-        console.error('Token refresh failed:', error);
+
         this.logout(); // Force logout on refresh failure
       }
     }, refreshTimeMs);
