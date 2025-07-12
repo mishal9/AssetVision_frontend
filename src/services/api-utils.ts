@@ -34,30 +34,11 @@ export async function fetchWithAuth<T>(
       : `${API_BASE_URL}/${endpoint}`
   );
   
-  // Get the JWT token from cookies or localStorage
+  // Get the JWT token from localStorage
   let token;
   
-  // Try to get from cookies first
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';');
-
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
-    if (tokenCookie) {
-      token = tokenCookie.split('=')[1];
-
-    } else {
-
-    }
-  }
-  
-  // Fall back to localStorage
-  if (!token && typeof localStorage !== 'undefined') {
+  if (typeof localStorage !== 'undefined') {
     token = localStorage.getItem('auth_token');
-    if (token) {
-
-    } else {
-
-    }
   }
   
 
@@ -72,7 +53,6 @@ export async function fetchWithAuth<T>(
   const config = {
     ...options,
     headers,
-    credentials: 'include', // Include cookies in cross-origin requests
     mode: 'cors', // Enable CORS for all requests
   } as RequestInit;
 

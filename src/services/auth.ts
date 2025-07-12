@@ -134,7 +134,7 @@ class AuthService {
   }
 
   /**
-   * Logout user and clear tokens from both cookies and localStorage
+   * Logout user and clear tokens from localStorage
    */
   async logout(): Promise<void> {
     try {
@@ -144,10 +144,6 @@ class AuthService {
 
       // Continue with local logout even if API call fails
     } finally {
-      // Clear cookies
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
-      
       // Clear localStorage
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
@@ -172,19 +168,12 @@ class AuthService {
 
   /**
    * Get the current authentication token
-   * First tries to get from cookies, falls back to localStorage
+   * Gets token from localStorage
    */
   getToken(): string | null {
     if (typeof window === 'undefined') return null;
     
-    // Try to get from cookies first
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
-    if (tokenCookie) {
-      return tokenCookie.split('=')[1];
-    }
-    
-    // Fall back to localStorage
+    // Get from localStorage
     return localStorage.getItem('auth_token');
   }
 
@@ -194,19 +183,12 @@ class AuthService {
   getRefreshToken(): string | null {
     if (typeof window === 'undefined') return null;
     
-    // Try to get from cookies first
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
-    if (tokenCookie) {
-      return tokenCookie.split('=')[1];
-    }
-    
-    // Fall back to localStorage
+    // Get from localStorage
     return localStorage.getItem('refresh_token');
   }
 
   /**
-   * Store authentication tokens in cookies and localStorage
+   * Store authentication tokens in localStorage
    */
   private setTokens(
     accessToken: string, 
@@ -214,11 +196,7 @@ class AuthService {
     accessExpiresIn: number = 1800, // 30 minutes in seconds
     refreshExpiresIn: number = 604800 // 7 days in seconds
   ): void {
-    // Set cookies
-    document.cookie = `auth_token=${accessToken}; path=/; max-age=${accessExpiresIn}; SameSite=Strict`;
-    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${refreshExpiresIn}; SameSite=Strict`;
-    
-    // Also store in localStorage for client-side access
+    // Store in localStorage
     localStorage.setItem('auth_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
   }

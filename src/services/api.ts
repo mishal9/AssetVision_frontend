@@ -188,7 +188,6 @@ export const authApi = {
         'Accept': 'application/json',
       },
       body: JSON.stringify({ username, password }),
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     })
       .then(response => response.json())
@@ -207,7 +206,6 @@ export const authApi = {
         'Accept': 'application/json',
       },
       body: JSON.stringify(userData),
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     })
       .then(response => response.json())
@@ -225,7 +223,6 @@ export const authApi = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ refresh: refreshToken }),
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     })
       .then(response => response.json())
@@ -243,7 +240,6 @@ export const authApi = {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ email }),
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     });
   },
@@ -252,13 +248,16 @@ export const authApi = {
    * Get current user information
    */
   getUserInfo: () => {
+    // Get token from localStorage
+    const token = localStorage.getItem('auth_token');
+    
     // Use centralized AUTH_ENDPOINTS configuration
     return fetch(AUTH_ENDPOINTS.USER, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     })
       .then(response => response.json())
@@ -269,13 +268,16 @@ export const authApi = {
    * Logout user
    */
   logout: () => {
+    // Get token from localStorage
+    const token = localStorage.getItem('auth_token');
+    
     // Use centralized AUTH_ENDPOINTS configuration
     return fetch(AUTH_ENDPOINTS.LOGOUT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
-      credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     });
   },
