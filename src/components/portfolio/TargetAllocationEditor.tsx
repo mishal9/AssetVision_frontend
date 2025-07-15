@@ -83,8 +83,13 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
     
     // Initialize from asset classes in the store (API data)
     assetClasses.forEach(assetClass => {
-      // Use the target_allocation if it exists, otherwise default to 0
-      const targetValue = assetClass.target_allocation !== undefined ? assetClass.target_allocation : 0;
+      // Prefer camelCase 'targetAllocation' from converted data, fallback to snake_case
+      const targetValue =
+        (assetClass as any).targetAllocation !== undefined
+          ? (assetClass as any).targetAllocation
+          : assetClass.target_allocation !== undefined
+            ? assetClass.target_allocation
+            : 0;
       initialAllocations[assetClass.id] = targetValue;
     });
     
@@ -101,8 +106,12 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
     
     // Initialize from sectors in the store (API data)
     sectors.forEach(sector => {
-      // Use the target_allocation if it exists, otherwise default to 0
-      const targetValue = sector.target_allocation !== undefined ? sector.target_allocation : 0;
+      const targetValue =
+        (sector as any).targetAllocation !== undefined
+          ? (sector as any).targetAllocation
+          : sector.target_allocation !== undefined
+            ? sector.target_allocation
+            : 0;
       initialAllocations[sector.id] = targetValue;
     });
     

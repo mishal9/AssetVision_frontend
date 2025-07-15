@@ -540,17 +540,19 @@ const DriftCharts: React.FC<{
                   data={compositionData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={40}
-                  outerRadius={80}
+                  innerRadius={60}
+                  outerRadius={90}
                   paddingAngle={2}
                   dataKey="value"
+                  nameKey="name"
+                  labelLine={false}
                 >
                   {compositionData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`comp-cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Current']}
+                  formatter={(value: number, _name: string, info: any) => [`${value.toFixed(1)}%`, info.payload.name]}
                 />
                 <Legend 
                   verticalAlign="bottom" 
@@ -583,17 +585,19 @@ const DriftCharts: React.FC<{
                   data={targetAllocationData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={40}
-                  outerRadius={80}
+                  innerRadius={60}
+                  outerRadius={90}
                   paddingAngle={2}
                   dataKey="value"
+                  nameKey="name"
+                  labelLine={false}
                 >
                   {targetAllocationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
+                    <Cell key={`tgt-cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
                 <RechartsTooltip 
-                  formatter={(value: number) => [`${value.toFixed(1)}%`, 'Target']}
+                  formatter={(value: number, _name: string, info: any) => [`${value.toFixed(1)}%`, info.payload.name]}
                 />
                 <Legend 
                   verticalAlign="bottom" 
