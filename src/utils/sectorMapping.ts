@@ -64,10 +64,18 @@ export const groupSectorItems = <T extends { name: string; currentAllocation: nu
     return acc;
   }, {} as { [key: string]: any });
 
-  // Calculate average relative drift for grouped items
+  // After summing allocations, compute drift metrics for each grouped sector
   Object.values(groupedItems).forEach((item: any) => {
-    if (item.targetAllocation > 0) {
+    // Re-calculate absolute drift from aggregated current vs target values to avoid double-counting
+    item.absoluteDrift = item.currentAllocation - item.targetAllocation;
+
+    // Relative drift (% of target); handle target 0 edge-cases gracefully
+    if (item.targetAllocation !== 0) {
       item.relativeDrift = (item.absoluteDrift / item.targetAllocation) * 100;
+    } else if (item.currentAllocation !== 0) {
+      item.relativeDrift = 100;
+    } else {
+      item.relativeDrift = 0;
     }
   });
 

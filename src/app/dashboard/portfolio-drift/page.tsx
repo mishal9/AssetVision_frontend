@@ -38,7 +38,6 @@ export default function PortfolioDriftPage() {
         </div>
         
         <div className="bg-card border border-border rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-6">Target vs. Actual Allocation</h2>
           <PortfolioDriftContainer />
         </div>
         

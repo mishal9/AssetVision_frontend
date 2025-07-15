@@ -6,7 +6,6 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchPortfolioDrift } from '@/store/portfolioSlice';
 import DriftVisualization from '../alerts/DriftVisualization';
 import TargetAllocationEditor from './TargetAllocationEditor';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +22,6 @@ import { portfolioApi } from '@/services/api';
 const PortfolioDriftContainer: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { driftData, driftLoading, driftError } = useSelector((state: RootState) => state.portfolio);
-  const [activeTab, setActiveTab] = useState<'overall' | 'sector'>('sector');
   const [portfolioId, setPortfolioId] = useState<string>('');
   const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
@@ -198,28 +196,11 @@ const PortfolioDriftContainer: React.FC = () => {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'overall' | 'sector')}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="overall">Overall</TabsTrigger>
-          <TabsTrigger value="sector">Sector</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="overall" className="mt-4">
-          <DriftVisualization 
-            data={driftData?.overall} 
-            thresholdPercent={5}
-            type="overall"
-          />
-        </TabsContent>
-        
-        <TabsContent value="sector" className="mt-4">
-          <DriftVisualization 
-            data={driftData?.sector} 
-            thresholdPercent={5}
-            type="sector"
-          />
-        </TabsContent>
-      </Tabs>
+      <DriftVisualization 
+        data={driftData?.sector} 
+        thresholdPercent={5}
+        type="sector"
+      />
     </div>
   );
 };

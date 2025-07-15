@@ -250,18 +250,51 @@ export const portfolioSlice = createSlice({
         ['asset_class', 'sector', 'overall'].forEach(category => {
           if (processedData[category]) {
             // Make sure each item has both current and target allocations
-            processedData[category].items = processedData[category].items.map((item: any) => ({
-              ...item,
-              // Set currentAllocation to 0 if undefined or
-              currentAllocation: item.currentAllocation ?? 0,
-              // Set targetAllocation to 0 if undefined or null
-              targetAllocation: item.targetAllocation ?? 0,
-              // Calculate drifts if not provided
-              absoluteDrift: item.absoluteDrift ?? (item.currentAllocation - item.targetAllocation) ?? 0,
-              relativeDrift: item.relativeDrift ?? (
-                item.targetAllocation ? ((item.currentAllocation - item.targetAllocation) / item.targetAllocation * 100) : 0
-              )
-            }));
+            processedData[category].items = processedData[category].items.map((item: any) => {
+              // Extract raw allocation values (could be percentage points or 0-1 fractions)
+              const rawCurrent =
+                // Prefer camelCase but fall back to snake_case fields from backend
+                (item.currentAllocation ?? item.current_allocation ?? 0) as number;
+              const rawTarget =
+                (item.targetAllocation ?? item.target_allocation ?? 0) as number;
+
+              // Normalize allocations: backend may send fractions (0-1). Convert to percentages if so.
+              const normalize = (val: number): number => (val <= 1 ? val * 100 : val);
+              const currentPct = normalize(rawCurrent);
+              const targetPct = normalize(rawTarget);
+
+              // Calculate absolute drift in percentage points
+              const absoluteDrift = (item.absoluteDrift ?? item.absolute_drift) !== undefined
+                ? normalize(item.absoluteDrift ?? item.absolute_drift as number)
+                : currentPct - targetPct;
+
+              // Calculate relative drift as percent of target
+              const relativeDrift = (item.relativeDrift ?? item.relative_drift) !== undefined
+                ? (item.relativeDrift ?? item.relative_drift)
+                : (
+                    targetPct !== 0
+                      ? ((currentPct - targetPct) / targetPct) * 100
+                      : currentPct !== 0
+                        ? 100
+                        : 0
+                  );
+
+              return {
+                ...item,
+                currentAllocation: currentPct,
+                targetAllocation: targetPct,
+                absoluteDrift,
+                relativeDrift,
+              };
+            });
+            
+            // Calculate totalAbsoluteDrift as sum of absolute values of all absoluteDrift values
+            const totalAbsoluteDrift = processedData[category].items.reduce((sum: number, item: any) => {
+              return sum + Math.abs(item.absoluteDrift || 0);
+            }, 0);
+            
+            // Set the calculated totalAbsoluteDrift
+            processedData[category].totalAbsoluteDrift = totalAbsoluteDrift;
           }
         });
         
