@@ -252,15 +252,7 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
             <TabsTrigger value="absolute">Absolute Drift</TabsTrigger>
             <TabsTrigger value="relative">Relative Drift</TabsTrigger>
           </TabsList>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Info className="h-4 w-4" />
-            <span>
-              {driftView === 'absolute' 
-                ? 'Percentage point difference from target'
-                : 'Percentage change relative to target'
-              }
-            </span>
-          </div>
+          {/* Removed inline drift explanation text */}
         </div>
 
         <TabsContent value="absolute" className="mt-4">

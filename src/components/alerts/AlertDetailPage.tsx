@@ -14,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from '../ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import {
@@ -46,7 +45,7 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
   const [driftDataLoading, setDriftDataLoading] = useState(false);
   const [driftDataError, setDriftDataError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentTab, setCurrentTab] = useState('overview');
+  // Removed tabs state
   
   // Fetch alert details on component mount
   useEffect(() => {
@@ -197,221 +196,110 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
         </div>
       </div>
       
-      <Tabs defaultValue="overview" value={currentTab} onValueChange={setCurrentTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-          {isDriftAlert && <TabsTrigger value="drift">Drift Analysis</TabsTrigger>}
-        </TabsList>
-        
-        <TabsContent value="overview" className="mt-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Alert Details</CardTitle>
-                <CardDescription>Basic information about this alert</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Alert Type</h3>
-                  <p>{getAlertTypeDisplay(alert.conditionType)}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Frequency</h3>
-                  <p>{getAlertTypeDisplay(alert.frequency)}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Last Triggered</h3>
-                  <p>{alert.lastTriggered ? new Date(alert.lastTriggered).toLocaleString() : 'Never'}</p>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">Created On</h3>
-                  <p>{new Date(alert.createdAt).toLocaleDateString()}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Condition Configuration</CardTitle>
-                <CardDescription>Parameters for when this alert triggers</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {isDriftAlert && (
-                  <>
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Drift Type</h3>
-                      <p>{(alert.conditionConfig.driftType as string) === 'absolute' ? 'Absolute (% change)' : 'Relative (% from target)'}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Threshold</h3>
-                      <p>{Number(alert.conditionConfig.thresholdPercent)}%</p>
-                    </div>
-                    
-                    {alert.conditionType === ConditionType.SECTOR_DRIFT && (alert.conditionConfig.sectorId as string) && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Specific Sector</h3>
-                        <p>Sector ID: {alert.conditionConfig.sectorId as string}</p>
-                      </div>
-                    )}
-                    
-                    {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (alert.conditionConfig.assetClassId as string) && (
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Specific Asset Class</h3>
-                        <p>Asset Class ID: {alert.conditionConfig.assetClassId as string}</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+      {/* Overview Section */}
+      <div className="mt-6 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Alert Details</CardTitle>
+              <CardDescription>Basic information about this alert</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Alert Type</h3>
+                <p>{getAlertTypeDisplay(alert.conditionType)}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Frequency</h3>
+                <p>{getAlertTypeDisplay(alert.frequency)}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Last Triggered</h3>
+                <p>{alert.lastTriggered ? new Date(alert.lastTriggered).toLocaleString() : 'Never'}</p>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Created On</h3>
+                <p>{new Date(alert.createdAt).toLocaleDateString()}</p>
+              </div>
+            </CardContent>
+          </Card>
           
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>Latest events for this alert</CardDescription>
+              <CardTitle>Condition Configuration</CardTitle>
+              <CardDescription>Parameters for when this alert triggers</CardDescription>
             </CardHeader>
-            <CardContent>
-              {history.length === 0 ? (
-                <p className="text-center py-6 text-muted-foreground">No recent activity for this alert</p>
-              ) : (
-                <div className="space-y-4">
-                  {history.slice(0, 5).map((item) => (
-                    <div key={item.id} className="flex items-center justify-between border-b pb-3">
-                      <div className="flex items-start gap-3">
-                        {item.wasTriggered ? (
-                          <AlertTriangle className="h-5 w-5 text-amber-500" />
-                        ) : (
-                          <Info className="h-5 w-5 text-blue-500" />
-                        )}
-                        <div>
-                          <p className="font-medium">
-                            {item.wasTriggered ? 'Alert Triggered' : 'Alert Checked'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(item.triggeredAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
+            <CardContent className="space-y-4">
+              {isDriftAlert && (
+                <>
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Drift Type</h3>
+                    <p>{(alert.conditionConfig.driftType as string) === 'absolute' ? 'Absolute (% change)' : 'Relative (% from target)'}</p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-medium text-muted-foreground">Threshold</h3>
+                    <p>{Number(alert.conditionConfig.thresholdPercent)}%</p>
+                  </div>
+                  
+                  {alert.conditionType === ConditionType.SECTOR_DRIFT && (alert.conditionConfig.sectorId as string) && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Specific Sector</h3>
+                      <p>Sector ID: {alert.conditionConfig.sectorId as string}</p>
                     </div>
-                  ))}
-                </div>
+                  )}
+                  
+                  {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (alert.conditionConfig.assetClassId as string) && (
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground">Specific Asset Class</h3>
+                      <p>Asset Class ID: {alert.conditionConfig.assetClassId as string}</p>
+                    </div>
+                  )}
+                </>
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
         
-        <TabsContent value="history" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Alert History</CardTitle>
-              <CardDescription>Record of all activities for this alert</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {history.length === 0 ? (
-                <p className="text-center py-6 text-muted-foreground">No history found for this alert</p>
-              ) : (
-                <div className="space-y-4">
-                  {history.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between border-b pb-4">
-                      <div className="flex items-start gap-3">
-                        {item.wasTriggered ? (
-                          <AlertTriangle className="h-5 w-5 text-amber-500 mt-1" />
-                        ) : (
-                          <Info className="h-5 w-5 text-blue-500 mt-1" />
-                        )}
-                        <div>
-                          <p className="font-medium">
-                            {item.wasTriggered ? 'Alert Triggered' : 'Alert Checked'}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(item.triggeredAt).toLocaleString()}
-                          </p>
-                          {item.contextData && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {JSON.stringify(item.contextData).substring(0, 100)}
-                              {JSON.stringify(item.contextData).length > 100 ? '...' : ''}
-                            </p>
-                          )}
-                        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Activity</CardTitle>
+            <CardDescription>Latest events for this alert</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {history.length === 0 ? (
+              <p className="text-center py-6 text-muted-foreground">No recent activity for this alert</p>
+            ) : (
+              <div className="space-y-4">
+                {history.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between border-b pb-3">
+                    <div className="flex items-start gap-3">
+                      {item.wasTriggered ? (
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      ) : (
+                        <Info className="h-5 w-5 text-blue-500" />
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {item.wasTriggered ? 'Alert Triggered' : 'Alert Checked'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(item.triggeredAt).toLocaleString()}
+                        </p>
                       </div>
-                      
-                      <Badge variant={item.resolvedAt ? "outline" : item.wasTriggered ? "destructive" : "secondary"}>
-                        {item.resolvedAt ? 'Resolved' : item.wasTriggered ? 'Triggered' : 'Checked'}
-                      </Badge>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {isDriftAlert && (
-          <TabsContent value="drift" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Drift Analysis</CardTitle>
-                <CardDescription>Visualize the current drift status of your portfolio</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {driftDataLoading ? (
-                  <div className="text-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                    <p className="mt-4 text-muted-foreground">Loading drift data...</p>
                   </div>
-                ) : driftDataError ? (
-                  <div className="text-center py-8">
-                    <AlertTriangle className="h-8 w-8 mx-auto text-destructive" />
-                    <p className="mt-4 text-muted-foreground">{driftDataError}</p>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setDriftDataLoading(true);
-                        alertsApi.getPortfolioDrift('default')
-                          .then(data => {
-                            setDriftData(data);
-                            setDriftDataError(null);
-                          })
-                          .catch(err => {
-                            console.error('Error retrying drift data fetch:', err);
-                            setDriftDataError('Failed to load drift data. Please try again later.');
-                          })
-                          .finally(() => setDriftDataLoading(false));
-                      }}
-                      className="mt-4"
-                    >
-                      Retry
-                    </Button>
-                  </div>
-                ) : driftData ? (
-                  <DriftVisualization 
-                    data={driftData}
-                    thresholdPercent={Number(alert.conditionConfig.thresholdPercent) || 5}
-                    type={
-                      alert.conditionType === ConditionType.SECTOR_DRIFT 
-                        ? 'sector'
-                        : alert.conditionType === ConditionType.ASSET_CLASS_DRIFT
-                          ? 'asset-class'
-                          : 'overall'
-                    }
-                  />
-                ) : (
-                  <div className="text-center py-8">
-                    <Info className="h-8 w-8 mx-auto text-muted-foreground" />
-                    <p className="mt-4 text-muted-foreground">No drift data available</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
-      </Tabs>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* History and Drift Analysis sections removed */}
     </div>
   );
 }
