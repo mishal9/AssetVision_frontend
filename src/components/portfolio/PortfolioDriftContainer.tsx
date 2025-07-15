@@ -15,44 +15,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { AlertTriangle, Loader2, BugPlay, RefreshCw, PieChart, Settings } from 'lucide-react';
+import { AlertTriangle, Loader2, RefreshCw, PieChart, Settings } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
-import { mockDriftData } from '@/mock/driftData';
 import { portfolioApi } from '@/services/api';
 
 const PortfolioDriftContainer: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { driftData, driftLoading, driftError } = useSelector((state: RootState) => state.portfolio);
-  const [activeTab, setActiveTab] = useState<'overall' | 'asset-class' | 'sector'>('overall');
-  const [useMockData, setUseMockData] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overall' | 'sector'>('sector');
   const [portfolioId, setPortfolioId] = useState<string>('');
   const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
   const [loading, setLoading] = useState<boolean>(true);
   
-  // Determine which data to display - real or mock
-  // Added logging to check what data is being used
-  const displayData = useMockData ? mockDriftData : driftData;
-  
   useEffect(() => {
-    // Add extensive logging to help debug the data issue
+    // Log API data for debugging
     if (driftData && !driftLoading) {
-      console.log('ACTUAL API DRIFT DATA:', JSON.stringify(driftData, null, 2));
-      console.log('Is using mock data?', useMockData);
+      console.log('Live API drift data:', JSON.stringify(driftData, null, 2));
       
-      // Check if we have real asset class data
+      // Check if we have real data
       if (driftData.asset_class?.items && driftData.asset_class.items.length > 0) {
-        console.log('Real asset class data available:', 
+        console.log('Asset class data:', 
           driftData.asset_class.items.map(item => `${item.name}: ${item.currentAllocation}%`)
         );
-      } else {
-        console.warn('No real asset class data available in API response!');
+      }
+      
+      if (driftData.sector?.items && driftData.sector.items.length > 0) {
+        console.log('Sector data:', 
+          driftData.sector.items.map(item => `${item.name}: ${item.currentAllocation}%`)
+        );
       }
     }
-  }, [driftData, driftLoading, useMockData]);
+  }, [driftData, driftLoading]);
 
   useEffect(() => {
-    // Get the active portfolio ID and then fetch drift data
+    // Get the active portfolio ID and fetch drift data
     async function fetchPortfolioData() {
       try {
         setLoading(true);
@@ -69,23 +66,11 @@ const PortfolioDriftContainer: React.FC = () => {
         
         setPortfolioId(activePortfolioId);
         
-        // Attempt to fetch drift data
-        try {
-          await dispatch(fetchPortfolioDrift()).unwrap();
-          
-          // Only use real data if we successfully fetched it
-          setUseMockData(false);
-          
-          // Log the success
-          console.log('Successfully fetched portfolio drift data');
-        } catch (error: any) {
-          console.error('Error fetching drift data:', error);
-          
-          // Only fall back to mock data when explicitly requested or when there's an error
-          // The Redux store will already have the error message set
-          // But let's not automatically use mock data, as it confuses the user
-          // setUseMockData(true);
-        }
+        // Fetch drift data from live API
+        await dispatch(fetchPortfolioDrift()).unwrap();
+        console.log('Successfully fetched live portfolio drift data');
+      } catch (error: any) {
+        console.error('Error fetching drift data:', error);
       } finally {
         setLoading(false);
       }
@@ -95,7 +80,7 @@ const PortfolioDriftContainer: React.FC = () => {
   }, [dispatch]);
 
   // Handle loading state
-  if (driftLoading && !useMockData) {
+  if (driftLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -105,7 +90,7 @@ const PortfolioDriftContainer: React.FC = () => {
   }
 
   // Handle error state
-  if (driftError && !useMockData) {
+  if (driftError) {
     // Special handling for missing target allocations
     const isMissingAllocationsError = driftError?.includes('No target allocations defined');
     
@@ -126,7 +111,7 @@ const PortfolioDriftContainer: React.FC = () => {
           </AlertDescription>
         </Alert>
         
-        <div className="flex justify-between">
+        <div className="flex justify-center">
           {isMissingAllocationsError && (
             <Button 
               variant="default" 
@@ -137,30 +122,13 @@ const PortfolioDriftContainer: React.FC = () => {
               Define Target Allocations
             </Button>
           )}
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setUseMockData(true)}
-          >
-            <BugPlay className="h-4 w-4" />
-            <span>Use Test Data</span>
-          </Button>
         </div>
       </div>
     );
   }
 
   // Handle missing data
-  // Log what data is available to help troubleshoot
-  console.log('Drift data available:', {
-    overall: !!driftData?.overall,
-    asset_class: !!driftData?.asset_class,
-    sector: !!driftData?.sector,
-    usingMockData: useMockData
-  });
-  
-  if (!useMockData && !driftData?.overall && !driftData?.asset_class && !driftData?.sector) {
+  if (!driftData?.overall && !driftData?.asset_class && !driftData?.sector) {
     return (
       <div className="space-y-4">
         <Alert>
@@ -171,7 +139,7 @@ const PortfolioDriftContainer: React.FC = () => {
           </AlertDescription>
         </Alert>
         
-        <div className="flex justify-between">
+        <div className="flex justify-center">
           <Button 
             variant="default" 
             className="flex items-center gap-2"
@@ -179,15 +147,6 @@ const PortfolioDriftContainer: React.FC = () => {
           >
             <Settings className="h-4 w-4" />
             <span>Define Target Allocations</span>
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={() => setUseMockData(true)}
-          >
-            <BugPlay className="h-4 w-4" />
-            <span>Use Test Data</span>
           </Button>
         </div>
       </div>
@@ -202,73 +161,64 @@ const PortfolioDriftContainer: React.FC = () => {
           <DialogHeader>
             <DialogTitle>Manage Target Allocations</DialogTitle>
             <DialogDescription>
-              Define target percentages for each asset class to track portfolio drift.
+              Define target percentages for each sector to track portfolio drift.
             </DialogDescription>
           </DialogHeader>
           <TargetAllocationEditor onClose={() => setAllocationDialogOpen(false)} />
         </DialogContent>
       </Dialog>
+      
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Portfolio Drift</h2>
         
-        {/* Use a regular button without DialogTrigger */}
-        <Button 
-          variant="outline" 
-          size="sm"
-          className="flex items-center gap-2"
-          onClick={() => setAllocationDialogOpen(true)}
-        >
-          <Settings className="h-4 w-4" />
-          <span>Target Allocations</span>
-        </Button>
-        
-
-      </div>
-      {useMockData && (
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 px-3 py-1 rounded text-sm">
-            <BugPlay className="h-4 w-4" />
-            <span>Using test data</span>
-          </div>
+        <div className="flex items-center gap-2">
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setAllocationDialogOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            <span>Target Allocations</span>
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
             onClick={() => {
-              setUseMockData(false);
               if (portfolioId) {
                 dispatch(fetchPortfolioDrift());
               }
             }}
           >
-            Try live data
+            <RefreshCw className="h-4 w-4" />
+            <span>Refresh</span>
           </Button>
         </div>
-      )}
-      
-      <Tabs defaultValue={activeTab} onValueChange={(value) => setActiveTab(value as any)}>
-        <TabsList className="mb-4">
-          {displayData.overall && <TabsTrigger value="overall">Overall</TabsTrigger>}
-          {displayData.asset_class && <TabsTrigger value="asset-class">Asset Classes</TabsTrigger>}
-          {displayData.sector && <TabsTrigger value="sector">Sectors</TabsTrigger>}
+      </div>
+
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'overall' | 'sector')}>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="overall">Overall</TabsTrigger>
+          <TabsTrigger value="sector">Sector</TabsTrigger>
         </TabsList>
         
-        {displayData.overall && (
-          <TabsContent value="overall">
-            <DriftVisualization data={displayData.overall} type="overall" />
-          </TabsContent>
-        )}
+        <TabsContent value="overall" className="mt-4">
+          <DriftVisualization 
+            data={driftData?.overall} 
+            thresholdPercent={5}
+            type="overall"
+          />
+        </TabsContent>
         
-        {displayData.asset_class && (
-          <TabsContent value="asset-class">
-            <DriftVisualization data={displayData.asset_class} type="asset-class" />
-          </TabsContent>
-        )}
-        
-        {displayData.sector && (
-          <TabsContent value="sector">
-            <DriftVisualization data={displayData.sector} type="sector" />
-          </TabsContent>
-        )}
+        <TabsContent value="sector" className="mt-4">
+          <DriftVisualization 
+            data={driftData?.sector} 
+            thresholdPercent={5}
+            type="sector"
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );

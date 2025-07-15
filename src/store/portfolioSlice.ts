@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
 import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
+import { Sector } from '@/types/portfolio';
 
 /**
  * Type for a single holding in the portfolio
@@ -72,6 +73,9 @@ export interface PortfolioState {
   assetClasses: AssetClass[];
   assetClassesLoading: boolean;
   assetClassesError: string | null;
+  sectors: Sector[];
+  sectorsLoading: boolean;
+  sectorsError: string | null;
   targetAllocationsLoading: boolean;
   targetAllocationsError: string | null;
 }
@@ -87,6 +91,9 @@ const initialState: PortfolioState = {
   assetClasses: [],
   assetClassesLoading: false,
   assetClassesError: null,
+  sectors: [],
+  sectorsLoading: false,
+  sectorsError: null,
   targetAllocationsLoading: false,
   targetAllocationsError: null,
 };
@@ -120,11 +127,30 @@ export const fetchAssetClasses = createAsyncThunk(
   'portfolio/fetchAssetClasses',
   async (_, { rejectWithValue }) => {
     try {
-      // Use fetchWithAuth to handle authentication consistently
-      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.ASSET_CLASSES);
+      // Use the portfolioApi to handle authentication consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.getAssetClasses();
     } catch (error: any) {
       console.error('Asset classes fetch error:', error);
       return rejectWithValue(error.message || 'Failed to fetch asset classes');
+    }
+  }
+);
+
+/**
+ * Async thunk to fetch available sectors for the portfolio
+ * Retrieves sectors with their current allocations if available
+ */
+export const fetchSectors = createAsyncThunk(
+  'portfolio/fetchSectors',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Use the portfolioApi to handle authentication consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.getSectors();
+    } catch (error: any) {
+      console.error('Sectors fetch error:', error);
+      return rejectWithValue(error.message || 'Failed to fetch sectors');
     }
   }
 );
@@ -137,14 +163,30 @@ export const saveTargetAllocations = createAsyncThunk(
   'portfolio/saveTargetAllocations',
   async (allocations: TargetAllocationInput[], { rejectWithValue }) => {
     try {
-      // Use fetchWithAuth to handle authentication and CSRF consistently
-      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.TARGET_ALLOCATIONS, {
-        method: 'POST',
-        body: JSON.stringify(allocations)
-      });
+      // Use the portfolioApi to handle authentication and CSRF consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.saveTargetAllocations(allocations);
     } catch (error: any) {
       console.error('Target allocation save error:', error);
       return rejectWithValue(error.message || 'Failed to save target allocations');
+    }
+  }
+);
+
+/**
+ * Async thunk to save sector target allocations for the portfolio
+ * @param allocations Array of sector allocations with target percentages
+ */
+export const saveSectorTargetAllocations = createAsyncThunk(
+  'portfolio/saveSectorTargetAllocations',
+  async (allocations: TargetAllocationInput[], { rejectWithValue }) => {
+    try {
+      // Use the portfolioApi to handle authentication and CSRF consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.saveSectorTargetAllocations(allocations);
+    } catch (error: any) {
+      console.error('Sector target allocation save error:', error);
+      return rejectWithValue(error.message || 'Failed to save sector target allocations');
     }
   }
 );
@@ -280,6 +322,58 @@ export const portfolioSlice = createSlice({
       }
       })
       .addCase(saveTargetAllocations.rejected, (state, action) => {
+        state.targetAllocationsLoading = false;
+        state.targetAllocationsError = action.payload as string;
+      })
+      
+      // Fetch sectors cases
+      .addCase(fetchSectors.pending, (state) => {
+        state.sectorsLoading = true;
+        state.sectorsError = null;
+      })
+      .addCase(fetchSectors.fulfilled, (state, action) => {
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          state.sectors = action.payload;
+        } else {
+          console.error('Expected array for sectors but got:', action.payload);
+          state.sectors = [];
+        }
+        state.sectorsLoading = false;
+      })
+      .addCase(fetchSectors.rejected, (state, action) => {
+        state.sectorsLoading = false;
+        state.sectorsError = action.payload ? String(action.payload) : 'Failed to fetch sectors';
+      })
+      
+      // Save sector target allocations cases
+      .addCase(saveSectorTargetAllocations.pending, (state) => {
+        state.targetAllocationsLoading = true;
+        state.targetAllocationsError = null;
+      })
+      .addCase(saveSectorTargetAllocations.fulfilled, (state, action) => {
+        state.targetAllocationsLoading = false;
+        // Store the updated sectors from the response
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          const sectors = action.payload;
+          state.sectors = sectors;
+          // Update portfolioData with target allocations
+          if (sectors.length > 0) {
+          // Create a map of target allocations from the response
+          const targetAllocations: {[key: string]: number} = {};
+          sectors.forEach((sector: Sector) => {
+            if (sector.target_allocation !== undefined) {
+              targetAllocations[sector.id] = sector.target_allocation;
+            }
+          });
+        }
+      } else {
+        console.error('Expected array for sectors but got:', action.payload);
+        state.sectors = [];
+      }
+      })
+      .addCase(saveSectorTargetAllocations.rejected, (state, action) => {
         state.targetAllocationsLoading = false;
         state.targetAllocationsError = action.payload as string;
       });

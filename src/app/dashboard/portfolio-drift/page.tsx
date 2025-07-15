@@ -45,9 +45,9 @@ export default function PortfolioDriftPage() {
         <div className="mt-8 p-4 border border-muted-foreground/20 bg-muted/20 rounded-lg">
           <h3 className="font-medium mb-2">What is Portfolio Drift?</h3>
           <p className="text-sm text-muted-foreground">
-            Portfolio drift occurs when your actual asset allocation deviates from your target allocation due to 
+            Portfolio drift occurs when your actual sector allocation deviates from your target sector allocation due to 
             market performance differences. Regular rebalancing helps maintain your desired risk profile and investment strategy.
-            This visualization shows how far each allocation has drifted from its target, helping you identify when rebalancing may be needed.
+            This visualization shows how far each sector has drifted from its target, helping you identify when rebalancing may be needed.
           </p>
         </div>
       </div>

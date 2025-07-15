@@ -11,8 +11,7 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Loader2, Save, PlusCircle, MinusCircle, Trash2 } from 'lucide-react';
-import { fetchAssetClasses, saveTargetAllocations, fetchPortfolioDrift } from '@/store/portfolioSlice';
-import { ASSET_CLASSES } from '@/constants/assetClasses';
+import { fetchAssetClasses, saveTargetAllocations, fetchPortfolioDrift, fetchSectors, saveSectorTargetAllocations } from '@/store/portfolioSlice';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BugPlay } from "lucide-react";
 
@@ -25,170 +24,323 @@ interface TargetAllocationEditorProps {
 
 const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { assetClasses } = useSelector((state: RootState) => state.portfolio);
+  const { assetClasses, sectors, assetClassesLoading, sectorsLoading } = useSelector((state: RootState) => state.portfolio);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [allocations, setAllocations] = useState<{[key: string]: number}>({}); 
+  const [allocations, setAllocations] = useState<{[key: string]: number}>({});
+  const [sectorAllocations, setSectorAllocations] = useState<{[key: string]: number}>({});
   const [totalAllocation, setTotalAllocation] = useState<number>(0);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [activeTab, setActiveTab] = useState<'asset-class' | 'sector'>('asset-class');
+  const [totalSectorAllocation, setTotalSectorAllocation] = useState<number>(0);
+  const [assetClassesInitialized, setAssetClassesInitialized] = useState(false);
+  const [sectorsInitialized, setSectorsInitialized] = useState(false);
+  const [activeTab, setActiveTab] = useState<'asset-class' | 'sector'>('sector');
   const [isSaving, setIsSaving] = useState(false);
 
   // Generate colors for the bars
   const COLORS = '#0088FE';
   
-  // Fetch asset classes when component loads
+  // Fetch asset classes and sectors when component loads
   useEffect(() => {
-    const loadAssetClasses = async () => {
+    const loadData = async () => {
       try {
         // Fetch latest asset classes with current target allocations
-        await dispatch(fetchAssetClasses()).unwrap();
+        if (!assetClasses.length) {
+          await dispatch(fetchAssetClasses()).unwrap();
+        }
+        // Fetch latest sectors with current target allocations
+        if (!sectors.length) {
+          await dispatch(fetchSectors()).unwrap();
+        }
       } catch (error) {
-        console.error('Failed to fetch asset classes:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
     
-    if (!assetClasses.length) {
-      loadAssetClasses();
-    }
-  }, [dispatch]);
+    loadData();
+  }, [dispatch, assetClasses.length, sectors.length]);
   
   // Initialize from asset classes when they're available
   useEffect(() => {
-    if (assetClasses.length && !isInitialized) {
+    if (assetClasses.length && !assetClassesInitialized) {
       initializeFromExistingAllocations();
-      setIsInitialized(true);
+      setAssetClassesInitialized(true);
     }
-  }, [assetClasses, isInitialized]);
+  }, [assetClasses, assetClassesInitialized]);
+  
+  // Initialize sectors separately
+  useEffect(() => {
+    if (sectors.length && !sectorsInitialized) {
+      initializeFromExistingSectorAllocations();
+      setSectorsInitialized(true);
+    }
+  }, [sectors, sectorsInitialized]);
 
   /**
    * Initialize from existing target allocations in the Redux store
    */
   const initializeFromExistingAllocations = () => {
     const initialAllocations: {[key: string]: number} = {};
-    let hasExistingAllocations = false;
     
-    // Initialize from asset classes in the store
+    // Initialize from asset classes in the store (API data)
     assetClasses.forEach(assetClass => {
       // Use the target_allocation if it exists, otherwise default to 0
       const targetValue = assetClass.target_allocation !== undefined ? assetClass.target_allocation : 0;
       initialAllocations[assetClass.id] = targetValue;
-      if (targetValue > 0) hasExistingAllocations = true;
     });
-    
-    // If no asset classes have allocations, initialize remaining from constants
-    if (!hasExistingAllocations) {
-      ASSET_CLASSES.forEach(assetClass => {
-        if (initialAllocations[assetClass.id] === undefined) {
-          initialAllocations[assetClass.id] = 0;
-        }
-      });
-    }
     
     setAllocations(initialAllocations);
     calculateTotalAllocation(initialAllocations);
-    console.log('Initialized allocations:', initialAllocations);
+    console.log('Initialized allocations from API:', initialAllocations);
+  };
+  
+  /**
+   * Initialize from existing sector target allocations in the Redux store
+   */
+  const initializeFromExistingSectorAllocations = () => {
+    const initialAllocations: {[key: string]: number} = {};
+    
+    // Initialize from sectors in the store (API data)
+    sectors.forEach(sector => {
+      // Use the target_allocation if it exists, otherwise default to 0
+      const targetValue = sector.target_allocation !== undefined ? sector.target_allocation : 0;
+      initialAllocations[sector.id] = targetValue;
+    });
+    
+    setSectorAllocations(initialAllocations);
+    calculateTotalSectorAllocation(initialAllocations);
+    console.log('Initialized sector allocations from API:', initialAllocations);
   };
 
   const calculateTotalAllocation = (allocations: {[key: string]: number}) => {
     const total = Object.values(allocations).reduce((sum, val) => sum + val, 0);
     setTotalAllocation(total);
   };
+  
+  const calculateTotalSectorAllocation = (allocations: {[key: string]: number}) => {
+    const total = Object.values(allocations).reduce((sum, val) => sum + val, 0);
+    setTotalSectorAllocation(total);
+  };
 
   /**
    * Handle allocation change for an asset
    */
   const handleAllocationChange = (assetId: string, value: number) => {
-    setAllocations(prev => {
-      const updated = { ...prev, [assetId]: value };
-      // Recalculate total
-      const newTotal = Object.values(updated).reduce((sum, val) => sum + val, 0);
-      setTotalAllocation(newTotal);
-      return updated;
-    });
+    const newAllocations = { ...allocations, [assetId]: value };
+    setAllocations(newAllocations);
+    calculateTotalAllocation(newAllocations);
   };
 
   /**
-   * Save target allocations
+   * Handle allocation change for a sector
    */
-  const handleSave = async () => {
-    if (Math.abs(totalAllocation - 100) > 0.01) {
-      setFormError('Total allocation must equal 100%');
-      return;
-    }
-    
-    setIsSaving(true);
-    setFormError(null);
-    
-    try {
-      const allocationPayload = Object.entries(allocations).map(([assetId, percentage]) => ({
-        asset_id: assetId,
-        target_percentage: percentage
-      }));
-      
-      setLoading(true);
-      // Real API call
-      await dispatch(saveTargetAllocations(allocationPayload)).unwrap();
-      // Refresh portfolio drift data to reflect new allocations
-      await dispatch(fetchPortfolioDrift()).unwrap();
-      setLoading(false);
-      
-      // Close modal if onClose prop exists
-      if (onClose) onClose();
-    } catch (error: any) {
-      setFormError(error.message || 'Failed to save target allocations');
-    } finally {
-      setIsSaving(false);
+  const handleSectorAllocationChange = (sectorId: string, value: number) => {
+    const newAllocations = { ...sectorAllocations, [sectorId]: value };
+    setSectorAllocations(newAllocations);
+    calculateTotalSectorAllocation(newAllocations);
+  };
+
+  /**
+   * Reset all allocations to 0
+   */
+  const resetAllocations = () => {
+    if (activeTab === 'asset-class') {
+      const resetAllocations = Object.keys(allocations).reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {} as {[key: string]: number});
+      setAllocations(resetAllocations);
+      calculateTotalAllocation(resetAllocations);
+    } else {
+      const resetAllocations = Object.keys(sectorAllocations).reduce((acc, key) => {
+        acc[key] = 0;
+        return acc;
+      }, {} as {[key: string]: number});
+      setSectorAllocations(resetAllocations);
+      calculateTotalSectorAllocation(resetAllocations);
     }
   };
 
   /**
-   * Distribute remaining allocation evenly
+   * Auto-balance allocations by distributing remaining percentage
    */
   const distributeRemaining = () => {
-    const nonZeroCount = Object.values(allocations).filter(val => val > 0).length;
-    const totalCount = Object.keys(allocations).length;
-    
-    // If there are no non-zero allocations, distribute evenly across all asset classes
-    const countToUse = nonZeroCount === 0 ? totalCount : nonZeroCount;
-    if (countToUse === 0) return; // Safety check
-    
-    const remaining = 100 - totalAllocation;
-    const addPerAsset = remaining / countToUse;
-    
-    setAllocations(prev => {
-      const updated = { ...prev };
-      Object.keys(updated).forEach(key => {
-        // If no non-zero allocations, distribute to all assets
-        // Otherwise, only distribute to non-zero assets
-        if (nonZeroCount === 0 || updated[key] > 0) {
-          // For zero allocations, just add the per-asset amount
-          // For non-zero, add to the existing amount
-          updated[key] = Math.round((updated[key] + addPerAsset) * 100) / 100;
-        }
-      });
-      setTotalAllocation(100);
-      return updated;
-    });
+    if (activeTab === 'asset-class') {
+      const remaining = 100 - totalAllocation;
+      const nonZeroCount = Object.values(allocations).filter(val => val > 0).length;
+      
+      if (nonZeroCount > 0) {
+        const distributionAmount = remaining / nonZeroCount;
+        const newAllocations = { ...allocations };
+        
+        Object.keys(newAllocations).forEach(assetId => {
+          if (newAllocations[assetId] > 0) {
+            newAllocations[assetId] = Math.max(0, newAllocations[assetId] + distributionAmount);
+          }
+        });
+        
+        setAllocations(newAllocations);
+        calculateTotalAllocation(newAllocations);
+      }
+    } else {
+      const remaining = 100 - totalSectorAllocation;
+      const nonZeroCount = Object.values(sectorAllocations).filter(val => val > 0).length;
+      
+      if (nonZeroCount > 0) {
+        const distributionAmount = remaining / nonZeroCount;
+        const newAllocations = { ...sectorAllocations };
+        
+        Object.keys(newAllocations).forEach(sectorId => {
+          if (newAllocations[sectorId] > 0) {
+            newAllocations[sectorId] = Math.max(0, newAllocations[sectorId] + distributionAmount);
+          }
+        });
+        
+        setSectorAllocations(newAllocations);
+        calculateTotalSectorAllocation(newAllocations);
+      }
+    }
   };
 
-  // Use fixed asset classes
-  const assetData = ASSET_CLASSES;
+  /**
+   * Auto-balance sectors by distributing remaining percentage
+   */
+  const distributeSectorRemaining = () => {
+    const remaining = 100 - totalSectorAllocation;
+    const nonZeroCount = Object.values(sectorAllocations).filter(val => val > 0).length;
+    
+    if (nonZeroCount > 0) {
+      const distributionAmount = remaining / nonZeroCount;
+      const newAllocations = { ...sectorAllocations };
+      
+      Object.keys(newAllocations).forEach(sectorId => {
+        if (newAllocations[sectorId] > 0) {
+          newAllocations[sectorId] = Math.max(0, newAllocations[sectorId] + distributionAmount);
+        }
+      });
+      
+      setSectorAllocations(newAllocations);
+      calculateTotalSectorAllocation(newAllocations);
+    }
+  };
 
-  if (loading) {
+  /**
+   * Save target allocations to the backend
+   */
+  const saveAllocations = async () => {
+    if (activeTab === 'asset-class') {
+      // Validate total allocation
+      if (Math.abs(totalAllocation - 100) > 0.01) {
+        setFormError('Total allocation must equal 100%');
+        return;
+      }
+      
+      setIsSaving(true);
+      setFormError(null);
+      
+      try {
+        // Prepare data for the API
+        const allocationData = Object.entries(allocations).map(([assetId, targetPercentage]) => ({
+          asset_id: assetId,
+          target_percentage: targetPercentage
+        }));
+        
+        console.log('Saving allocations:', allocationData);
+        
+        // Call the Redux action
+        await dispatch(saveTargetAllocations(allocationData)).unwrap();
+        
+        // Refresh drift data after saving
+        await dispatch(fetchPortfolioDrift()).unwrap();
+        
+        // Close the dialog
+        onClose?.();
+      } catch (error) {
+        console.error('Failed to save allocations:', error);
+        setFormError('Failed to save allocations. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    } else {
+      // Validate total sector allocation
+      if (Math.abs(totalSectorAllocation - 100) > 0.01) {
+        setFormError('Total sector allocation must equal 100%');
+        return;
+      }
+      
+      setIsSaving(true);
+      setFormError(null);
+      
+      try {
+        // Prepare data for the API
+        const allocationData = Object.entries(sectorAllocations).map(([sectorId, targetPercentage]) => ({
+          asset_id: sectorId,
+          target_percentage: targetPercentage
+        }));
+        
+        console.log('Saving sector allocations:', allocationData);
+        
+        // Call the Redux action
+        await dispatch(saveSectorTargetAllocations(allocationData)).unwrap();
+        
+        // Refresh drift data after saving
+        await dispatch(fetchPortfolioDrift()).unwrap();
+        
+        // Close the dialog
+        onClose?.();
+      } catch (error) {
+        console.error('Failed to save sector allocations:', error);
+        setFormError('Failed to save sector allocations. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  };
+
+  // Prepare data for visualization
+  const assetData = assetClasses.map(assetClass => ({
+    id: assetClass.id,
+    name: assetClass.name,
+    description: assetClass.description,
+    current: assetClass.current_allocation || 0,
+    target: allocations[assetClass.id] || 0
+  }));
+
+  const sectorData = sectors.map(sector => ({
+    id: sector.id,
+    name: sector.name,
+    description: sector.description,
+    current: sector.current_allocation || 0,
+    target: sectorAllocations[sector.id] || 0
+  }));
+
+  // Show loading state while fetching data
+  if (assetClassesLoading || sectorsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <span className="ml-2 text-muted-foreground">Loading allocation data...</span>
       </div>
     );
   }
 
+  // Show error if no data is available
+  if (!assetClasses.length && !sectors.length) {
+    return (
+      <Alert>
+        <AlertTitle>No Data Available</AlertTitle>
+        <AlertDescription>
+          Unable to load asset classes or sectors. Please try refreshing the page.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <Card className="w-full">
+    <Card className="w-full max-w-4xl mx-auto">
       <CardHeader className="pb-2">
         <CardTitle>Target Allocations</CardTitle>
         <CardDescription>
-          Define target percentages for your portfolio's asset classes and sectors.
+          Define target percentages for your portfolio's sectors and asset classes.
           Total allocation should equal 100%.
         </CardDescription>
       </CardHeader>
@@ -203,8 +355,8 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
 
         <Tabs value={activeTab} onValueChange={(value: string) => setActiveTab(value as 'asset-class' | 'sector')}>
           <TabsList className="mb-4">
-            <TabsTrigger value="asset-class">Asset Classes</TabsTrigger>
             <TabsTrigger value="sector">Sectors</TabsTrigger>
+            <TabsTrigger value="asset-class">Asset Classes</TabsTrigger>
           </TabsList>
           
           <TabsContent value="asset-class" className="space-y-4">
@@ -265,24 +417,102 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
             </div>
           </TabsContent>
           
-          <TabsContent value="sector">
-            <div className="p-8 text-center text-muted-foreground">
-              <p>Sector allocations will be available after setting asset class allocations.</p>
+          <TabsContent value="sector" className="space-y-4">
+            <div className="flex flex-col gap-4">
+              {/* Sliders for sector allocation */}
+              <div className="space-y-4">
+                {sectors.map(sector => (
+                  <div key={sector.id} className="space-y-2">
+                    <div className="flex justify-between">
+                      <Label htmlFor={`sector-allocation-${sector.id}`}>{sector.name}</Label>
+                      <div className="flex items-center">
+                        <Input
+                          id={`sector-allocation-input-${sector.id}`}
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.1"
+                          value={sectorAllocations[sector.id] || 0}
+                          onChange={(e) => handleSectorAllocationChange(sector.id, parseFloat(e.target.value) || 0)}
+                          className="w-20 text-right mr-2"
+                        />
+                        <span className="text-muted-foreground">%</span>
+                      </div>
+                    </div>
+                    <Slider
+                      id={`sector-allocation-${sector.id}`}
+                      min={0}
+                      max={100}
+                      step={0.1}
+                      value={[sectorAllocations[sector.id] || 0]}
+                      onValueChange={(value) => handleSectorAllocationChange(sector.id, value[0])}
+                    />
+                    <p className="text-sm text-muted-foreground">{sector.description}</p>
+                  </div>
+                ))}
+                
+                <div className="mt-6 pt-4 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <div>
+                    <span className="font-semibold">Total:</span> 
+                    <span className={`ml-2 text-lg ${Math.abs(totalSectorAllocation - 100) > 0.01 ? 'text-red-500 font-bold' : 'text-green-600'}`}>
+                      {totalSectorAllocation.toFixed(1)}%
+                    </span>
+                  </div>
+                  
+                  {Math.abs(totalSectorAllocation - 100) > 0.01 && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={distributeSectorRemaining}
+                      className="flex items-center justify-center gap-1 w-full sm:w-auto"
+                    >
+                      <PlusCircle className="h-4 w-4" />
+                      <span>Balance to 100%</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
       </CardContent>
       
-      <CardFooter className="flex flex-col sm:flex-row justify-between gap-3 px-4 sm:px-6 pt-2 pb-4">
-        <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving || Math.abs(totalAllocation - 100) > 0.01}
-          className="flex items-center justify-center gap-2 w-full sm:w-auto"
+      <CardFooter className="flex justify-between px-4 sm:px-6">
+        <Button
+          variant="outline"
+          onClick={resetAllocations}
+          className="flex items-center gap-2"
         >
-          {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          <span>Save Allocations</span>
+          <Trash2 className="h-4 w-4" />
+          Reset All
         </Button>
+        
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isSaving}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={saveAllocations}
+            disabled={isSaving || (activeTab === 'asset-class' ? Math.abs(totalAllocation - 100) > 0.01 : Math.abs(totalSectorAllocation - 100) > 0.01)}
+            className="flex items-center gap-2"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Save Allocations
+              </>
+            )}
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );
