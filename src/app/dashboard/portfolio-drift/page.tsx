@@ -37,11 +37,8 @@ export default function PortfolioDriftPage() {
           <h1 className="text-2xl font-semibold">Portfolio Drift Analysis</h1>
         </div>
         
-        <div className="bg-card border border-border rounded-lg p-6">
-          <PortfolioDriftContainer />
-        </div>
-        
-        <div className="mt-8 p-4 border border-muted-foreground/20 bg-muted/20 rounded-lg">
+        {/* Info section explaining portfolio drift */}
+        <div className="mb-8 p-4 border border-muted-foreground/20 bg-muted/20 rounded-lg">
           <h3 className="font-medium mb-2">What is Portfolio Drift?</h3>
           <p className="text-sm text-muted-foreground">
             Portfolio drift occurs when your actual sector allocation deviates from your target sector allocation due to 
@@ -49,6 +46,11 @@ export default function PortfolioDriftPage() {
             This visualization shows how far each sector has drifted from its target, helping you identify when rebalancing may be needed.
           </p>
         </div>
+
+        <div className="bg-card border border-border rounded-lg p-6">
+          <PortfolioDriftContainer />
+        </div>
+        
       </div>
     </div>
   );

@@ -89,10 +89,7 @@ const DriftAlertsSection: React.FC = () => {
               variant="default"
               size="sm"
               className="flex items-center gap-1"
-              onClick={() => {
-                setEditingAlert(null);
-                setDialogOpen(true);
-              }}
+              onClick={() => router.push('/dashboard/alerts/create')}
             >
               <Plus className="h-4 w-4" />
               <span>New Alert</span>
