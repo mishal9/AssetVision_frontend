@@ -144,16 +144,6 @@ export default function AlertsOverviewPage() {
       filtered = filtered.filter(
         (alert) => alert.conditionType === ConditionType.PRICE_MOVEMENT,
       );
-    } else if (activeTab === "other") {
-      filtered = filtered.filter(
-        (alert) =>
-          ![
-            ConditionType.DRIFT,
-            ConditionType.SECTOR_DRIFT,
-            ConditionType.ASSET_CLASS_DRIFT,
-            ConditionType.PRICE_MOVEMENT,
-          ].includes(alert.conditionType),
-      );
     }
 
     // Apply search filter
@@ -636,7 +626,6 @@ export default function AlertsOverviewPage() {
             <TabsTrigger value="all">All Alerts</TabsTrigger>
             <TabsTrigger value="drift">Drift Alerts</TabsTrigger>
             <TabsTrigger value="price">Price Alerts</TabsTrigger>
-            <TabsTrigger value="other">Other</TabsTrigger>
           </TabsList>
 
           <div className="flex flex-row items-center space-x-4 mt-2">
@@ -703,9 +692,7 @@ export default function AlertsOverviewPage() {
             {renderAlertCards()}
           </TabsContent>
 
-          <TabsContent value="other" className="mt-0">
-            {renderAlertCards()}
-          </TabsContent>
+          {/* Removed 'other' tab */}
         </div>
       </Tabs>
         </div>

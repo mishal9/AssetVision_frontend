@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '@/store';
 import { fetchPortfolioDrift } from '@/store/portfolioSlice';
 import DriftVisualization from '../alerts/DriftVisualization';
 import TargetAllocationEditor from './TargetAllocationEditor';
+import DriftAlertsSection from '../alerts/DriftAlertsSection';
 import {
   Dialog,
   DialogContent,
@@ -201,6 +202,9 @@ const PortfolioDriftContainer: React.FC = () => {
         thresholdPercent={5}
         type="sector"
       />
+
+      {/* Drift Alerts section */}
+      <DriftAlertsSection />
     </div>
   );
 };

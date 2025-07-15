@@ -11,7 +11,7 @@ import {
   Bot,
   Sliders,
   BarChart2,
-  BarChart3,
+  Bell,
   PieChart
 } from 'lucide-react';
 
@@ -45,8 +45,8 @@ export function Sidebar() {
       path: '/dashboard/portfolio-drift',
     },
     {
-      name: 'Drift alerts',
-      icon: <BarChart3 className="h-5 w-5" />,
+      name: 'Alert Center',
+      icon: <Bell className="h-5 w-5" />,
       path: '/dashboard/alerts',
     },
   ];
