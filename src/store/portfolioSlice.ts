@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
 import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
+import { Sector } from '@/types/portfolio';
 
 /**
  * Type for a single holding in the portfolio
@@ -72,6 +73,9 @@ export interface PortfolioState {
   assetClasses: AssetClass[];
   assetClassesLoading: boolean;
   assetClassesError: string | null;
+  sectors: Sector[];
+  sectorsLoading: boolean;
+  sectorsError: string | null;
   targetAllocationsLoading: boolean;
   targetAllocationsError: string | null;
 }
@@ -87,6 +91,9 @@ const initialState: PortfolioState = {
   assetClasses: [],
   assetClassesLoading: false,
   assetClassesError: null,
+  sectors: [],
+  sectorsLoading: false,
+  sectorsError: null,
   targetAllocationsLoading: false,
   targetAllocationsError: null,
 };
@@ -120,11 +127,30 @@ export const fetchAssetClasses = createAsyncThunk(
   'portfolio/fetchAssetClasses',
   async (_, { rejectWithValue }) => {
     try {
-      // Use fetchWithAuth to handle authentication consistently
-      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.ASSET_CLASSES);
+      // Use the portfolioApi to handle authentication consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.getAssetClasses();
     } catch (error: any) {
       console.error('Asset classes fetch error:', error);
       return rejectWithValue(error.message || 'Failed to fetch asset classes');
+    }
+  }
+);
+
+/**
+ * Async thunk to fetch available sectors for the portfolio
+ * Retrieves sectors with their current allocations if available
+ */
+export const fetchSectors = createAsyncThunk(
+  'portfolio/fetchSectors',
+  async (_, { rejectWithValue }) => {
+    try {
+      // Use the portfolioApi to handle authentication consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.getSectors();
+    } catch (error: any) {
+      console.error('Sectors fetch error:', error);
+      return rejectWithValue(error.message || 'Failed to fetch sectors');
     }
   }
 );
@@ -137,14 +163,30 @@ export const saveTargetAllocations = createAsyncThunk(
   'portfolio/saveTargetAllocations',
   async (allocations: TargetAllocationInput[], { rejectWithValue }) => {
     try {
-      // Use fetchWithAuth to handle authentication and CSRF consistently
-      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.TARGET_ALLOCATIONS, {
-        method: 'POST',
-        body: JSON.stringify(allocations)
-      });
+      // Use the portfolioApi to handle authentication and CSRF consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.saveTargetAllocations(allocations);
     } catch (error: any) {
       console.error('Target allocation save error:', error);
       return rejectWithValue(error.message || 'Failed to save target allocations');
+    }
+  }
+);
+
+/**
+ * Async thunk to save sector target allocations for the portfolio
+ * @param allocations Array of sector allocations with target percentages
+ */
+export const saveSectorTargetAllocations = createAsyncThunk(
+  'portfolio/saveSectorTargetAllocations',
+  async (allocations: TargetAllocationInput[], { rejectWithValue }) => {
+    try {
+      // Use the portfolioApi to handle authentication and CSRF consistently
+      const { portfolioApi } = await import('../services/api');
+      return await portfolioApi.saveSectorTargetAllocations(allocations);
+    } catch (error: any) {
+      console.error('Sector target allocation save error:', error);
+      return rejectWithValue(error.message || 'Failed to save sector target allocations');
     }
   }
 );
@@ -208,18 +250,51 @@ export const portfolioSlice = createSlice({
         ['asset_class', 'sector', 'overall'].forEach(category => {
           if (processedData[category]) {
             // Make sure each item has both current and target allocations
-            processedData[category].items = processedData[category].items.map((item: any) => ({
-              ...item,
-              // Set currentAllocation to 0 if undefined or
-              currentAllocation: item.currentAllocation ?? 0,
-              // Set targetAllocation to 0 if undefined or null
-              targetAllocation: item.targetAllocation ?? 0,
-              // Calculate drifts if not provided
-              absoluteDrift: item.absoluteDrift ?? (item.currentAllocation - item.targetAllocation) ?? 0,
-              relativeDrift: item.relativeDrift ?? (
-                item.targetAllocation ? ((item.currentAllocation - item.targetAllocation) / item.targetAllocation * 100) : 0
-              )
-            }));
+            processedData[category].items = processedData[category].items.map((item: any) => {
+              // Extract raw allocation values (could be percentage points or 0-1 fractions)
+              const rawCurrent =
+                // Prefer camelCase but fall back to snake_case fields from backend
+                (item.currentAllocation ?? item.current_allocation ?? 0) as number;
+              const rawTarget =
+                (item.targetAllocation ?? item.target_allocation ?? 0) as number;
+
+              // Normalize allocations: backend may send fractions (0-1). Convert to percentages if so.
+              const normalize = (val: number): number => (val <= 1 ? val * 100 : val);
+              const currentPct = normalize(rawCurrent);
+              const targetPct = normalize(rawTarget);
+
+              // Calculate absolute drift in percentage points
+              const absoluteDrift = (item.absoluteDrift ?? item.absolute_drift) !== undefined
+                ? normalize(item.absoluteDrift ?? item.absolute_drift as number)
+                : currentPct - targetPct;
+
+              // Calculate relative drift as percent of target
+              const relativeDrift = (item.relativeDrift ?? item.relative_drift) !== undefined
+                ? (item.relativeDrift ?? item.relative_drift)
+                : (
+                    targetPct !== 0
+                      ? ((currentPct - targetPct) / targetPct) * 100
+                      : currentPct !== 0
+                        ? 100
+                        : 0
+                  );
+
+              return {
+                ...item,
+                currentAllocation: currentPct,
+                targetAllocation: targetPct,
+                absoluteDrift,
+                relativeDrift,
+              };
+            });
+            
+            // Calculate totalAbsoluteDrift as sum of absolute values of all absoluteDrift values
+            const totalAbsoluteDrift = processedData[category].items.reduce((sum: number, item: any) => {
+              return sum + Math.abs(item.absoluteDrift || 0);
+            }, 0);
+            
+            // Set the calculated totalAbsoluteDrift
+            processedData[category].totalAbsoluteDrift = totalAbsoluteDrift;
           }
         });
         
@@ -280,6 +355,58 @@ export const portfolioSlice = createSlice({
       }
       })
       .addCase(saveTargetAllocations.rejected, (state, action) => {
+        state.targetAllocationsLoading = false;
+        state.targetAllocationsError = action.payload as string;
+      })
+      
+      // Fetch sectors cases
+      .addCase(fetchSectors.pending, (state) => {
+        state.sectorsLoading = true;
+        state.sectorsError = null;
+      })
+      .addCase(fetchSectors.fulfilled, (state, action) => {
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          state.sectors = action.payload;
+        } else {
+          console.error('Expected array for sectors but got:', action.payload);
+          state.sectors = [];
+        }
+        state.sectorsLoading = false;
+      })
+      .addCase(fetchSectors.rejected, (state, action) => {
+        state.sectorsLoading = false;
+        state.sectorsError = action.payload ? String(action.payload) : 'Failed to fetch sectors';
+      })
+      
+      // Save sector target allocations cases
+      .addCase(saveSectorTargetAllocations.pending, (state) => {
+        state.targetAllocationsLoading = true;
+        state.targetAllocationsError = null;
+      })
+      .addCase(saveSectorTargetAllocations.fulfilled, (state, action) => {
+        state.targetAllocationsLoading = false;
+        // Store the updated sectors from the response
+        // Ensure action.payload is an array before assigning
+        if (Array.isArray(action.payload)) {
+          const sectors = action.payload;
+          state.sectors = sectors;
+          // Update portfolioData with target allocations
+          if (sectors.length > 0) {
+          // Create a map of target allocations from the response
+          const targetAllocations: {[key: string]: number} = {};
+          sectors.forEach((sector: Sector) => {
+            if (sector.target_allocation !== undefined) {
+              targetAllocations[sector.id] = sector.target_allocation;
+            }
+          });
+        }
+      } else {
+        console.error('Expected array for sectors but got:', action.payload);
+        state.sectors = [];
+      }
+      })
+      .addCase(saveSectorTargetAllocations.rejected, (state, action) => {
         state.targetAllocationsLoading = false;
         state.targetAllocationsError = action.payload as string;
       });

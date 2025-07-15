@@ -75,6 +75,17 @@ export interface AssetAllocation {
   color?: string;
 }
 
+/**
+ * Sector information for target allocations
+ */
+export interface Sector {
+  id: string;
+  name: string;
+  description?: string;
+  target_allocation?: number;
+  current_allocation?: number;
+}
+
 export interface AllocationResponse {
   // Snake case properties (from backend)
   asset_allocation: AssetAllocation[];

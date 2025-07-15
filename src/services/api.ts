@@ -105,13 +105,31 @@ export const portfolioApi = {
       .then(response => convertSnakeToCamelCase<any[]>(response)),
       
   /**
+   * Get available sectors for target allocations
+   * Includes current allocation percentages if available
+   */
+  getSectors: () => 
+    fetchWithAuth<any[]>(PORTFOLIO_ENDPOINTS.SECTORS)
+      .then(response => convertSnakeToCamelCase<any[]>(response)),
+      
+  /**
    * Save target allocations for the portfolio
    * @param allocations Array of asset allocations with target percentages
    */
   saveTargetAllocations: (allocations: { asset_id: string; target_percentage: number }[]) => 
     fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.TARGET_ALLOCATIONS, {
       method: 'POST',
-      body: JSON.stringify({ allocations }),
+      body: JSON.stringify(allocations),
+    }),
+      
+  /**
+   * Save sector target allocations for the portfolio
+   * @param allocations Array of sector allocations with target percentages
+   */
+  saveSectorTargetAllocations: (allocations: { asset_id: string; target_percentage: number }[]) => 
+    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.SECTOR_TARGET_ALLOCATIONS, {
+      method: 'POST',
+      body: JSON.stringify(allocations),
     }),
       
   /**

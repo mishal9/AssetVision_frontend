@@ -39,6 +39,8 @@ export const PORTFOLIO_ENDPOINTS = {
   ALERTS: `${API_BASE_URL}/alerts/`,  // The alerts endpoints are under /api/alerts/ in the backend
   ASSET_CLASSES: `${API_BASE_URL}/portfolio/asset-classes/`,  // Get available asset classes
   TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/target-allocations/`,  // Save target allocations
+  SECTORS: `${API_BASE_URL}/portfolio/sectors/`,  // Get available sectors
+  SECTOR_TARGET_ALLOCATIONS: `${API_BASE_URL}/portfolio/sector-target-allocations/`,  // Save sector target allocations
 };
 
 // Plaid endpoints - using API_BASE_URL for consistent URL construction
