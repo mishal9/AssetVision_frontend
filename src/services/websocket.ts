@@ -43,6 +43,12 @@ export class WebSocketService {
    * @param accessToken Optional access token for authentication
    */
   async connect(url?: string, accessToken?: string): Promise<void> {
+    // Disable WebSockets by default. Set NEXT_PUBLIC_DISABLE_WS="false" to enable.
+    if (process.env.NEXT_PUBLIC_DISABLE_WS !== 'false') {
+      console.warn('[WebSocketService] WebSockets are currently disabled (set NEXT_PUBLIC_DISABLE_WS="false" to enable).');
+      this.notifyConnectionChange(false);
+      return Promise.resolve();
+    }
     if (this.connectionPromise) {
       return this.connectionPromise;
     }

@@ -30,6 +30,7 @@ import {
   Download
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell, Pie, ScatterChart, Scatter, ReferenceLine } from 'recharts';
+import { riskApi } from '@/services/api';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { 
@@ -79,155 +80,60 @@ export default function OptimizePortfolioPage() {
    * Run portfolio optimization focusing on Sharpe ratio.
    * Generates scenarios and efficient frontier data, then updates the store.
    */
-  const runOptimization = () => {
-    console.log('🚀 Starting portfolio optimization...');
+  const runOptimization = async () => {
     dispatch(setSimulationStatus(true));
 
-    setTimeout(() => {
-      try {
-        const optimizationData = generateOptimizationScenarios();
-
-        const optimizationResults = {
-          scenarios: optimizationData.scenarios,
-          projectedData: optimizationData.projectedData,
-          taxSavings: optimizationData.taxSavings,
-          rebalancingCost: optimizationData.rebalancingCost,
-          efficientFrontier: optimizationData.efficientFrontier,
-          generatedAt: Date.now()
-        };
-
-        console.log('✅ Optimization complete – scenarios:', optimizationResults.scenarios.length);
-        dispatch(setResults(optimizationResults));
-      } catch (error) {
-        console.error('Error during optimization:', error);
-        dispatch(setError('Failed to generate optimization results. Please try again.'));
-      } finally {
-        dispatch(setSimulationStatus(false));
-      }
-    }, 1000); // Simulated processing delay
-  };
-
-  /**
-   * Generate efficient frontier data points
-   * Creates a curve of optimal risk-return combinations
-   */
-  const generateEfficientFrontier = () => {
-    const frontierPoints = [];
-    
-    // Generate 25 points along the efficient frontier with proper risk-return relationship
-    for (let i = 0; i <= 24; i++) {
-      const risk = 4 + (i * 1.0); // Risk from 4% to 28%
-      
-      // Realistic efficient frontier: higher risk = higher return, but with diminishing returns
-      // Using a square root relationship for more realistic curve
-      const baseReturn = 2.5 + Math.sqrt(risk - 4) * 2.8;
-      const expectedReturn = Math.min(16, baseReturn); // Cap at 16% return
-      
-      // Calculate realistic portfolio allocation based on risk level
-      const riskRatio = (risk - 4) / 24; // 0 to 1 scale
-      
-      const stockAllocation = Math.round(20 + (riskRatio * 75)); // 20% to 95% stocks
-      const bondAllocation = Math.round(Math.max(5, 60 - (riskRatio * 55))); // 60% to 5% bonds
-      const intlAllocation = Math.round(Math.max(5, 15 + (riskRatio * 10))); // 15% to 25% international
-      const altAllocation = Math.max(0, 100 - stockAllocation - bondAllocation - intlAllocation);
-      
-      frontierPoints.push({
-        risk: parseFloat(risk.toFixed(1)),
-        return: parseFloat(expectedReturn.toFixed(1)),
-        sharpe: parseFloat((expectedReturn / risk).toFixed(2)),
-        allocation: {
-          stocks: stockAllocation,
-          bonds: bondAllocation,
-          international: intlAllocation,
-          alternatives: altAllocation
-        },
-        taxEfficiency: Math.max(65, 95 - (riskRatio * 25)),
-        esgScore: Math.max(40, parameters.esgScore - Math.abs(risk - 15) * 1.5)
-      });
-    }
-    
-    return frontierPoints;
-  };
-
-  /**
-   * Generate optimization scenarios based on current parameters
-   */
-  const generateOptimizationScenarios = () => {
-    const riskLevel = parameters.riskTolerance;
-    const taxRate = parameters.taxBracket / 100;
-    const turnover = parameters.turnoverTolerance / 100;
-    const esg = parameters.esgScore;
-    const years = parameters.timeHorizon;
-
-    // Generate three scenarios: Conservative, Balanced, Aggressive
-    const scenarios = [
-      {
-        name: 'Conservative',
-        expectedReturn: 7.2,
-        volatility: 9.5,
-        sharpeRatio: 0.76,
-        maxDrawdown: -8.5,
-        taxEfficiency: 88,
-        esgAlignment: Math.max(0, esg - 10),
-        allocation: [
-          { name: 'US Stocks', value: 40, color: COLORS[0] },
-          { name: 'International', value: 20, color: COLORS[1] },
-          { name: 'Bonds', value: 35, color: COLORS[2] },
-          { name: 'Alternatives', value: 5, color: COLORS[3] }
-        ]
-      },
-      {
-        name: 'Balanced',
-        expectedReturn: 9.8,
-        volatility: 14.2,
-        sharpeRatio: 0.69,
-        maxDrawdown: -15.8,
-        taxEfficiency: 75,
-        esgAlignment: esg,
-        allocation: [
-          { name: 'US Stocks', value: 55, color: COLORS[0] },
-          { name: 'International', value: 25, color: COLORS[1] },
-          { name: 'Bonds', value: 15, color: COLORS[2] },
-          { name: 'Alternatives', value: 5, color: COLORS[3] }
-        ]
-      },
-      {
-        name: 'Growth',
-        expectedReturn: 12.4,
-        volatility: 19.8,
-        sharpeRatio: 0.63,
-        maxDrawdown: -22.5,
-        taxEfficiency: 68,
-        esgAlignment: Math.min(100, esg + 10),
-        allocation: [
-          { name: 'US Stocks', value: 70, color: COLORS[0] },
-          { name: 'International', value: 20, color: COLORS[1] },
-          { name: 'Bonds', value: 5, color: COLORS[2] },
-          { name: 'Alternatives', value: 5, color: COLORS[3] }
-        ]
-      }
-    ];
-
-    // Generate projected performance data
-    const projectedData = Array.from({ length: years + 1 }, (_, i) => {
-      const year = i;
-      return {
-        year,
-        conservative: currentPortfolio.totalValue * Math.pow(1 + scenarios[0].expectedReturn / 100, year),
-        balanced: currentPortfolio.totalValue * Math.pow(1 + scenarios[1].expectedReturn / 100, year),
-        growth: currentPortfolio.totalValue * Math.pow(1 + scenarios[2].expectedReturn / 100, year),
-        current: currentPortfolio.totalValue * Math.pow(1.065, year) // Baseline current portfolio
-      };
-    });
-
-    return {
-      scenarios,
-      projectedData,
-      taxSavings: calculateTaxSavings(taxRate, turnover),
-      rebalancingCost: calculateRebalancingCost(turnover),
-      efficientFrontier: generateEfficientFrontier()
+    // Updated payload: API now assumes built-in max-Sharpe optimisation, so omit strategy.
+    // Use explicit example symbols (NFLX, AAPL, MSFT) as requested.
+    const payload = {
+      symbols: ['NFLX', 'AAPL', 'MSFT'],
+      lookback_days: 365,
+      risk_free_rate: 0.03,
     };
+
+    try {
+      const response = await riskApi.optimizePortfolio(payload);
+
+      // Transform backend response → existing frontend shape
+      // Create single scenario representing optimized portfolio
+      const scenario = {
+        name: 'Optimized',
+        expectedReturn: Number((response.expected_return * 100).toFixed(2)), // to %
+        volatility: Number((response.volatility * 100).toFixed(2)), // to %
+        sharpeRatio: Number(response.sharpe_ratio?.toFixed(2) || 0),
+        maxDrawdown: 0, // not supplied – placeholder
+        taxEfficiency: 0,
+        esgAlignment: parameters.esgScore,
+        allocation: Object.entries(response.weights).map(([symbol, weight], idx) => {
+          const w = Number(weight);
+          return {
+            name: symbol,
+            value: Math.round(w * 100),
+            color: COLORS[idx % COLORS.length],
+          };
+        }),
+      } as any; // satisfy interface
+
+      // Build minimal OptimizationResults
+      const optimizationResults = {
+        scenarios: [scenario],
+        projectedData: [],
+        taxSavings: 0,
+        rebalancingCost: 0,
+        efficientFrontier: [],
+        generatedAt: Date.now(),
+      } as any;
+
+      dispatch(setResults(optimizationResults));
+    } catch (error) {
+      console.error('Error during optimization:', error);
+      dispatch(setError('Failed to generate optimization results. Please try again.'));
+    } finally {
+      dispatch(setSimulationStatus(false));
+    }
   };
+
+  // NOTE: Local efficient frontier & mock scenario generators removed – now handled by backend
 
   /**
    * Calculate potential tax savings from optimization

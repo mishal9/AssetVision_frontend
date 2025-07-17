@@ -59,12 +59,18 @@ export const WEBSOCKET_ENDPOINTS = {
   CONNECT: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/',
 };
 
+// Risk optimization endpoints
+export const RISK_ENDPOINTS = {
+  OPTIMIZE: `${API_BASE_URL}/risk/optimize/`,
+};
+
 // Export a combined object for easy imports
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
   AUTH: AUTH_ENDPOINTS,
   PORTFOLIO: PORTFOLIO_ENDPOINTS,
   PLAID: PLAID_ENDPOINTS,
+  RISK: RISK_ENDPOINTS,
   WEBSOCKET: WEBSOCKET_ENDPOINTS,
 };
 
