@@ -439,7 +439,16 @@ export const riskApi = {
   optimizePortfolio: (data: any) =>
     fetchWithAuth<any>(RISK_ENDPOINTS.OPTIMIZE, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        // Always optimise this predefined set of holdings
+        ...data,
+        symbols: ['NFLX', 'AAPL', 'NVDA'],
+        // Request additional analytics now supported by the backend
+        include_mu: true,
+        include_covariance: true,
+        include_frontier: true,
+        frontier_steps: data?.frontier_steps ?? 10,
+      }),
     }).then(response => convertSnakeToCamelCase<any>(response)),
 };
 
