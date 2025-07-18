@@ -5,7 +5,7 @@
 
 import { fetchWithAuth } from './api-utils';
 import { convertSnakeToCamelCase } from '../utils/caseConversions';
-import { AUTH_ENDPOINTS, PORTFOLIO_ENDPOINTS } from '../config/api';
+import { AUTH_ENDPOINTS, PORTFOLIO_ENDPOINTS, RISK_ENDPOINTS } from '../config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
 import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { 
@@ -425,6 +425,31 @@ export const chatApi = {
   getOptimizationRecommendations: (portfolioId: string) => 
     fetchWithAuth<{ recommendations: string }>(`/ai/recommendations/portfolio/${portfolioId}`)
       .then(response => response.recommendations),
+};
+
+/**
+ * Risk analysis / optimization API methods
+ */
+export const riskApi = {
+  /**
+   * Run portfolio optimization on the backend
+   * Delegates all heavy calculations to the Django service.
+   * @param data Data required for portfolio optimization (strategy, parameters, holdings, etc.)
+   */
+  optimizePortfolio: (data: any) =>
+    fetchWithAuth<any>(RISK_ENDPOINTS.OPTIMIZE, {
+      method: 'POST',
+      body: JSON.stringify({
+        // Always optimise this predefined set of holdings
+        ...data,
+        symbols: ['NFLX', 'AAPL', 'NVDA'],
+        // Request additional analytics now supported by the backend
+        include_mu: true,
+        include_covariance: true,
+        include_frontier: true,
+        frontier_steps: data?.frontier_steps ?? 10,
+      }),
+    }).then(response => convertSnakeToCamelCase<any>(response)),
 };
 
 // End of API definitions
