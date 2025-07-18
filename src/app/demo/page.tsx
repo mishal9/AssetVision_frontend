@@ -1,1072 +1,683 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { 
   TrendingUp, 
-  DollarSign, 
   PieChart, 
-  Calculator,
+  Bell, 
+  Bot, 
+  DollarSign, 
+  BarChart3, 
+  Target, 
+  Shield, 
   ArrowRight,
-  CheckCircle,
+  PlayCircle,
+  TrendingDown,
   AlertTriangle,
-  Sparkles
+  CheckCircle,
+  Zap,
+  Eye,
+  Users,
+  Building2,
+  Calculator,
+  LineChart,
+  Smartphone,
+  Globe,
+  Lock,
+  Star,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
-import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { formatCurrency, formatPercent } from '@/utils/formatters';
 
 /**
- * Interactive Portfolio Demo - No Login Required
- * Shows $100k portfolio with 3-click tax savings visualization
+ * Demo Page Component
+ * Showcases all the key features of Asset Vision with interactive elements
  */
 export default function DemoPage() {
-  const [step, setStep] = useState(0);
-  const [animatedValue, setAnimatedValue] = useState(0);
-  const [showResults, setShowResults] = useState(false);
-  const [showPortfolioAnalysis, setShowPortfolioAnalysis] = useState(false);
-
-  // Demo portfolio data - realistic $100k allocation
-  const currentPortfolio = [
-    { name: 'Large Cap Stocks', value: 45000, percentage: 45, color: '#0088FE', taxDrag: 2.1 },
-    { name: 'Small Cap Stocks', value: 15000, percentage: 15, color: '#00C49F', taxDrag: 2.8 },
-    { name: 'International', value: 20000, percentage: 20, color: '#FFBB28', taxDrag: 1.9 },
-    { name: 'Bonds', value: 15000, percentage: 15, color: '#FF8042', taxDrag: 3.2 },
-    { name: 'Cash', value: 5000, percentage: 5, color: '#8884D8', taxDrag: 4.1 }
-  ];
-
-  // Optimized portfolio after tax-loss harvesting
-  const optimizedPortfolio = [
-    { name: 'Tax-Efficient Index', value: 50000, percentage: 50, color: '#0088FE', taxDrag: 0.8 },
-    { name: 'International ETF', value: 25000, percentage: 25, color: '#00C49F', taxDrag: 1.1 },
-    { name: 'Municipal Bonds', value: 20000, percentage: 20, color: '#FFBB28', taxDrag: 0.0 },
-    { name: 'REIT', value: 5000, percentage: 5, color: '#FF8042', taxDrag: 1.5 }
-  ];
-
-  // Tax savings calculation
-  const currentTaxDrag = currentPortfolio.reduce((sum, asset) => 
-    sum + (asset.value * asset.taxDrag / 100), 0
-  );
-  const optimizedTaxDrag = optimizedPortfolio.reduce((sum, asset) => 
-    sum + (asset.value * asset.taxDrag / 100), 0
-  );
-  const annualTaxSavings = currentTaxDrag - optimizedTaxDrag;
-  const tenYearSavings = annualTaxSavings * 10 * 1.05; // With compounding
-
-  // Target allocation vs current allocation for drift analysis
-  const targetAllocation = [
-    { name: 'Large Cap Stocks', target: 40, current: 45, value: 45000, color: '#0088FE' },
-    { name: 'Small Cap Stocks', target: 20, current: 15, value: 15000, color: '#00C49F' },
-    { name: 'International', target: 25, current: 20, value: 20000, color: '#FFBB28' },
-    { name: 'Bonds', target: 10, current: 15, value: 15000, color: '#FF8042' },
-    { name: 'Cash', target: 5, current: 5, value: 5000, color: '#8884D8' }
-  ];
-
-  // Calculate drift alerts
-  const driftAlerts = targetAllocation
-    .map(asset => ({
-      ...asset,
-      drift: asset.current - asset.target,
-      driftPercent: ((asset.current - asset.target) / asset.target * 100).toFixed(1)
-    }))
-    .filter(asset => Math.abs(asset.drift) >= 3); // Alert if drift >= 3%
-
-  // Tax-loss harvesting opportunities
-  const taxLossOpportunities = [
-    { symbol: 'AAPL', shares: 50, costBasis: 180, currentPrice: 165, loss: -750 },
-    { symbol: 'TSLA', shares: 25, costBasis: 220, currentPrice: 195, loss: -625 },
-    { symbol: 'NVDA', shares: 15, costBasis: 450, currentPrice: 420, loss: -450 },
-  ];
-  const totalTaxLossHarvesting = Math.abs(taxLossOpportunities.reduce((sum, stock) => sum + stock.loss, 0));
-
-  // Tax savings data structure
-  const taxSavings = {
-    totalSavings: Math.round(annualTaxSavings + (totalTaxLossHarvesting * 0.24)),
-    harvestingOpportunity: totalTaxLossHarvesting,
-    efficiencyGain: Math.round(((currentTaxDrag - optimizedTaxDrag) / currentTaxDrag) * 100),
-    strategies: [
-      {
-        name: 'Tax-Efficient Fund Selection',
-        description: 'Switch to low-turnover index funds and tax-managed funds to reduce annual tax drag on your investments.',
-        savings: Math.round(annualTaxSavings * 0.4)
-      },
-      {
-        name: 'Tax-Loss Harvesting',
-        description: 'Realize losses on underperforming positions to offset capital gains and reduce your tax liability.',
-        savings: Math.round(totalTaxLossHarvesting * 0.24)
-      },
-      {
-        name: 'Asset Location Optimization',
-        description: 'Place tax-inefficient investments in tax-advantaged accounts and tax-efficient ones in taxable accounts.',
-        savings: Math.round(annualTaxSavings * 0.35)
-      },
-      {
-        name: 'Municipal Bond Allocation',
-        description: 'Add tax-free municipal bonds appropriate for your tax bracket to reduce taxable income.',
-        savings: Math.round(annualTaxSavings * 0.25)
-      }
+  const router = useRouter();
+  const [activeDemo, setActiveDemo] = useState<string>('overview');
+  const [isLoading, setIsLoading] = useState(false);
+  const [animationStep, setAnimationStep] = useState(0);
+  
+  // Demo data for showcasing features
+  const demoPortfolio = {
+    totalValue: 67807.70,
+    totalCost: 11800.00,
+    totalReturn: 56007.70,
+    totalReturnPercent: 474.64,
+    dayChange: 1247.32,
+    dayChangePercent: 1.87,
+    dividendYield: 0.17,
+    assetAllocation: {
+      equity: 100.0,
+      bond: 0.0,
+      cash: 0.0,
+      alternatives: 0.0
+    },
+    sectorAllocation: [
+      { name: 'Technology', value: 28.49, change: 2.3 },
+      { name: 'Communication Services', value: 71.51, change: -0.8 }
+    ],
+    holdings: [
+      { symbol: 'AAPL', shares: 15, value: 2850.00, change: 2.1 },
+      { symbol: 'GOOGL', shares: 8, value: 1120.00, change: -1.2 },
+      { symbol: 'MSFT', shares: 12, value: 4200.00, change: 1.8 }
     ]
   };
 
-  // Animation effect for dollar amounts
-  useEffect(() => {
-    if (step >= 2) {
-      const timer = setInterval(() => {
-        setAnimatedValue(prev => {
-          if (prev < tenYearSavings) {
-            return Math.min(prev + tenYearSavings / 50, tenYearSavings);
-          }
-          return tenYearSavings;
-        });
-      }, 50);
-      return () => clearInterval(timer);
+  const demoAlerts = [
+    {
+      type: 'drift',
+      title: 'Portfolio Drift Alert',
+      description: 'Technology sector is 8.5% above target allocation',
+      severity: 'warning',
+      active: true
+    },
+    {
+      type: 'performance',
+      title: 'Performance Milestone',
+      description: 'Portfolio reached 15% annual return target',
+      severity: 'success',
+      active: true
+    },
+    {
+      type: 'tax',
+      title: 'Tax Loss Opportunity',
+      description: 'Potential $2,340 tax savings available',
+      severity: 'info',
+      active: true
     }
-  }, [step, tenYearSavings]);
+  ];
 
-  const handleNextStep = () => {
-    if (step < 3) {
-      setStep(step + 1);
-      if (step === 0) {
-        setShowPortfolioAnalysis(true);
-      }
-      if (step === 2) {
-        setTimeout(() => setShowResults(true), 1000);
-      }
-    }
+  const demoOptimization = {
+    currentSharpe: 1.42,
+    optimizedSharpe: 1.68,
+    expectedReturn: 12.4,
+    optimizedReturn: 14.2,
+    riskReduction: 15.3,
+    suggestions: [
+      { action: 'Rebalance Tech exposure', impact: '+0.8% expected return' },
+      { action: 'Increase bond allocation', impact: '-12% portfolio volatility' },
+      { action: 'Add international equity', impact: '+0.3% diversification benefit' }
+    ]
+  };
+
+  const demoTaxSavings = {
+    ytdHarvested: 3000,
+    potentialSavings: 2340,
+    taxRate: 24,
+    opportunities: [
+      { symbol: 'XYZ', loss: -1200, savings: 288 },
+      { symbol: 'ABC', loss: -850, savings: 204 },
+      { symbol: 'DEF', loss: -2100, savings: 504 }
+    ]
+  };
+
+  // Animation effect for demo progression
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAnimationStep((prev) => (prev + 1) % 4);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleStartDemo = async (demoType: string) => {
+    setIsLoading(true);
+    setActiveDemo(demoType);
+    
+    // Simulate loading time
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsLoading(false);
+  };
+
+  const handleGetStarted = () => {
+    router.push('/register');
+  };
+
+  const handleTryLogin = () => {
+    router.push('/login');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="max-w-6xl mx-auto space-y-6">
-        
-        {/* Header */}
-        <Card className="border-0 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-950/50 dark:via-indigo-950/50 dark:to-purple-950/50">
-          <CardContent className="text-center space-y-6 py-12">
-            <div className="flex items-center justify-center gap-3">
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-600 to-indigo-600">
-                <AvatarFallback className="bg-transparent text-white font-bold text-lg">
-                  <Sparkles className="h-6 w-6" />
-                </AvatarFallback>
-              </Avatar>
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                AssetVision Demo
-              </h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="container mx-auto px-4 py-20 relative">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900 px-4 py-2 rounded-full text-blue-700 dark:text-blue-300 text-sm font-medium mb-6">
+              <Star className="h-4 w-4" />
+              AI-Powered Portfolio Management
             </div>
-            <div className="space-y-3">
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-                Experience intelligent drift detection, automated rebalancing alerts, and advanced tax optimization with our AI-powered portfolio analysis platform
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                <Badge variant="secondary" className="text-sm font-medium">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  No signup required
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  <AlertTriangle className="h-3 w-3 mr-1" />
-                  Live drift analysis
-                </Badge>
-                <Badge variant="outline" className="text-sm">
-                  <Calculator className="h-3 w-3 mr-1" />
-                  Tax optimization
-                </Badge>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Progress Steps */}
-        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-lg font-semibold">Portfolio Analysis Progress</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              {[1, 2, 3].map((stepNum) => (
-                <div key={stepNum} className="flex items-center">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold transition-all duration-300 ${
-                    step >= stepNum - 1 
-                      ? 'bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg scale-110' 
-                      : 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                  }`}>
-                    {step > stepNum - 1 ? <CheckCircle className="h-6 w-6" /> : stepNum}
-                  </div>
-                  {stepNum < 3 && (
-                    <div className="flex-1 mx-4">
-                      <Progress 
-                        value={step >= stepNum ? 100 : 0} 
-                        className="h-2"
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <Separator />
-            <div className="text-center space-y-2">
-              <p className="font-medium text-lg">
-                {step === 0 && "Analyze Portfolio"}
-                {step === 1 && "Detect Drift & Alerts"}
-                {step === 2 && "Calculate Tax Savings"}
-                {step === 3 && "Complete Analysis"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {step === 0 && "Examining your $100k portfolio allocation and performance"}
-                {step === 1 && "Identifying portfolio drift and rebalancing opportunities"}
-                {step === 2 && "Computing tax optimization and savings potential"}
-                {step === 3 && "🎉 Your comprehensive portfolio analysis is ready!"}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Portfolio Analysis Grid */}
-        {showPortfolioAnalysis && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Left Column - Current Portfolio */}
-          <Card className={`transition-all duration-500 ${step >= 0 ? 'opacity-100 scale-100' : 'opacity-50 scale-95'}`}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="h-5 w-5" />
-                Your Current Portfolio
-              </CardTitle>
-              <CardDescription>$100,000 • Typical allocation</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            
+            <h1 className="text-6xl font-bold text-gray-900 dark:text-white mb-6">
+              Welcome to{' '}
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Asset Vision
+              </span>
+            </h1>
+            
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+              Experience the future of investment management with our comprehensive demo. 
+              Discover portfolio optimization, tax strategies, real-time alerts, and AI-powered insights.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button 
+                size="lg" 
+                onClick={() => handleStartDemo('overview')}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+              >
+                <PlayCircle className="mr-2 h-5 w-5" />
+                Start Interactive Demo
+              </Button>
               
-              {/* Portfolio Pie Chart */}
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RechartsPieChart>
-                    <Pie
-                      data={currentPortfolio}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={100}
-                      dataKey="value"
-                    >
-                      {currentPortfolio.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                  </RechartsPieChart>
-                </ResponsiveContainer>
-              </div>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleGetStarted}
+                className="px-8 py-3 text-lg"
+              >
+                Get Started Free
+              </Button>
+            </div>
 
-              {/* Portfolio Breakdown */}
-              <div className="space-y-2">
-                {currentPortfolio.map((asset, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
-                      <span>{asset.name}</span>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">${asset.value.toLocaleString()}</div>
-                      <div className="text-red-500 text-xs">Tax drag: {asset.taxDrag}%</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Current Tax Impact */}
-              <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-lg">
-                <div className="flex items-center gap-2 text-red-700 dark:text-red-300">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium">Annual Tax Drag</span>
-                </div>
-                <div className="text-2xl font-bold text-red-600">
-                  ${currentTaxDrag.toFixed(0)}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  Reducing your returns by {(currentTaxDrag / 100000 * 100).toFixed(1)}%
-                </div>
-              </div>
-
-            </CardContent>
-          </Card>
-
-          {/* Right Column - Optimization Results */}
-          <Card className={`transition-all duration-500 ${step >= 1 ? 'opacity-100 scale-100' : 'opacity-50 scale-95'}`}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-5 w-5" />
-                {step >= 3 ? 'Tax-Optimized Portfolio' : 'Optimization Analysis'}
-              </CardTitle>
-              <CardDescription>
-                {step >= 3 ? '$100,000 • Optimized for tax efficiency' : 'AI-powered recommendations'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              
-              {(step === 1 || step === 2) && (
-                <div className="space-y-4">
-                  <h3 className="font-medium">Tax-Loss Harvesting Opportunities</h3>
-                  {taxLossOpportunities.map((stock, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                      <div>
-                        <div className="font-medium">{stock.symbol}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {stock.shares} shares • ${stock.costBasis} → ${stock.currentPrice}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-green-600">${Math.abs(stock.loss)}</div>
-                        <div className="text-xs text-muted-foreground">tax loss</div>
-                      </div>
-                    </div>
-                  ))}
-                  <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg">
-                    <div className="font-medium text-blue-700 dark:text-blue-300">
-                      Total Harvestable Losses: ${totalTaxLossHarvesting}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      Potential tax savings: ${(totalTaxLossHarvesting * 0.24).toFixed(0)} (24% bracket)
-                    </div>
-                  </div>
-                </div>
-              )}
-
-
-
-              {step >= 3 && (
-                <>
-                  {/* Optimized Portfolio Chart */}
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RechartsPieChart>
-                        <Pie
-                          data={optimizedPortfolio}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          dataKey="value"
-                        >
-                          {optimizedPortfolio.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                      </RechartsPieChart>
-                    </ResponsiveContainer>
-                  </div>
-
-                  {/* Optimized Breakdown */}
-                  <div className="space-y-2">
-                    {optimizedPortfolio.map((asset, index) => (
-                      <div key={index} className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: asset.color }} />
-                          <span>{asset.name}</span>
-                        </div>
-                        <div className="text-right">
-                          <div className="font-medium">${asset.value.toLocaleString()}</div>
-                          <div className="text-green-500 text-xs">Tax drag: {asset.taxDrag}%</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-
-            </CardContent>
-          </Card>
+            {/* Feature badges */}
+            <div className="flex flex-wrap justify-center gap-2 mb-8">
+              <Badge variant="secondary" className="px-3 py-1">
+                <Shield className="h-3 w-3 mr-1" />
+                Bank-level Security
+              </Badge>
+              <Badge variant="secondary" className="px-3 py-1">
+                <Zap className="h-3 w-3 mr-1" />
+                Real-time Updates
+              </Badge>
+              <Badge variant="secondary" className="px-3 py-1">
+                <Bot className="h-3 w-3 mr-1" />
+                AI Assistant
+              </Badge>
+              <Badge variant="secondary" className="px-3 py-1">
+                <Smartphone className="h-3 w-3 mr-1" />
+                Mobile Optimized
+              </Badge>
+            </div>
+          </div>
         </div>
-        )}
+      </section>
 
-        {/* Portfolio Drift Analysis */}
-        {step >= 2 && (
-          <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/20 dark:to-yellow-950/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-6 w-6 text-orange-600" />
-                Portfolio Drift Analysis
-              </CardTitle>
-              <CardDescription className="text-base">
-                Your portfolio has drifted from your target allocation - immediate action recommended
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              {/* Drift Alerts */}
-              <Alert className="border-orange-200 bg-orange-50/50 dark:bg-orange-950/20">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertTitle className="text-orange-800 dark:text-orange-300">
-                  {driftAlerts.length} Active Drift Alert{driftAlerts.length !== 1 ? 's' : ''} Detected
-                </AlertTitle>
-                <AlertDescription className="text-orange-700 dark:text-orange-400 mt-2">
-                  Your portfolio allocation has deviated significantly from your target. Consider rebalancing to optimize performance.
-                </AlertDescription>
-              </Alert>
+      {/* Demo Selection */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Explore Our Features
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Choose a demo to see Asset Vision in action
+            </p>
+          </div>
+          
+          <Tabs value={activeDemo} onValueChange={setActiveDemo} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 mb-8">
+              <TabsTrigger value="overview">Portfolio Overview</TabsTrigger>
+              <TabsTrigger value="optimization">AI Optimization</TabsTrigger>
+              <TabsTrigger value="alerts">Smart Alerts</TabsTrigger>
+              <TabsTrigger value="tax">Tax Strategies</TabsTrigger>
+              <TabsTrigger value="ai">AI Assistant</TabsTrigger>
+            </TabsList>
 
-              <Tabs defaultValue="alerts" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="alerts" className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
-                    Drift Alerts
-                  </TabsTrigger>
-                  <TabsTrigger value="comparison" className="flex items-center gap-2">
-                    <PieChart className="h-4 w-4" />
-                    Allocation Comparison
-                  </TabsTrigger>
-                  <TabsTrigger value="recommendations" className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Recommendations
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="alerts" className="space-y-4 mt-6">
-                  <div className="grid gap-4">
-                    {driftAlerts.map((alert, index) => (
-                      <Card key={index} className="border-l-4 border-l-orange-500">
-                        <CardContent className="flex items-center justify-between p-4">
-                          <div className="flex items-center gap-3">
-                            <div 
-                              className="w-4 h-4 rounded-full" 
-                              style={{ backgroundColor: alert.color }}
-                            />
-                            <div>
-                              <p className="font-semibold">{alert.name}</p>
-                              <p className="text-sm text-muted-foreground">
-                                ${alert.value.toLocaleString()} allocated
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-muted-foreground">
-                              Target: {alert.target}% • Current: {alert.current}%
-                            </div>
-                            <Badge variant={alert.drift > 0 ? "destructive" : "secondary"} className="mt-1">
-                              {alert.drift > 0 ? '+' : ''}{alert.drift}% drift
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="comparison" className="space-y-4 mt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                      <CardHeader className="pb-4">
-                        <CardTitle className="text-center text-lg">Target Allocation</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-48">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
-                              <Pie
-                                data={targetAllocation.map(item => ({ ...item, value: item.target }))}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={40}
-                                outerRadius={80}
-                                dataKey="value"
-                              >
-                                {targetAllocation.map((entry, index) => (
-                                  <Cell key={`target-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                              <Tooltip formatter={(value) => `${value}%`} />
-                            </RechartsPieChart>
-                          </ResponsiveContainer>
+            {/* Portfolio Overview Demo */}
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Portfolio Summary */}
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PieChart className="h-5 w-5" />
+                      Portfolio Summary
+                    </CardTitle>
+                    <CardDescription>
+                      Live portfolio performance and allocation
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                          {formatCurrency(demoPortfolio.totalValue)}
                         </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardHeader className="pb-4">
-                        <CardTitle className="text-center text-lg">Current Allocation</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="h-48">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <RechartsPieChart>
-                              <Pie
-                                data={targetAllocation.map(item => ({ ...item, value: item.current }))}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={40}
-                                outerRadius={80}
-                                dataKey="value"
-                              >
-                                {targetAllocation.map((entry, index) => (
-                                  <Cell key={`current-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                              <Tooltip formatter={(value) => `${value}%`} />
-                            </RechartsPieChart>
-                          </ResponsiveContainer>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Total Value</div>
+                      </div>
+                      <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          +{formatPercent(demoPortfolio.totalReturnPercent)}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="recommendations" className="space-y-4 mt-6">
-                  <Alert className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertTitle className="text-blue-800 dark:text-blue-300">
-                      Smart Rebalancing Strategy
-                    </AlertTitle>
-                    <AlertDescription className="text-blue-700 dark:text-blue-400 mt-2">
-                      Our AI recommends the following trades to restore your target allocation:
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div className="grid gap-3">
-                    <Card className="border-red-200 bg-red-50/50 dark:bg-red-950/20">
-                      <CardContent className="p-4">
-                        <h4 className="font-semibold text-red-800 dark:text-red-300 mb-2 flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4 rotate-180" />
-                          Sell Positions
-                        </h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Large Cap Stocks</span>
-                            <span className="font-medium">-$5,000 (45% → 40%)</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Bonds</span>
-                            <span className="font-medium">-$5,000 (15% → 10%)</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">Total Return</div>
+                      </div>
+                    </div>
                     
-                    <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
-                      <CardContent className="p-4">
-                        <h4 className="font-semibold text-green-800 dark:text-green-300 mb-2 flex items-center gap-2">
-                          <TrendingUp className="h-4 w-4" />
-                          Buy Positions
-                        </h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Small Cap Stocks</span>
-                            <span className="font-medium">+$5,000 (15% → 20%)</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>International</span>
-                            <span className="font-medium">+$5,000 (20% → 25%)</span>
-                          </div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Today's Change</span>
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <ArrowUp className="h-4 w-4" />
+                          +{formatCurrency(demoPortfolio.dayChange)} ({formatPercent(demoPortfolio.dayChangePercent)})
                         </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Tax Optimization Results */}
-        {step >= 3 && (
-          <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calculator className="h-6 w-6 text-green-600" />
-                Tax Optimization Analysis
-              </CardTitle>
-              <CardDescription className="text-base">
-                AI-powered tax optimization identifies significant savings opportunities
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              
-              <Alert className="border-green-200 bg-green-50/50 dark:bg-green-950/20">
-                <Calculator className="h-4 w-4" />
-                <AlertTitle className="text-green-800 dark:text-green-300">
-                  ${taxSavings.totalSavings.toLocaleString()} in Tax Savings Identified
-                </AlertTitle>
-                <AlertDescription className="text-green-700 dark:text-green-400 mt-2">
-                  Our analysis found multiple optimization opportunities that could save you significant money on taxes.
-                </AlertDescription>
-              </Alert>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border-green-200 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/30 dark:to-green-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-green-600 mb-2">
-                      ${taxSavings.totalSavings.toLocaleString()}
-                    </div>
-                    <div className="text-sm font-medium text-green-700 dark:text-green-300">
-                      Total Tax Savings
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Annual potential
+                      </div>
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">Dividend Yield</span>
+                        <span className="text-sm">{formatPercent(demoPortfolio.dividendYield)}</span>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
-                
-                <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/30 dark:to-blue-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-blue-600 mb-2">
-                      ${taxSavings.harvestingOpportunity.toLocaleString()}
-                    </div>
-                    <div className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                      Tax Loss Harvesting
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Immediate opportunity
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-purple-900/30">
-                  <CardContent className="text-center p-6">
-                    <div className="text-3xl font-bold text-purple-600 mb-2">
-                      {taxSavings.efficiencyGain}%
-                    </div>
-                    <div className="text-sm font-medium text-purple-700 dark:text-purple-300">
-                      Efficiency Gain
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Portfolio improvement
+
+                {/* Asset Allocation */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5" />
+                      Asset Allocation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Equity</span>
+                        <span className="text-sm font-medium">100%</span>
+                      </div>
+                      <Progress value={100} className="h-2" />
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Bonds</span>
+                        <span className="text-sm font-medium">0%</span>
+                      </div>
+                      <Progress value={0} className="h-2" />
+                      
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm">Cash</span>
+                        <span className="text-sm font-medium">0%</span>
+                      </div>
+                      <Progress value={0} className="h-2" />
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              
-              <Separator />
-              
-              {/* Tax Savings Breakdown */}
-              <Card className="border-blue-200 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
+
+              {/* Sector Allocation */}
+              <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-blue-800 dark:text-blue-300">
-                    <Calculator className="h-5 w-5" />
-                    How We Calculate Your $2,118 Tax Savings
-                  </CardTitle>
+                  <CardTitle>Sector Allocation</CardTitle>
                   <CardDescription>
-                    Here's the simple math behind your potential annual tax savings
+                    Distribution across market sectors
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  
-                  {/* Current vs Optimized Tax Drag */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg flex items-center gap-2">
-                      <span className="bg-red-100 text-red-800 px-2 py-1 rounded text-sm">1</span>
-                      Reduce Annual Tax Drag: ${Math.round(annualTaxSavings).toLocaleString()}
-                    </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      "Tax drag" is how much you lose to taxes each year. We can reduce yours significantly:
-                    </p>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Card className="border-red-200 bg-red-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-red-800">Current Portfolio (Tax Drag)</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {currentPortfolio.map((asset, index) => (
-                            <div key={index} className="flex justify-between text-xs">
-                              <span>{asset.name}:</span>
-                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
-                            </div>
-                          ))}
-                          <Separator />
-                          <div className="flex justify-between font-semibold text-sm text-red-700">
-                            <span>Total Annual Tax Cost:</span>
-                            <span>${Math.round(currentTaxDrag).toLocaleString()}</span>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {demoPortfolio.sectorAllocation.map((sector, index) => (
+                      <div key={sector.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <div className="font-medium">{sector.name}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatPercent(sector.value)}
                           </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card className="border-green-200 bg-green-50/50">
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-sm text-green-800">Optimized Portfolio (Tax Drag)</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {optimizedPortfolio.map((asset, index) => (
-                            <div key={index} className="flex justify-between text-xs">
-                              <span>{asset.name}:</span>
-                              <span>${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
-                            </div>
-                          ))}
-                          <Separator />
-                          <div className="flex justify-between font-semibold text-sm text-green-700">
-                            <span>Total Annual Tax Cost:</span>
-                            <span>${Math.round(optimizedTaxDrag).toLocaleString()}</span>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                    
-                    <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">Annual Tax Drag Savings:</span>
-                        <span className="font-bold text-blue-600">
-                          ${Math.round(currentTaxDrag).toLocaleString()} - ${Math.round(optimizedTaxDrag).toLocaleString()} = ${Math.round(annualTaxSavings).toLocaleString()}
-                        </span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${
+                          sector.change >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {sector.change >= 0 ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+                          {formatPercent(Math.abs(sector.change))}
+                        </div>
                       </div>
-                    </div>
-                    
-                    {/* Tax Drag Explanation */}
-                    <Card className="border-blue-200 bg-blue-50/30 dark:bg-blue-950/20">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                          <Calculator className="h-4 w-4" />
-                          How Tax Drag Percentages Work
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-xs text-muted-foreground">
-                          Tax drag is the annual percentage of your investment value lost to taxes. Here's how we calculate it:
-                        </p>
-                        
-                        <div className="space-y-3">
-                          {currentPortfolio.map((asset, index) => (
-                            <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded border">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                  <div 
-                                    className="w-3 h-3 rounded-full" 
-                                    style={{ backgroundColor: asset.color }}
-                                  />
-                                  <span className="font-medium text-sm">{asset.name}</span>
-                                </div>
-                                <Badge variant="outline" className="text-xs">
-                                  {asset.taxDrag}% tax drag
-                                </Badge>
-                              </div>
-                              <div className="text-xs text-muted-foreground space-y-1">
-                                <div className="flex justify-between">
-                                  <span>Portfolio Value:</span>
-                                  <span className="font-mono">${asset.value.toLocaleString()}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Tax Drag Calculation:</span>
-                                  <span className="font-mono">${asset.value.toLocaleString()} × {asset.taxDrag}%</span>
-                                </div>
-                                <div className="flex justify-between font-medium text-red-600">
-                                  <span>Annual Tax Cost:</span>
-                                  <span className="font-mono">${(asset.value * asset.taxDrag / 100).toLocaleString()}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div className="space-y-3">
-                          <h4 className="font-medium text-sm">Why Different Asset Classes Have Different Tax Drag:</h4>
-                          <div className="grid gap-2 text-xs">
-                            <div className="flex justify-between items-center p-2 bg-red-50 dark:bg-red-950/20 rounded">
-                              <span className="font-medium">Cash (4.1%)</span>
-                              <span className="text-muted-foreground">All interest taxed as ordinary income</span>
-                            </div>
-                            <div className="flex justify-between items-center p-2 bg-orange-50 dark:bg-orange-950/20 rounded">
-                              <span className="font-medium">Bonds (3.2%)</span>
-                              <span className="text-muted-foreground">Interest taxed at higher ordinary rates</span>
-                            </div>
-                            <div className="flex justify-between items-center p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded">
-                              <span className="font-medium">Small Cap (2.8%)</span>
-                              <span className="text-muted-foreground">Higher turnover creates more taxable events</span>
-                            </div>
-                            <div className="flex justify-between items-center p-2 bg-blue-50 dark:bg-blue-950/20 rounded">
-                              <span className="font-medium">Large Cap (2.1%)</span>
-                              <span className="text-muted-foreground">Moderate dividends + some capital gains</span>
-                            </div>
-                            <div className="flex justify-between items-center p-2 bg-green-50 dark:bg-green-950/20 rounded">
-                              <span className="font-medium">International (1.9%)</span>
-                              <span className="text-muted-foreground">Often more tax-efficient structures</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-3 rounded-lg">
-                          <div className="flex items-start gap-2">
-                            <div className="bg-blue-100 p-1 rounded-full mt-0.5">
-                              <AlertTriangle className="h-3 w-3 text-blue-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-xs text-blue-800 dark:text-blue-300">Key Insight:</div>
-                              <div className="text-xs text-blue-700 dark:text-blue-400">
-                                Tax drag represents money that leaves your portfolio every year due to taxes on dividends, 
-                                interest, and capital gains distributions - money that could otherwise compound and grow.
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    ))}
                   </div>
-                  
-                  <Separator />
-                  
-                  {/* Tax Loss Harvesting */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg flex items-center gap-2">
-                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm">2</span>
-                      Tax-Loss Harvesting: ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()}
-                    </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Sell losing investments to offset gains and reduce your tax bill:
-                    </p>
-                    
-                    <Card className="border-orange-200 bg-orange-50/50">
-                      <CardContent className="p-4 space-y-3">
-                        {taxLossOpportunities.map((stock, index) => (
-                          <div key={index} className="flex justify-between items-center text-sm">
-                            <div>
-                              <span className="font-medium">{stock.symbol}</span>
-                              <span className="text-muted-foreground ml-2">
-                                ({stock.shares} shares)
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <div className="text-red-600 font-medium">
-                                ${Math.abs(stock.loss).toLocaleString()} loss
-                              </div>
-                              <div className="text-xs text-muted-foreground">
-                                Tax benefit: ${Math.round(Math.abs(stock.loss) * 0.24).toLocaleString()}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        <Separator />
-                        <div className="flex justify-between font-semibold">
-                          <span>Total Tax Benefit (24% rate):</span>
-                          <span className="text-green-600">
-                            ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  
-                  <Separator />
-                  
-                  {/* Final Calculation */}
-                  <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 p-6 rounded-lg">
-                    <h4 className="font-bold text-lg mb-4 text-center">Total Annual Tax Savings</h4>
-                    <div className="space-y-2 text-center">
-                      <div className="text-sm text-muted-foreground">
-                        Tax Drag Reduction + Tax-Loss Harvesting
-                      </div>
-                      <div className="text-2xl font-bold">
-                        ${Math.round(annualTaxSavings).toLocaleString()} + ${Math.round(totalTaxLossHarvesting * 0.24).toLocaleString()} = 
-                        <span className="text-green-600">${taxSavings.totalSavings.toLocaleString()}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-2">
-                        This is money that stays in your pocket instead of going to taxes
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Efficiency Gain Explanation */}
-                  <div className="space-y-4">
-                    <h4 className="font-semibold text-lg flex items-center gap-2">
-                      <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-sm">3</span>
-                      Portfolio Tax Efficiency: {taxSavings.efficiencyGain}% Improvement
-                    </h4>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      This shows how much more tax-efficient your portfolio becomes after optimization:
-                    </p>
-                    
-                    <Card className="border-purple-200 bg-purple-50/50">
-                      <CardContent className="p-4 space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-red-600 mb-2">
-                              ${Math.round(currentTaxDrag).toLocaleString()}
-                            </div>
-                            <div className="text-sm font-medium text-red-700">
-                              Current Annual Tax Cost
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              What you pay now
-                            </div>
-                          </div>
-                          
-                          <div className="text-center">
-                            <div className="text-2xl font-bold text-green-600 mb-2">
-                              ${Math.round(optimizedTaxDrag).toLocaleString()}
-                            </div>
-                            <div className="text-sm font-medium text-green-700">
-                              Optimized Annual Tax Cost
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              What you'd pay after optimization
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div className="bg-purple-100 dark:bg-purple-950/30 p-4 rounded-lg">
-                          <div className="text-center space-y-2">
-                            <div className="text-sm text-muted-foreground">
-                              Tax Efficiency Calculation:
-                            </div>
-                            <div className="font-mono text-sm">
-                              ({Math.round(currentTaxDrag).toLocaleString()} - {Math.round(optimizedTaxDrag).toLocaleString()}) ÷ {Math.round(currentTaxDrag).toLocaleString()} × 100
-                            </div>
-                            <div className="text-lg font-bold text-purple-600">
-                              = {taxSavings.efficiencyGain}% More Tax Efficient
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-2">
-                              You're reducing your tax burden by nearly 70%!
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 p-4 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-purple-100 p-2 rounded-full">
-                              <TrendingUp className="h-4 w-4 text-purple-600" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-sm">What This Means:</div>
-                              <div className="text-xs text-muted-foreground">
-                                For every $100 you used to lose to taxes, you now only lose $31. 
-                                That's a massive improvement in keeping more of your investment returns!
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  
                 </CardContent>
               </Card>
-              
-              <Separator />
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-600" />
-                  <h3 className="font-semibold text-lg">Smart Optimization Strategies</h3>
-                </div>
-                <div className="grid gap-4">
-                  {taxSavings.strategies.map((strategy, index) => (
-                    <Card key={index} className="border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
-                      <CardContent className="flex items-start gap-4 p-4">
-                        <Avatar className="h-10 w-10 bg-green-100 dark:bg-green-900/30">
-                          <AvatarFallback className="bg-transparent text-green-600 font-bold">
-                            {index + 1}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-semibold">{strategy.name}</h4>
-                            <Badge variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
-                              ${strategy.savings.toLocaleString()} saved
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {strategy.description}
-                          </p>
+            </TabsContent>
+
+            {/* AI Optimization Demo */}
+            <TabsContent value="optimization" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    AI-Powered Portfolio Optimization
+                  </CardTitle>
+                  <CardDescription>
+                    Advanced algorithms analyze your portfolio and suggest improvements
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {demoOptimization.currentSharpe}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Current Sharpe Ratio</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {demoOptimization.optimizedSharpe}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Optimized Sharpe Ratio</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        -{formatPercent(demoOptimization.riskReduction)}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Risk Reduction</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-semibold text-lg mb-3">Optimization Suggestions</h4>
+                    {demoOptimization.suggestions.map((suggestion, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <div className="font-medium">{suggestion.action}</div>
+                          <div className="text-sm text-green-600 dark:text-green-400">{suggestion.impact}</div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
+                        <Button variant="outline" size="sm">
+                          Apply
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Smart Alerts Demo */}
+            <TabsContent value="alerts" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="h-5 w-5" />
+                    Smart Portfolio Alerts
+                  </CardTitle>
+                  <CardDescription>
+                    Stay informed with intelligent notifications about your investments
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {demoAlerts.map((alert, index) => (
+                      <div key={index} className={`flex items-center gap-4 p-4 rounded-lg border ${
+                        alert.severity === 'warning' ? 'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800' :
+                        alert.severity === 'success' ? 'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800' :
+                        'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+                      }`}>
+                        <div className={`p-2 rounded-full ${
+                          alert.severity === 'warning' ? 'bg-yellow-200 dark:bg-yellow-700' :
+                          alert.severity === 'success' ? 'bg-green-200 dark:bg-green-700' :
+                          'bg-blue-200 dark:bg-blue-700'
+                        }`}>
+                          {alert.severity === 'warning' ? <AlertTriangle className="h-4 w-4" /> :
+                           alert.severity === 'success' ? <CheckCircle className="h-4 w-4" /> :
+                           <Bell className="h-4 w-4" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{alert.title}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">{alert.description}</div>
+                        </div>
+                        <Badge variant={alert.active ? 'default' : 'secondary'}>
+                          {alert.active ? 'Active' : 'Resolved'}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Tax Strategies Demo */}
+            <TabsContent value="tax" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calculator className="h-5 w-5" />
+                    Tax Loss Harvesting
+                  </CardTitle>
+                  <CardDescription>
+                    Optimize your tax efficiency with intelligent harvesting strategies
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {formatCurrency(demoTaxSavings.ytdHarvested)}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">YTD Harvested</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                        {formatCurrency(demoTaxSavings.potentialSavings)}
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Potential Savings</div>
+                    </div>
+                    <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                        {demoTaxSavings.taxRate}%
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Tax Rate</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h4 className="font-semibold">Tax Loss Opportunities</h4>
+                    {demoTaxSavings.opportunities.map((opportunity, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div>
+                          <div className="font-medium">{opportunity.symbol}</div>
+                          <div className="text-sm text-red-600 dark:text-red-400">
+                            Loss: {formatCurrency(opportunity.loss)}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-medium text-green-600 dark:text-green-400">
+                            {formatCurrency(opportunity.savings)}
+                          </div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400">Tax Savings</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* AI Assistant Demo */}
+            <TabsContent value="ai" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bot className="h-5 w-5" />
+                    AI Portfolio Assistant
+                  </CardTitle>
+                  <CardDescription>
+                    Get instant insights and answers about your investments
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                        <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
+                          AssetVision AI
+                        </div>
+                        <div className="text-sm text-gray-700 dark:text-gray-300">
+                          Hello! I'm your AI portfolio assistant. I can help you analyze your investments, 
+                          identify opportunities, and answer questions about your portfolio. What would you like to know?
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium mb-2">Try asking me:</div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {[
+                        'How is my portfolio performing?',
+                        'What are my tax loss harvesting opportunities?',
+                        'Should I rebalance my portfolio?',
+                        'What\'s my sector allocation?',
+                        'How much dividend income am I earning?'
+                      ].map((question, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          className="justify-start text-left h-auto py-2 px-3"
+                          onClick={() => {
+                            // Demo interaction
+                            alert(`AI Demo: "${question}"\n\nIn the real app, I would analyze your portfolio data and provide detailed insights about this topic.`);
+                          }}
+                        >
+                          <span className="text-sm">{question}</span>
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Feature Highlights */}
+      <section className="py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Why Choose Asset Vision?
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Comprehensive features designed for modern investors
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                icon: <Bot className="h-8 w-8" />,
+                title: 'AI-Powered Insights',
+                description: 'Get personalized investment recommendations and portfolio analysis using advanced AI algorithms.',
+                color: 'text-blue-600 dark:text-blue-400'
+              },
+              {
+                icon: <Shield className="h-8 w-8" />,
+                title: 'Bank-Level Security',
+                description: 'Your data is protected with enterprise-grade encryption and security protocols.',
+                color: 'text-green-600 dark:text-green-400'
+              },
+              {
+                icon: <LineChart className="h-8 w-8" />,
+                title: 'Real-Time Analytics',
+                description: 'Monitor your portfolio performance with live market data and instant updates.',
+                color: 'text-purple-600 dark:text-purple-400'
+              },
+              {
+                icon: <Calculator className="h-8 w-8" />,
+                title: 'Tax Optimization',
+                description: 'Maximize your after-tax returns with intelligent tax loss harvesting strategies.',
+                color: 'text-orange-600 dark:text-orange-400'
+              },
+              {
+                icon: <Bell className="h-8 w-8" />,
+                title: 'Smart Alerts',
+                description: 'Stay informed with customizable notifications about market movements and portfolio changes.',
+                color: 'text-red-600 dark:text-red-400'
+              },
+              {
+                icon: <Building2 className="h-8 w-8" />,
+                title: 'Multi-Account Support',
+                description: 'Connect multiple brokerage accounts for a unified view of your investments.',
+                color: 'text-indigo-600 dark:text-indigo-400'
+              }
+            ].map((feature, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <div className={`${feature.color} mb-4`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <div className="text-center max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+              Ready to Transform Your Investment Strategy?
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+              Join thousands of investors who trust Asset Vision to manage and optimize their portfolios.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 text-lg"
+              >
+                <ArrowRight className="mr-2 h-5 w-5" />
+                Start Your Free Trial
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="lg" 
+                onClick={handleTryLogin}
+                className="px-8 py-3 text-lg"
+              >
+                <Eye className="mr-2 h-5 w-5" />
+                Sign In to Dashboard
+              </Button>
+            </div>
+            
+            <div className="mt-8 text-sm text-gray-500 dark:text-gray-400">
+              No credit card required • Free 14-day trial • Cancel anytime
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="p-8 max-w-md mx-4">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+              <h3 className="text-xl font-semibold mb-2">Loading Demo...</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Setting up your interactive portfolio experience
+              </p>
+            </div>
           </Card>
-        )}
-
-        {/* Action Button */}
-        <Card className="border-2 border-dashed border-blue-300 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20">
-          <CardContent className="text-center py-8">
-            {step < 3 ? (
-              <div className="space-y-4">
-                <Button 
-                  onClick={handleNextStep}
-                  size="lg"
-                  className="px-12 py-6 text-xl font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                >
-                  {step === 0 && (
-                    <>
-                      <PieChart className="mr-3 h-6 w-6" />
-                      Analyze My Portfolio
-                    </>
-                  )}
-                  {step === 1 && (
-                    <>
-                      <AlertTriangle className="mr-3 h-6 w-6" />
-                      Detect Portfolio Drift
-                    </>
-                  )}
-                  {step === 2 && (
-                    <>
-                      <Calculator className="mr-3 h-6 w-6" />
-                      Calculate Tax Savings
-                    </>
-                  )}
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  {step === 0 && "Discover your portfolio's current allocation and performance"}
-                  {step === 1 && "Identify drift alerts and rebalancing opportunities"}
-                  {step === 2 && "Uncover tax optimization and savings potential"}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    🎉 Analysis Complete!
-                  </h3>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    Your portfolio analysis revealed significant optimization opportunities. Ready to apply these insights to your real investments?
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                  <Button size="lg" className="px-8 py-4 text-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300">
-                    <Sparkles className="mr-2 h-5 w-5" />
-                    Get Your Personal Analysis
-                  </Button>
-                  <Button variant="outline" size="lg" className="px-8 py-4 text-lg border-2 hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <ArrowRight className="mr-2 h-5 w-5" />
-                    Learn More About AssetVision
-                  </Button>
-                </div>
-                <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Free 30-day trial</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>No credit card required</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span>Cancel anytime</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Disclaimer */}
-        <Alert className="bg-amber-50/50 border-amber-200 dark:bg-amber-950/20 dark:border-amber-800">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertTitle className="text-amber-800 dark:text-amber-300">
-            Demo Disclaimer
-          </AlertTitle>
-          <AlertDescription className="text-amber-700 dark:text-amber-400 text-sm leading-relaxed">
-            This demonstration uses hypothetical data for illustration purposes. Actual results may vary based on your specific financial situation, 
-            tax bracket, investment timeline, and market conditions. This is not personalized investment advice. 
-            Please consult with a qualified financial advisor before making investment decisions.
-          </AlertDescription>
-        </Alert>
-
-      </div>
+        </div>
+      )}
     </div>
   );
 }
