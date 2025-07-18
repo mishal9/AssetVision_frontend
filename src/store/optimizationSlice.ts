@@ -34,12 +34,28 @@ export interface OptimizationScenario {
 /**
  * Optimization parameters interface
  */
+export type OptimizationObjective = 'MinRisk' | 'MaxSharpe' | 'MaxReturn';
+
 export interface OptimizationParameters {
+  /**
+   * User s risk tolerance on a 0-10 scale
+   */
   riskTolerance: number;
-  taxBracket: number;
-  turnoverTolerance: number;
-  esgScore: number;
+  /**
+   * Investment time horizon expressed in years
+   */
   timeHorizon: number;
+  /**
+   * Historical look-back window expressed in days (e.g. 365, 730)
+   */
+  lookbackDays: number;
+  /**
+   * Portfolio optimisation objective
+   * - MinRisk: minimise portfolio volatility for the required return
+   * - MaxSharpe: maximise Sharpe ratio (risk-adjusted return)
+   * - MaxReturn: maximise expected return for the given constraints
+   */
+  objective: OptimizationObjective;
 }
 
 /**
@@ -126,10 +142,9 @@ export interface OptimizationState {
 const initialState: OptimizationState = {
   parameters: {
     riskTolerance: 5,
-    taxBracket: 22,
-    turnoverTolerance: 10,
-    esgScore: 50,
-    timeHorizon: 10
+    timeHorizon: 10,
+    lookbackDays: 730,
+    objective: 'MinRisk',
   },
   results: null,
   selectedScenario: null,

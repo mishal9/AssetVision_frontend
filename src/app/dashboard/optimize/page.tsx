@@ -22,10 +22,9 @@ export default function OptimizePortfolioPage() {
   const runOptimization = async () => {
     dispatch(setSimulationStatus(true));
     const payload = {
-      symbols: ['NFLX', 'AAPL', 'NVDA'],
-      lookback_days: 730,
-      risk_free_rate: 0.03,
-      objective: 'MinRisk',
+      lookback_days: parameters.lookbackDays,
+      risk_free_rate: 0.03, // Could be user preference-driven in future
+      objective: parameters.objective,
     };
 
     try {
