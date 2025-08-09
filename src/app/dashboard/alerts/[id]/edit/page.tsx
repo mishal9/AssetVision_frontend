@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import EditAlertPage from '../../../../../components/alerts/EditAlertPage';
 
 export const metadata: Metadata = {
-  title: 'Edit Alert - Asset Vision',
+  title: 'Edit Alert - AlphaOptimize',
   description: 'Edit an existing alert',
 };
 

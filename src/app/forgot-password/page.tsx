@@ -2,8 +2,8 @@ import { BarChart3 } from "lucide-react"
 import { ForgotPasswordForm } from "@/components/forgot-password-form"
 
 export const metadata = {
-  title: "Forgot Password | Asset Vision",
-  description: "Reset your Asset Vision account password.",
+  title: "Forgot Password | AlphaOptimize",
+  description: "Reset your AlphaOptimize account password.",
 }
 
 export default function ForgotPasswordPage() {
@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
             <BarChart3 className="size-4" />
           </div>
-          Asset Vision
+          AlphaOptimize
         </a>
         <ForgotPasswordForm />
       </div>

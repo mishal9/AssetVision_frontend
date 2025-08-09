@@ -10,7 +10,7 @@ export default function ResetPasswordPage() {
           <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
             <BarChart3 className="size-4" />
           </div>
-          Asset Vision
+          AlphaOptimize
         </a>
         <ResetPasswordForm />
       </div>

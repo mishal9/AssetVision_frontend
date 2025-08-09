@@ -41,7 +41,7 @@ import { formatCurrency, formatPercent } from '@/utils/formatters';
 
 /**
  * Demo Page Component
- * Showcases all the key features of Asset Vision with interactive elements
+ * Showcases all the key features of AlphaOptimize with interactive elements
  */
 export default function DemoPage() {
   const router = useRouter();
@@ -163,7 +163,7 @@ export default function DemoPage() {
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-4 sm:mb-6 leading-tight">
               Welcome to{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Asset Vision
+                AlphaOptimize
               </span>
             </h1>
             
@@ -227,7 +227,7 @@ export default function DemoPage() {
               Explore Our Features
             </h2>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 px-4 sm:px-0">
-              Choose a demo to see Asset Vision in action
+              Choose a demo to see AlphaOptimize in action
             </p>
           </div>
           
@@ -539,7 +539,7 @@ export default function DemoPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-1">
-                          AssetVision AI
+                          AlphaOptimize AI
                         </div>
                         <div className="text-xs sm:text-sm text-gray-700 dark:text-gray-300">
                           Hello! I'm your AI portfolio assistant. I can help you analyze your investments, 
@@ -586,7 +586,7 @@ export default function DemoPage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-              Why Choose Asset Vision?
+              Why Choose AlphaOptimize?
             </h2>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 px-4 sm:px-0">
               Comprehensive features designed for modern investors
@@ -654,7 +654,7 @@ export default function DemoPage() {
               Ready to Transform Your Investment Strategy?
             </h2>
             <p className="text-base sm:text-lg text-gray-600 dark:text-gray-300 mb-6 sm:mb-8 px-4 sm:px-0">
-              Join thousands of investors who trust Asset Vision to manage and optimize their portfolios.
+              Join thousands of investors who trust AlphaOptimize to manage and optimize their portfolios.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4 sm:px-0">

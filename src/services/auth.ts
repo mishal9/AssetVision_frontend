@@ -2,7 +2,7 @@ import { authApi } from './api';
 import { AuthResponse, UserInfoResponse } from '../types/auth';
 
 /**
- * Authentication service for Asset Vision
+ * Authentication service for AlphaOptimize
  * Handles user authentication, token management, and session persistence
  */
 class AuthService {

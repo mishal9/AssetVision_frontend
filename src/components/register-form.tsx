@@ -77,7 +77,7 @@ export function RegisterForm({
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create an account</CardTitle>
           <CardDescription>
-            Join Asset Vision to manage your portfolio
+            Join AlphaOptimize to manage your portfolio
           </CardDescription>
         </CardHeader>
         <CardContent>

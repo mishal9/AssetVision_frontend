@@ -15,7 +15,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Asset Vision Dashboard",
+  title: "AlphaOptimize Dashboard",
   description: "A modern dashboard built with Next.js, TypeScript, Redux Toolkit, and Shadcn/UI",
 };
 

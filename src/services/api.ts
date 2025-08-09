@@ -1,5 +1,5 @@
 /**
- * API service for Asset Vision
+ * API service for AlphaOptimize
  * Handles all API requests to the backend
  */
 

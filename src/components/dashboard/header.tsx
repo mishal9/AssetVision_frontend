@@ -67,7 +67,7 @@ export function Header() {
             aria-label="Go to main page"
             type="button"
           >
-            Asset Vision
+            AlphaOptimize
           </button>
         </div>
         <div className="flex items-center space-x-4">
