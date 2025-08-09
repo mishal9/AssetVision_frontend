@@ -30,6 +30,7 @@ export function RegisterForm({
   const [confirmPassword, setConfirmPassword] = React.useState<string>('')
   const [name, setName] = React.useState<string>('')
   const [error, setError] = React.useState<string | null>(null)
+  const [showSuccess, setShowSuccess] = React.useState<boolean>(false)
   const router = useRouter()
 
   /**
@@ -51,8 +52,13 @@ export function RegisterForm({
       // Call the authentication service to register
       await authService.register(name, email, password)
       
-      // Redirect to dashboard on successful registration
-      router.push('/')
+      // Show success message about email confirmation
+      setShowSuccess(true)
+      
+      // Redirect to login page after a delay to show the message
+      setTimeout(() => {
+        router.push('/login')
+      }, 3000)
     } catch (err) {
       console.error('Registration failed:', err)
       setError('Registration failed. This email might already be in use.')
@@ -78,6 +84,20 @@ export function RegisterForm({
           {error && (
             <div className="bg-destructive/15 text-destructive mb-4 rounded-md p-3 text-sm">
               {error}
+            </div>
+          )}
+          {showSuccess && (
+            <div className="bg-green-50 text-green-700 border border-green-200 mb-4 rounded-md p-3 text-sm">
+              <div className="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22,4 12,14.01 9,11.01" />
+                </svg>
+                <div>
+                  <strong>Account created successfully!</strong>
+                  <p className="mt-1">Please check your email and click the confirmation link before signing in. You'll be redirected to the login page shortly.</p>
+                </div>
+              </div>
             </div>
           )}
           <form onSubmit={handleSubmit}>
@@ -133,12 +153,15 @@ export function RegisterForm({
                 <Button 
                   type="submit" 
                   className="w-full"
-                  disabled={isLoading}
+                  disabled={isLoading || showSuccess}
                 >
-                  {isLoading ? 'Creating account...' : 'Create account'}
+                  {isLoading ? 'Creating account...' : showSuccess ? 'Account created!' : 'Create account'}
                 </Button>
               </div>
               <div className="text-center text-sm space-y-2">
+                <div className="text-muted-foreground text-xs bg-blue-50 border border-blue-200 rounded-md p-2">
+                  📧 After registration, you'll receive an email confirmation link that must be clicked before you can sign in.
+                </div>
                 <div>
                   Already have an account?{" "}
                   <Link href="/login" className="underline underline-offset-4">

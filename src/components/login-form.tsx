@@ -64,7 +64,7 @@ export function LoginForm({
       if ((error as any).authErrorMessage) {
         setError((error as any).authErrorMessage)
       } else if ((error as any).message && (error as any).message.includes('401')) {
-        setError('Invalid email or password. Please try again.')
+        setError('Invalid email or password. If you just registered, please check your email and click the confirmation link first.')
       } else if ((error as any).message && (error as any).message.includes('network')) {
         setError('Unable to connect to the server. Please check your internet connection.')
       } else {
@@ -143,6 +143,9 @@ export function LoginForm({
                 </Button>
               </div>
               <div className="text-center text-sm space-y-2">
+                <div className="text-muted-foreground text-xs bg-amber-50 border border-amber-200 rounded-md p-2">
+                  📧 New users: Please confirm your email before signing in. Check your inbox for the confirmation link.
+                </div>
                 <div>
                   Don&apos;t have an account?{" "}
                   <Link href="/register" className="underline underline-offset-4">
