@@ -193,10 +193,10 @@ export const alertsApi = {
 export const authApi = {
   /**
    * Login user
-   * @param username Username or email
+   * @param email User email
    * @param password User password
    */
-  login: async (username: string, password: string) => {
+  login: async (email: string, password: string) => {
     // Use centralized AUTH_ENDPOINTS configuration
     const res = await fetch(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
@@ -204,7 +204,7 @@ export const authApi = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email, password }),
       credentials: 'include', // Include cookies
       mode: 'cors', // Enable CORS
     });
@@ -303,7 +303,11 @@ export const authApi = {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ 
+        email,
+        // Provide redirect_to so Supabase recovery link returns to frontend reset page
+        redirect_to: (typeof window !== 'undefined') ? `${window.location.origin}/reset-password` : undefined,
+      }),
       credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     });
@@ -323,6 +327,30 @@ export const authApi = {
     }
 
     // Success: backend may return 200/204 with or without body. Nothing to return here.
+  },
+
+  /**
+   * Reset password using Supabase recovery token
+   */
+  resetPassword: async (token: string, password: string): Promise<void> => {
+    const res = await fetch(AUTH_ENDPOINTS.RESET_PASSWORD, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ token, password }),
+      credentials: 'include',
+      mode: 'cors',
+    });
+    if (!res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      const parsed = contentType.includes('application/json') ? await res.json() : await res.text();
+      const message = typeof parsed === 'string' ? parsed || 'Password reset failed' : parsed?.error || parsed?.detail || parsed?.message || 'Password reset failed';
+      const err: any = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
   },
     
   /**
