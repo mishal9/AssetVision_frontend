@@ -196,9 +196,9 @@ export const authApi = {
    * @param username Username or email
    * @param password User password
    */
-  login: (username: string, password: string) => {
+  login: async (username: string, password: string) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.LOGIN, {
+    const res = await fetch(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -206,18 +206,33 @@ export const authApi = {
       },
       body: JSON.stringify({ username, password }),
       credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
-    })
-      .then(response => response.json())
-      .then(response => convertSnakeToCamelCase<AuthResponse>(response));
+      mode: 'cors', // Enable CORS
+    });
+
+    // Safely parse body once
+    const contentType = res.headers.get('content-type') || '';
+    const parsed = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
+
+    if (!res.ok) {
+      const message = typeof parsed === 'string'
+        ? parsed || 'Login failed'
+        : parsed?.error || parsed?.detail || parsed?.message || 'Login failed';
+      const err: any = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+
+    return convertSnakeToCamelCase<AuthResponse>(parsed);
   },
   
   /**
    * Register new user
    */
-  register: (userData: any) => {
+  register: async (userData: any) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.REGISTER, {
+    const res = await fetch(AUTH_ENDPOINTS.REGISTER, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -225,28 +240,56 @@ export const authApi = {
       },
       body: JSON.stringify(userData),
       credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
-    })
-      .then(response => response.json())
-      .then(response => convertSnakeToCamelCase<AuthResponse>(response));
+      mode: 'cors', // Enable CORS
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    const parsed = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
+
+    if (!res.ok) {
+      const message = typeof parsed === 'string'
+        ? parsed || 'Registration failed'
+        : parsed?.error || parsed?.detail || parsed?.message || 'Registration failed';
+      const err: any = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+
+    return convertSnakeToCamelCase<AuthResponse>(parsed);
   },
   
   /**
    * Refresh authentication token
    */
-  refreshToken: (refreshToken: string) => {
+  refreshToken: async (refreshToken: string) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.REFRESH, {
+    const res = await fetch(AUTH_ENDPOINTS.REFRESH, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ refresh: refreshToken }),
       credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
-    })
-      .then(response => response.json())
-      .then(response => convertSnakeToCamelCase<any>(response));
+      mode: 'cors', // Enable CORS
+    });
+
+    const contentType = res.headers.get('content-type') || '';
+    const parsed = contentType.includes('application/json')
+      ? await res.json()
+      : await res.text();
+
+    if (!res.ok) {
+      const message = typeof parsed === 'string'
+        ? parsed || 'Token refresh failed'
+        : parsed?.error || parsed?.detail || parsed?.message || 'Token refresh failed';
+      const err: any = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+
+    return convertSnakeToCamelCase<any>(parsed);
   },
     
   /**
