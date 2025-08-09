@@ -17,7 +17,7 @@ export const AUTH_ENDPOINTS = {
   LOGOUT: `${API_BASE_URL}/auth/logout/`,
   REFRESH: `${API_BASE_URL}/auth/refresh/`,
   USER: `${API_BASE_URL}/auth/user/`,
-  FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
+  FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot_password/`,
 };
 
 // Portfolio endpoints

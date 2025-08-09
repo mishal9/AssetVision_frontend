@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-// import { authService } from "@/services/auth"
+import { authService } from "@/services/auth"
 
 /**
  * Forgot Password form component
@@ -40,18 +40,12 @@ export function ForgotPasswordForm({
     setSuccess(false)
 
     try {
-      // This would call the actual password reset API
-      // For now, we'll simulate a successful request
-      console.log('Password reset requested for:', email)
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Show success message
+      await authService.requestPasswordReset(email)
       setSuccess(true)
     } catch (err) {
+      const message = (err as any)?.authErrorMessage || (err as any)?.message || 'Failed to send password reset email. Please try again.'
       console.error('Password reset request failed:', err)
-      setError('Failed to send password reset email. Please try again.')
+      setError(message)
     } finally {
       setIsLoading(false)
     }

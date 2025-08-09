@@ -295,17 +295,34 @@ export const authApi = {
   /**
    * Request password reset
    */
-  requestPasswordReset: (email: string) => {
+  requestPasswordReset: async (email: string): Promise<void> => {
     // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
+    const res = await fetch(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({ email }),
       credentials: 'include', // Include cookies
       mode: 'cors' // Enable CORS
     });
+
+    if (!res.ok) {
+      const contentType = res.headers.get('content-type') || '';
+      const parsed = contentType.includes('application/json')
+        ? await res.json()
+        : await res.text();
+
+      const message = typeof parsed === 'string'
+        ? parsed || 'Password reset request failed'
+        : parsed?.error || parsed?.detail || parsed?.message || 'Password reset request failed';
+      const err: any = new Error(message);
+      err.status = res.status;
+      throw err;
+    }
+
+    // Success: backend may return 200/204 with or without body. Nothing to return here.
   },
     
   /**
