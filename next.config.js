@@ -6,11 +6,8 @@ const nextConfig = {
   },
   // Environment variables
   env: {
-    // Use NEXT_PUBLIC_WS_URL if set, otherwise use the Docker service URL if in production, otherwise use the host's IP
-    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL || 
-      'wss://cl3fc954-8000.use.devtunnels.ms/ws/market-data/',
-    // Add backend URL for direct API calls
-    NEXT_PUBLIC_API_URL: 'https://cl3fc954-8000.use.devtunnels.ms/api',
+    // Backend URL for direct API calls
+    NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
   },
   
   // We don't need to add CORS headers in Next.js config since we're making direct calls to the backend
@@ -44,15 +41,6 @@ const nextConfig = {
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
-        ]
-      },
-      {
-        // WebSocket connection
-        source: "/ws/:path*",
-        headers: [
-          { key: "Access-Control-Allow-Origin", value: "*" },
-          { key: "Access-Control-Allow-Methods", value: "GET, OPTIONS" },
-          { key: "Access-Control-Allow-Headers", value: "*" },
         ]
       }
     ]
