@@ -1,6 +1,23 @@
-import React, { useMemo } from 'react';
+import React, { Suspense } from 'react';
 import { BarChart3 } from 'lucide-react';
 import ResetPasswordForm from '@/components/reset-password-form';
+
+// Loading component for the form
+function ResetPasswordFormLoading() {
+  return (
+    <div className="bg-card text-card-foreground rounded-lg border p-6 shadow-sm">
+      <div className="text-center mb-6">
+        <div className="h-6 bg-gray-200 rounded animate-pulse mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4 mx-auto"></div>
+      </div>
+      <div className="space-y-4">
+        <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+        <div className="h-10 bg-gray-200 rounded animate-pulse"></div>
+      </div>
+    </div>
+  );
+}
 
 export default function ResetPasswordPage() {
   return (
@@ -12,7 +29,9 @@ export default function ResetPasswordPage() {
           </div>
           AlphaOptimize
         </a>
-        <ResetPasswordForm />
+        <Suspense fallback={<ResetPasswordFormLoading />}>
+          <ResetPasswordForm />
+        </Suspense>
       </div>
     </div>
   );
