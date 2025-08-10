@@ -4,13 +4,11 @@
  */
 
 // Backend URL configuration
-export const BACKEND_URL = 'https://cl3fc954-8000.use.devtunnels.ms';
+export const BACKEND_URL = 'http://localhost:8000';
 
 // Base API URL - always use the full backend URL
 export const API_BASE_URL = `${BACKEND_URL}/api`;
 
-// API host - used for WebSocket connection
-export const API_HOST = BACKEND_URL.replace(/^https?:\/\//, '');
 
 // Auth endpoints
 export const AUTH_ENDPOINTS = {
@@ -20,6 +18,7 @@ export const AUTH_ENDPOINTS = {
   REFRESH: `${API_BASE_URL}/auth/refresh/`,
   USER: `${API_BASE_URL}/auth/user/`,
   FORGOT_PASSWORD: `${API_BASE_URL}/auth/forgot-password/`,
+  RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password/`,
 };
 
 // Portfolio endpoints
@@ -54,10 +53,6 @@ export const PLAID_ENDPOINTS = {
   CREATE_PORTFOLIO: `${API_BASE_URL}/portfolio/`,
 };
 
-// WebSocket endpoints
-export const WEBSOCKET_ENDPOINTS = {
-  CONNECT: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8001/ws/market-data/',
-};
 
 // Risk optimization endpoints
 export const RISK_ENDPOINTS = {
@@ -71,7 +66,6 @@ export const API_CONFIG = {
   PORTFOLIO: PORTFOLIO_ENDPOINTS,
   PLAID: PLAID_ENDPOINTS,
   RISK: RISK_ENDPOINTS,
-  WEBSOCKET: WEBSOCKET_ENDPOINTS,
 };
 
 export default API_CONFIG;

@@ -300,7 +300,7 @@ export function AiChat() {
         // Check if we actually have portfolio metrics to add
         if (Object.keys(portfolioMetrics).length > 0) {
           pageSpecificContext = {
-            description: 'AssetVision Investment Dashboard with portfolio overview, performance metrics, asset allocation, and market data.',
+            description: 'AlphaOptimize Investment Dashboard with portfolio overview, performance metrics, asset allocation, and market data.',
             availableData: ['portfolioSummary', 'performanceMetrics', 'assetAllocation', 'dividendForecast', 'taxHarvesting'],
             portfolioMetrics
           };
@@ -338,7 +338,7 @@ export function AiChat() {
       default:
         // For other pages, just set a basic description
         pageSpecificContext = {
-          description: `${context.page} page in AssetVision investment management application.`
+          description: `${context.page} page in AlphaOptimize investment management application.`
         };
     }
     
@@ -512,7 +512,7 @@ export function AiChat() {
     
     // Create a focused system message for portfolio analysis
     return [
-      "You are AssetVision AI, a portfolio assistant. Provide brief insights based on the portfolio summary.",
+      "You are AlphaOptimize AI, a portfolio assistant. Provide brief insights based on the portfolio summary.",
       "",
       "INSTRUCTIONS:",
       "1. Reference specific portfolio values from the data provided.",

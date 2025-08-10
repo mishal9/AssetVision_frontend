@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
   
   // Define route types
-  const authRoutes = ['/login', '/register', '/forgot-password'];
+  const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password'];
   
   // Check if user is authenticated by looking for the auth token
   const isAuthenticated = !!request.cookies.get('auth_token')?.value;
@@ -38,5 +38,5 @@ export function middleware(request: NextRequest) {
 
 // Configure which paths this middleware will run on
 export const config = {
-  matcher: ['/', '/login', '/register', '/forgot-password', '/dashboard', '/dashboard/:path*'],
+  matcher: ['/', '/login', '/register', '/forgot-password', '/reset-password', '/dashboard', '/dashboard/:path*'],
 };

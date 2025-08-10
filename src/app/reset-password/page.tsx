@@ -1,12 +1,8 @@
-import { BarChart3 } from "lucide-react"
-import { ForgotPasswordForm } from "@/components/forgot-password-form"
+import React, { useMemo } from 'react';
+import { BarChart3 } from 'lucide-react';
+import ResetPasswordForm from '@/components/reset-password-form';
 
-export const metadata = {
-  title: "Forgot Password | AlphaOptimize",
-  description: "Reset your AlphaOptimize account password.",
-}
-
-export default function ForgotPasswordPage() {
+export default function ResetPasswordPage() {
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
@@ -16,8 +12,10 @@ export default function ForgotPasswordPage() {
           </div>
           AlphaOptimize
         </a>
-        <ForgotPasswordForm />
+        <ResetPasswordForm />
       </div>
     </div>
-  )
+  );
 }
+
+

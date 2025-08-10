@@ -140,7 +140,7 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
     <div className="container mx-auto px-4 py-12 max-w-4xl">
       <Card className="shadow-lg border-border/50">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-background">
-          <CardTitle className="text-2xl font-bold text-center">Welcome to Asset Vision</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Welcome to AlphaOptimize</CardTitle>
           <CardDescription className="text-center text-muted-foreground">
             Let's set up your investment portfolio. Add your assets to get started.
           </CardDescription>

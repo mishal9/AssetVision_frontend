@@ -2,7 +2,7 @@ import { authApi } from './api';
 import { AuthResponse, UserInfoResponse } from '../types/auth';
 
 /**
- * Authentication service for Asset Vision
+ * Authentication service for AlphaOptimize
  * Handles user authentication, token management, and session persistence
  */
 class AuthService {
@@ -36,12 +36,12 @@ class AuthService {
 
   /**
    * Login user and store authentication tokens
-   * @param username Username or email
+   * @param email User email
    * @param password User password
    */
-  async login(username: string, password: string): Promise<AuthResponse> {
+  async login(email: string, password: string): Promise<AuthResponse> {
     try {
-      const response = await authApi.login(username, password);
+      const response = await authApi.login(email, password);
       
       if (response.success && response.tokens) {
         this.setTokens(
@@ -118,6 +118,20 @@ class AuthService {
     } catch (error) {
       console.error('Password reset request failed:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Reset password using recovery token from Supabase
+   */
+  async resetPassword(token: string, password: string): Promise<void> {
+    try {
+      await authApi.resetPassword(token, password);
+    } catch (error: any) {
+      // Normalize error for UI
+      const err: any = error instanceof Error ? error : new Error('Password reset failed');
+      err.authErrorMessage = err.message || 'Password reset failed';
+      throw err;
     }
   }
 

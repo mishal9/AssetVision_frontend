@@ -1,5 +1,5 @@
 /**
- * Plaid API service for Asset Vision
+ * Plaid API service for AlphaOptimize
  * Handles all Plaid-related API requests to the Django backend
  */
 

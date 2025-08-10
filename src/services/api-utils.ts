@@ -1,5 +1,5 @@
 /**
- * API utilities for Asset Vision
+ * API utilities for AlphaOptimize
  * Handles communication with Django backend
  */
 

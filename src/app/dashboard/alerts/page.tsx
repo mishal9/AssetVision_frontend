@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 import AlertsOverviewPage from '../../../components/alerts/AlertsOverviewPage';
 
 export const metadata: Metadata = {
-  title: 'Asset Vision - Alert Center',
+  title: 'AlphaOptimize - Alert Center',
   description: 'View and manage all of your alerts',
 };
 

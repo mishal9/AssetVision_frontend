@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 // import { useRouter } from 'next/navigation';
-import { socketService } from '@/services/websocket';
 import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
@@ -46,37 +45,7 @@ export default function DashboardPage() {
     checkPortfolio();
   }, []);
   
-  useEffect(() => {
-    // Initialize WebSocket connection for real-time updates
-    const connectWebSocket = async () => {
-      try {
-        console.log('Connecting to WebSocket...');
-        // Get the access token from localStorage
-        const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-        await socketService.connect(undefined, token || undefined);
-      } catch (error) {
-        console.error('Failed to connect to WebSocket:', error);
-      }
-    };
-    
-    // Connect to WebSocket
-    connectWebSocket();
-    
-    // Set up connection status listener
-    const unsubscribe = socketService.onConnectionChange((connected) => {
-      console.log('WebSocket connection status:', connected ? 'connected' : 'disconnected');
-      if (!connected) {
-        // Attempt to reconnect after a delay
-        setTimeout(connectWebSocket, 5000);
-      }
-    });
-    
-    // Cleanup WebSocket connection on unmount
-    return () => {
-      unsubscribe();
-      socketService.disconnect();
-    };
-  }, []);
+  // WebSocket-related logic removed
 
   // Format currency values
   const formatCurrency = (value: number | undefined | null) => {
