@@ -3,8 +3,33 @@
  * Centralized configuration for all API endpoints in the application
  */
 
-// Backend URL configuration
-export const BACKEND_URL = 'http://localhost:8000';
+/**
+ * Environment-specific configuration
+ * Determines the correct backend URL based on environment variables
+ * Requires explicit configuration - no fallbacks or defaults
+ */
+const getBackendUrl = (): string => {
+  // Require explicit environment variable - no fallbacks
+  if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+    console.error('❌ NEXT_PUBLIC_API_BASE_URL environment variable is required but not set!');
+    console.error('');
+    console.error('📝 Please set NEXT_PUBLIC_API_BASE_URL in your environment:');
+    console.error('   • Development: NEXT_PUBLIC_API_BASE_URL=http://localhost:8000');
+    console.error('   • Custom setup: NEXT_PUBLIC_API_BASE_URL=http://localhost:3001');
+    console.error('   • Production: Set in Vercel environment variables');
+    console.error('');
+    console.error('💡 Create a .env.local file with your configuration');
+    
+    throw new Error('NEXT_PUBLIC_API_BASE_URL environment variable is required');
+  }
+  
+  const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  console.log(`🔧 Using API URL: ${apiUrl}`);
+  return apiUrl;
+};
+
+// Backend URL configuration - dynamically determined based on environment
+export const BACKEND_URL = getBackendUrl();
 
 // Base API URL - always use the full backend URL
 export const API_BASE_URL = `${BACKEND_URL}/api`;

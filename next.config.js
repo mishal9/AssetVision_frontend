@@ -4,10 +4,14 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Environment variables
+  // Environment variables - explicit configuration required
   env: {
-    // Backend URL for direct API calls
-    NEXT_PUBLIC_API_URL: 'http://localhost:8000/api',
+    // Pass through the API base URL from environment variables (required)
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    // Derived API URL with /api suffix
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_BASE_URL 
+      ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api`
+      : undefined,
   },
   
   // We don't need to add CORS headers in Next.js config since we're making direct calls to the backend
@@ -30,17 +34,18 @@ const nextConfig = {
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   
-  // CORS headers
+  // CORS headers - Note: These are for Next.js API routes only
+  // The external backend API (api.alphaoptimize.com) handles its own CORS
   async headers() {
     return [
       {
-        // matching all API routes
+        // matching all Next.js API routes (not external backend calls)
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
-          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
+          { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization" },
         ]
       }
     ]
