@@ -9,6 +9,7 @@ import { cn } from "@/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { AiChatProvider } from "@/components/ai-chat/ai-chat-provider";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,6 +42,7 @@ export default function RootLayout({
           </ThemeProvider>
         </ReduxProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
