@@ -89,7 +89,7 @@ export default function Home() {
                 className="w-full py-6 text-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
               >
                 <Sparkles className="mr-2 h-5 w-5" />
-                Try Interactive Demo
+                Try the live demo — no sign‑up
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
               

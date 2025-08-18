@@ -1,0 +1,17 @@
+# Robots.txt for AlphaOptimize
+# Security: Disallow demo mode from search engines
+
+User-agent: *
+Allow: /
+
+# Demo mode - prevent indexing for security
+Disallow: /demo
+Disallow: /demo/
+
+# Standard exclusions
+Disallow: /api/
+Disallow: /_next/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://alphaoptimize.com/sitemap.xml

@@ -16,6 +16,7 @@ import {
 } from '../types/auth';
 import { MarketRegionSettings, TaxSettings } from '../store/preferencesSlice';
 import { TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
+import { isDemoMode, demoPortfolioService, demoAlertsService } from './demo-stubs';
 
 /**
  * Portfolio API methods
@@ -25,23 +26,66 @@ export const portfolioApi = {
    * Get user portfolio summary
    * Fetches the portfolio summary and transforms snake_case to camelCase
    */
-  getPortfolioSummary: () => 
-    fetchWithAuth<PortfolioSummaryResponse>(PORTFOLIO_ENDPOINTS.SUMMARY)
-      .then(response => convertSnakeToCamelCase<PortfolioSummary>(response)),
+  getPortfolioSummary: async () => {
+    if (isDemoMode()) {
+      const demoData = await demoPortfolioService.getSummary();
+      return convertSnakeToCamelCase<PortfolioSummary>(demoData);
+    }
+    return fetchWithAuth<PortfolioSummaryResponse>(PORTFOLIO_ENDPOINTS.SUMMARY)
+      .then(response => convertSnakeToCamelCase<PortfolioSummary>(response));
+  },
   
   /**
    * Get portfolio performance over time
    */
-  getPerformance: (period: 'day' | 'week' | 'month' | 'year' | 'all' = 'month') => 
-    fetchWithAuth<any[]>(`${PORTFOLIO_ENDPOINTS.PERFORMANCE}?period=${period}`)
-      .then(response => convertSnakeToCamelCase<PerformanceData[]>(response)),
+  getPerformance: async (period: 'day' | 'week' | 'month' | 'year' | 'all' = 'month') => {
+    if (isDemoMode()) {
+      const demoData = await demoPortfolioService.getPerformance();
+      // Return demo performance data in the expected format
+      return [
+        { date: '2024-01-01', value: 167269.25 },
+        { date: '2024-02-01', value: 172456.78 },
+        { date: '2024-03-01', value: 168923.45 },
+        { date: '2024-04-01', value: 175634.12 },
+        { date: '2024-05-01', value: 182945.67 },
+        { date: '2024-06-01', value: 179823.34 },
+        { date: '2024-07-01', value: 186734.89 },
+        { date: '2024-08-01', value: 191245.23 },
+        { date: '2024-09-01', value: 196456.78 },
+        { date: '2024-10-01', value: 203789.45 },
+        { date: '2024-11-01', value: 208123.67 },
+        { date: '2024-12-01', value: demoData.totalValue },
+      ];
+    }
+    return fetchWithAuth<any[]>(`${PORTFOLIO_ENDPOINTS.PERFORMANCE}?period=${period}`)
+      .then(response => convertSnakeToCamelCase<PerformanceData[]>(response));
+  },
   
   /**
    * Get asset allocation
    * @returns Promise with asset and sector allocation data
    */
-  getAssetAllocation: () => 
-    fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.ALLOCATION)
+  getAssetAllocation: async () => {
+    if (isDemoMode()) {
+      const assetData = await demoPortfolioService.getAllocation();
+      const sectorData = await demoPortfolioService.getSectorAllocation();
+      
+      // Transform demo data to match expected API format
+      return {
+        assetAllocation: Object.entries(assetData).map(([name, value]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          value: value as number,
+          percentage: value as number,
+        })),
+        sectorAllocation: sectorData.map((sector: any) => ({
+          name: sector.name,
+          value: sector.value,
+          percentage: sector.allocation,
+        }))
+      };
+    }
+    
+    return fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.ALLOCATION)
       .then(response => {
         // Log the raw API response for debugging
         console.log('Raw allocation API response:', response);
@@ -51,7 +95,8 @@ export const portfolioApi = {
         console.log('Converted allocation data:', convertedData);
         
         return convertedData;
-      }),
+      });
+  },
     
   /**
    * Create a new portfolio with holdings
@@ -65,11 +110,15 @@ export const portfolioApi = {
   /**
    * Check if user has a portfolio
    */
-  hasPortfolio: () => 
-    fetchWithAuth<{ has_portfolio: boolean }>(PORTFOLIO_ENDPOINTS.HAS_PORTFOLIO)
+  hasPortfolio: async () => {
+    if (isDemoMode()) {
+      return true; // Demo always has a portfolio
+    }
+    return fetchWithAuth<{ has_portfolio: boolean }>(PORTFOLIO_ENDPOINTS.HAS_PORTFOLIO)
       .then(response => convertSnakeToCamelCase<{ hasPortfolio: boolean }>(response))
       .then(response => response.hasPortfolio)
-      .catch(() => false),
+      .catch(() => false);
+  },
     
   /**
    * Get tax loss harvesting opportunities
@@ -154,9 +203,13 @@ export const alertsApi = {
   /**
    * Get all user alerts
    */
-  getAlerts: () => 
-    fetchWithAuth<AlertResponse[]>('/alerts/rules/')
-      .then(response => convertSnakeToCamelCase<Alert[]>(response)),
+  getAlerts: async () => {
+    if (isDemoMode()) {
+      return await demoAlertsService.getAlerts();
+    }
+    return fetchWithAuth<AlertResponse[]>('/alerts/rules/')
+      .then(response => convertSnakeToCamelCase<Alert[]>(response));
+  },
   
   /**
    * Create a new alert
