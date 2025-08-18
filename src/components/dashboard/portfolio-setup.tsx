@@ -169,7 +169,7 @@ export function PortfolioSetup({ onPortfolioCreated }: { onPortfolioCreated: () 
           
           {/* Manual portfolio input removed. Only linking accounts is allowed. */}
           {/* If user is not authenticated, prompt to log in to link accounts */}
-          {typeof window !== 'undefined' && !localStorage.getItem('auth_token') ? (
+          {typeof window !== 'undefined' && !document.cookie.includes('auth_token=') ? (
             <div className="flex flex-col items-center justify-center py-8">
               <h3 className="text-lg font-semibold mb-2">Sign in to link your accounts</h3>
               <p className="text-sm text-muted-foreground mb-4">You must be logged in to link your investment accounts and view your portfolio.</p>

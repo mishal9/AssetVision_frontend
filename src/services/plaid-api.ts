@@ -53,8 +53,10 @@ export const plaidApi = {
     // If no userId provided, extract from JWT token
     if (!authenticatedUserId) {
       try {
-        // Get auth token from localStorage
-        const token = localStorage.getItem('auth_token');
+        // Get auth token from cookies
+        const cookies = typeof document !== 'undefined' ? document.cookie.split(';') : [];
+        const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
+        const token = tokenCookie ? tokenCookie.split('=')[1] : null;
         
         if (token) {
           try {
