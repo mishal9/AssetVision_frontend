@@ -89,9 +89,6 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
 
   // Handle successful Plaid link
   const handlePlaidSuccess = async (publicToken: string, metadata: Record<string, unknown>) => {
-    console.log('LinkedAccounts: handlePlaidSuccess called with token', publicToken.substring(0, 5) + '...');
-    console.log('LinkedAccounts: Plaid metadata:', JSON.stringify(metadata).substring(0, 100) + '...');
-    
     try {
       // Validate inputs before proceeding
       if (!publicToken) {
