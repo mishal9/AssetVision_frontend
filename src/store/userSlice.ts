@@ -34,6 +34,8 @@ interface UserState {
     id?: number;
     username?: string;
     email?: string;
+    firstName?: string;
+    lastName?: string;
     avatar?: string;
   } | null;
   linkedAccounts: LinkedAccount[];
@@ -265,15 +267,25 @@ export const userSlice = createSlice({
         state.isAuthenticated = true;
         
         // Extract user data from the response
-        const userData = action.payload;
+        const responseData = action.payload as any;
+        
+        // Handle the actual API response structure: { authenticated: true, user: {...} }
+        const userData = responseData.user || responseData;
         
         if (userData) {
+          // Parse the username to extract first and last name if it contains a full name
+          const nameParts = userData.username ? userData.username.split(' ') : [];
+          const firstName = nameParts[0] || '';
+          const lastName = nameParts.slice(1).join(' ') || '';
+          
           state.user = {
-            id: typeof userData.userId === 'string' ? parseInt(userData.userId, 10) : userData.userId,
+            id: userData.id,
             username: userData.username,
             email: userData.email,
+            firstName: firstName,
+            lastName: lastName,
             // Generate avatar from initials if no avatar URL is provided
-            avatar: userData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&background=random`,
+            avatar: userData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username || 'User')}&background=random`,
           };
         }
       })

@@ -357,17 +357,7 @@ export const authApi = {
    * Get current user information
    */
   getUserInfo: () => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.USER, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
-    })
-      .then(response => response.json())
-      .then(response => convertSnakeToCamelCase<UserInfoResponse>(response));
+    return fetchWithAuth<UserInfoResponse>(AUTH_ENDPOINTS.USER);
   },
     
   /**

@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { authService } from "@/services/auth"
 import { useAppDispatch } from "@/store"
-import { fetchLinkedAccounts } from "@/store/userSlice"
+import { fetchLinkedAccounts, fetchUserInfo } from "@/store/userSlice"
 
 export function LoginForm({
   className,
@@ -53,6 +53,9 @@ export function LoginForm({
 
       // Call the authentication service to login
       await authService.login(email, password)
+      
+      // Fetch user info after successful login to set authentication state
+      await dispatch(fetchUserInfo()).unwrap()
       
       // Fetch linked accounts after successful login
       dispatch(fetchLinkedAccounts())

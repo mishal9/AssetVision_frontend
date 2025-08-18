@@ -35,6 +35,8 @@ export const updateAuthStateAfterLogin = (userData: UserInfoResponse): void => {
         id: userData.userId,
         username: userData.username,
         email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
         // Generate avatar from initials if no avatar URL is provided
         avatar: userData.profileImage || `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username)}&background=random`,
       })

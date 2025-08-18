@@ -35,10 +35,12 @@ export function Sidebar() {
     user: state.user.user,
   }));
 
-  // Fetch user info when component mounts
+  // Fetch user info when component mounts if we don't have it
   useEffect(() => {
-    dispatch(fetchUserInfo());
-  }, [dispatch]);
+    if (isAuthenticated && !user) {
+      dispatch(fetchUserInfo());
+    }
+  }, [dispatch, isAuthenticated, user]);
   
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -133,24 +135,27 @@ export function Sidebar() {
               aria-haspopup="true"
               aria-expanded={isProfileMenuOpen}
             >
-              <div className="h-8 w-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                {user?.avatar ? (
-                  <Image 
-                    src={user.avatar} 
-                    alt={user?.username || 'User'} 
-                    width={32} 
-                    height={32} 
-                    className="object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-medium">
-                    {user?.username ? user.username.substring(0, 2).toUpperCase() : 'UN'}
-                  </span>
-                )}
+              <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+                <Image 
+                  src="/profile-hero.svg" 
+                  alt="Profile Hero" 
+                  width={64} 
+                  height={64} 
+                  className="object-cover"
+                />
               </div>
               <div className="flex-1 text-left">
-                <p className="text-sm font-medium">{user?.username || 'User'}</p>
-                <p className="text-xs text-muted-foreground truncate">{user?.email || 'user@example.com'}</p>
+                <p className="text-sm font-medium">
+                  {user?.firstName && user?.lastName 
+                    ? `${user.firstName} ${user.lastName}`
+                    : user?.firstName 
+                    ? user.firstName
+                    : user?.username || 'User'
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user?.email || (isAuthenticated ? 'Loading...' : 'No email')}
+                </p>
               </div>
             </button>
             
@@ -197,12 +202,23 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="flex items-center space-x-3 p-2">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-5 w-5" />
+            <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
+              <Image 
+                src="/profile-hero.svg" 
+                alt="Profile Hero" 
+                width={64} 
+                height={64} 
+                className="object-cover opacity-50"
+              />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium">Guest</p>
-              <p className="text-xs text-muted-foreground">Not logged in</p>
+              <p className="text-sm font-medium">Not signed in</p>
+              <button 
+                onClick={() => router.push('/login')}
+                className="text-xs text-primary hover:underline"
+              >
+                Sign in
+              </button>
             </div>
           </div>
         )}
