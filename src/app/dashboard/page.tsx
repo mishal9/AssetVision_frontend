@@ -88,14 +88,13 @@ export default function DashboardPage() {
   }
   
   return (
-    <div className="min-h-screen bg-background">
-        <div className="px-6 py-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-semibold">Dashboard</h1>
-          </div>
+    <div className="min-h-full bg-background">
+      <div className="flex justify-between items-center mb-1">
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+      </div>
 
           {/* Portfolio Summary Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-4">
             {summaryLoading ? (
               // Loading skeleton for stats cards
               <>
@@ -149,8 +148,8 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Portfolio Performance Chart */}
-        <div className="bg-card border border-border rounded-lg p-6 mb-8">
+      {/* Portfolio Performance Chart */}
+        <div className="bg-card border border-border rounded-lg p-6 mb-4">
           <h2 className="text-xl font-semibold mb-4">Portfolio Performance</h2>
           {performanceLoading ? (
             // Loading skeleton for chart
@@ -169,69 +168,66 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Asset Allocation */}
-          <div className="bg-card border border-border rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Asset Allocation</h2>
-              <PieChart className="h-5 w-5 text-muted-foreground" />
-            </div>
-            
-            {allocationLoading ? (
-              // Loading skeleton for allocation
-              <div className="h-64 animate-pulse">
-                <div className="flex justify-between mb-4">
-                  <div className="h-32 w-32 rounded-full bg-muted"></div>
-                  <div className="flex-1 ml-4 space-y-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-6 bg-muted rounded"></div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : assetAllocation && assetAllocation.length > 0 ? (
-              // Render the asset allocation chart component
-              <SectorAllocationChart data={assetAllocation} />
-            ) : (
-              // Error or no data state
-              <div className="h-64 flex items-center justify-center">
-                <p className="text-muted-foreground">No allocation data available</p>
-              </div>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Asset Allocation */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Asset Allocation</h2>
+            <PieChart className="h-5 w-5 text-muted-foreground" />
           </div>
           
-          {/* Sector Allocation */}
-          <div className="bg-card border border-border rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Sector Allocation</h2>
-              <PieChart className="h-5 w-5 text-muted-foreground" />
-            </div>
-            
-            {allocationLoading ? (
-              // Loading skeleton for sector allocation
-              <div className="h-64 animate-pulse">
-                <div className="flex justify-between mb-4">
-                  <div className="h-32 w-32 rounded-full bg-muted"></div>
-                  <div className="flex-1 ml-4 space-y-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="h-6 bg-muted rounded"></div>
-                    ))}
-                  </div>
+          {allocationLoading ? (
+            // Loading skeleton for allocation
+            <div className="h-64 animate-pulse">
+              <div className="flex justify-between mb-4">
+                <div className="h-32 w-32 rounded-full bg-muted"></div>
+                <div className="flex-1 ml-4 space-y-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-6 bg-muted rounded"></div>
+                  ))}
                 </div>
               </div>
-            ) : sectorAllocation && sectorAllocation.length > 0 ? (
-              // Render the sector allocation chart component
-              <SectorAllocationChart data={sectorAllocation} />
-            ) : (
-              // Error or no data state
-              <div className="h-64 flex items-center justify-center">
-                <p className="text-muted-foreground">No sector allocation data available</p>
-              </div>
-            )}
-          </div>
+            </div>
+          ) : assetAllocation && assetAllocation.length > 0 ? (
+            // Render the asset allocation chart component
+            <SectorAllocationChart data={assetAllocation} />
+          ) : (
+            // Error or no data state
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-muted-foreground">No allocation data available</p>
+            </div>
+          )}
         </div>
         
-
+        {/* Sector Allocation */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Sector Allocation</h2>
+            <PieChart className="h-5 w-5 text-muted-foreground" />
+          </div>
+          
+          {allocationLoading ? (
+            // Loading skeleton for sector allocation
+            <div className="h-64 animate-pulse">
+              <div className="flex justify-between mb-4">
+                <div className="h-32 w-32 rounded-full bg-muted"></div>
+                <div className="flex-1 ml-4 space-y-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="h-6 bg-muted rounded"></div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : sectorAllocation && sectorAllocation.length > 0 ? (
+            // Render the sector allocation chart component
+            <SectorAllocationChart data={sectorAllocation} />
+          ) : (
+            // Error or no data state
+            <div className="h-64 flex items-center justify-center">
+              <p className="text-muted-foreground">No sector allocation data available</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

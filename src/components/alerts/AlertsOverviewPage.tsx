@@ -605,19 +605,13 @@ export default function AlertsOverviewPage() {
 
   return (
     <TooltipProvider>
-      <div className="container mx-auto py-6 px-4 relative" style={{ overflow: 'visible' }}>
-        <div className="flex flex-col space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
-            <p className="text-muted-foreground">
-              Manage your portfolio alerts and notifications
-            </p>
-          </div>
-          <Button onClick={handleCreateAlert}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Alert
-          </Button>
+      <div className="relative" style={{ overflow: 'visible' }}>
+        <div className="flex flex-col space-y-3">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Alerts</h1>
+          <p className="text-muted-foreground">
+            Manage your portfolio alerts and notifications
+          </p>
         </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
