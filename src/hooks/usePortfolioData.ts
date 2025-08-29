@@ -103,8 +103,6 @@ export function usePortfolioData() {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
         
-        console.log('usePortfolioData received allocation data:', data);
-        
         // Transform data if needed - handle both direct array and nested object formats
         if (data) {
           // Handle asset allocation

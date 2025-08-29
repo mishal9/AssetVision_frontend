@@ -44,12 +44,8 @@ export const portfolioApi = {
   getAssetAllocation: () => 
     fetchWithAuth<any>(PORTFOLIO_ENDPOINTS.ALLOCATION)
       .then(response => {
-        // Log the raw API response for debugging
-        console.log('Raw allocation API response:', response);
-        
         // Convert snake_case to camelCase
         const convertedData = convertSnakeToCamelCase<AllocationResponse>(response);
-        console.log('Converted allocation data:', convertedData);
         
         return convertedData;
       }),
