@@ -25,6 +25,9 @@ interface PerformanceChartProps {
   data: PerformanceData[];
   className?: string;
   currentValue?: number; // Current portfolio value from summary
+  currentPeriod: '1D' | '1W' | '1M' | '1Y' | '5Y' | 'all';
+  onPeriodChange: (period: '1D' | '1W' | '1M' | '1Y' | '5Y') => Promise<void>;
+  isLoading?: boolean;
 }
 
 /**
@@ -53,8 +56,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
  * Portfolio Performance Chart Component
  * Displays portfolio value over time with period selection
  */
-export function PerformanceChart({ data, className, currentValue }: PerformanceChartProps) {
-  const [period, setPeriod] = useState<TimePeriod>('5Y');
+export function PerformanceChart({ data, className, currentValue, currentPeriod, onPeriodChange, isLoading }: PerformanceChartProps) {
+  // Use the period from props instead of local state
+  const period = currentPeriod as TimePeriod;
   
   // Format data for chart display and ensure it's sorted chronologically
   const chartData = data
@@ -64,169 +68,16 @@ export function PerformanceChart({ data, className, currentValue }: PerformanceC
     }))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
-  // Filter data based on selected time period
-  const getFilteredData = () => {
-    if (!chartData || chartData.length === 0) return [];
+  // Handle period change - call API to fetch new data
+  const handlePeriodChange = async (newPeriod: TimePeriod) => {
+    if (newPeriod === period) return; // Don't refetch if same period
     
-    const now = new Date();
-    let startDate = new Date();
-    
-    switch (period) {
-      case '1D':
-        startDate.setDate(now.getDate() - 1);
-        break;
-      case '1W':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '1M':
-        startDate.setMonth(now.getMonth() - 1);
-        break;
-      case '1Y':
-        startDate.setFullYear(now.getFullYear() - 1);
-        break;
-      case '5Y':
-        startDate.setFullYear(now.getFullYear() - 5);
-        break;
-      default:
-        startDate.setMonth(now.getMonth() - 1);
+    try {
+      await onPeriodChange(newPeriod);
+    } catch (error) {
+      console.error('Error fetching performance data for period:', newPeriod, error);
     }
-    
-    const filtered = chartData.filter(item => new Date(item.date) >= startDate);
-    
-    // Ensure we have at least 2 data points for proper line rendering
-    if ((period === '1D' || period === '1W' || period === '1M') && filtered.length <= 1) {
-      // If we have one data point, create additional interpolated points
-      if (filtered.length === 1) {
-        const existingPoint = filtered[0];
-        const existingDate = new Date(existingPoint.date);
-        
-        if (period === '1D') {
-          // Create a morning and afternoon point if we only have one point for 1D
-          const morningDate = new Date(existingDate);
-          morningDate.setHours(9, 30, 0); // Market opening
-          
-          const afternoonDate = new Date(existingDate);
-          afternoonDate.setHours(16, 0, 0); // Market closing
-          
-          // Only add points if they're different from our existing point
-          const result = [existingPoint];
-          
-          if (morningDate.getTime() !== existingDate.getTime()) {
-            result.unshift({
-              date: morningDate.toISOString(),
-              value: existingPoint.value * 0.995 // Slightly lower value for visual effect
-            });
-          }
-          
-          if (afternoonDate.getTime() !== existingDate.getTime()) {
-            result.push({
-              date: afternoonDate.toISOString(),
-              value: existingPoint.value * 1.005 // Slightly higher value for visual effect
-            });
-          }
-          
-          return result;
-        } else if (period === '1W') {
-          // For 1W view, create points for the beginning and end of the week
-          const result = [existingPoint];
-          
-          // Create a point for the beginning of the week (7 days ago)
-          const weekStartDate = new Date(now);
-          weekStartDate.setDate(now.getDate() - 7);
-          
-          // Create a point for mid-week if our existing point is not already mid-week
-          const midWeekDate = new Date(now);
-          midWeekDate.setDate(now.getDate() - 3);
-          
-          // Add beginning of week point
-          if (Math.abs(weekStartDate.getTime() - existingDate.getTime()) > 86400000) { // If more than a day difference
-            result.unshift({
-              date: weekStartDate.toISOString(),
-              value: existingPoint.value * 0.99 // Slightly lower value
-            });
-          }
-          
-          // Add mid-week point if our existing point is not around mid-week
-          if (Math.abs(midWeekDate.getTime() - existingDate.getTime()) > 86400000) {
-            // Insert the mid-week point in the correct position
-            const midWeekPoint = {
-              date: midWeekDate.toISOString(),
-              value: existingPoint.value * (existingDate.getTime() < midWeekDate.getTime() ? 1.01 : 0.99)
-            };
-            
-            if (existingDate.getTime() < midWeekDate.getTime()) {
-              result.push(midWeekPoint);
-            } else {
-              result.unshift(midWeekPoint);
-            }
-          }
-          
-          return result;
-        } else if (period === '1M') {
-          // For 1M view, create points throughout the month
-          const result = [existingPoint];
-          
-          // Create a point for the beginning of the month (30 days ago)
-          const monthStartDate = new Date(now);
-          monthStartDate.setDate(now.getDate() - 30);
-          
-          // Create points for week 1, week 2, and week 3 of the month
-          const week1Date = new Date(now);
-          week1Date.setDate(now.getDate() - 23); // ~1 week after start
-          
-          const week2Date = new Date(now);
-          week2Date.setDate(now.getDate() - 15); // ~2 weeks after start
-          
-          const week3Date = new Date(now);
-          week3Date.setDate(now.getDate() - 7); // ~3 weeks after start
-          
-          // Add beginning of month point if not too close to existing point
-          if (Math.abs(monthStartDate.getTime() - existingDate.getTime()) > 86400000 * 2) {
-            result.unshift({
-              date: monthStartDate.toISOString(),
-              value: existingPoint.value * 0.98 // Slightly lower value for start of month
-            });
-          }
-          
-          // Add weekly points if they're not too close to existing point
-          const weeklyPoints = [
-            { date: week1Date, value: existingPoint.value * 0.99 },
-            { date: week2Date, value: existingPoint.value * (existingDate.getTime() < week2Date.getTime() ? 0.995 : 1.005) },
-            { date: week3Date, value: existingPoint.value * (existingDate.getTime() < week3Date.getTime() ? 1.01 : 0.99) }
-          ];
-          
-          weeklyPoints.forEach(point => {
-            if (Math.abs(point.date.getTime() - existingDate.getTime()) > 86400000 * 2) {
-              const formattedPoint = {
-                date: point.date.toISOString(),
-                value: point.value
-              };
-              
-              // Insert at the correct position based on timestamp
-              if (existingDate.getTime() < point.date.getTime()) {
-                result.push(formattedPoint);
-              } else {
-                result.unshift(formattedPoint);
-              }
-            }
-          });
-          
-          // Sort the result array by date
-          result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-          
-          return result;
-        }
-      }
-      // If we have no data points, return empty array
-      return [];
-    }
-    
-    return filtered;
   };
-  
-  const filteredData = getFilteredData()
-    // Ensure data is always sorted by date regardless of time period
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   
   // Format currency values
   const formatCurrency = (value: number) => {
@@ -238,43 +89,117 @@ export function PerformanceChart({ data, className, currentValue }: PerformanceC
   };
   
   // Calculate min and max values for Y axis domain
-  const values = filteredData.map(item => item.value);
-  // Handle edge cases when there are no values or identical values
-  const minValue = values.length > 0 ? Math.min(...values) * 0.95 : 0; // Add 5% padding below
-  const maxValue = values.length > 0 ? Math.max(...values) * 1.05 : 100; // Add 5% padding above
+  const values = chartData.map(item => item.value);
+  let minValue = 0;
+  let maxValue = 100;
   
+  if (values.length > 0) {
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    
+    // If all values are identical, create a reasonable range
+    if (min === max) {
+      minValue = min * 0.98; // 2% below
+      maxValue = max * 1.02; // 2% above
+    } else {
+      minValue = min * 0.95; // Add 5% padding below
+      maxValue = max * 1.05; // Add 5% padding above
+    }
+  }
+  
+  // Calculate period-specific metrics
+  const getPeriodMetrics = () => {
+    if (chartData.length === 0) {
+      return {
+        startValue: 0,
+        endValue: 0,
+        change: 0,
+        changePercent: 0,
+        periodLabel: period
+      };
+    }
+
+    const startValue = chartData[0].value;
+    const endValue = chartData[chartData.length - 1].value;
+    const change = endValue - startValue;
+    const changePercent = startValue !== 0 ? (change / startValue) * 100 : 0;
+
+    return {
+      startValue,
+      endValue,
+      change,
+      changePercent,
+      periodLabel: period
+    };
+  };
+
+  const metrics = getPeriodMetrics();
+
   return (
     <div className={cn("flex flex-col", className)}>
       <div className="flex justify-between mb-4">
-        <div>
-          <span className="text-sm text-muted-foreground">Current Value:</span>
-          <span className="ml-2 font-medium">
-            {formatCurrency(currentValue !== undefined ? currentValue : (chartData.length > 0 ? chartData[chartData.length - 1].value : 0))}
-          </span>
+        <div className="flex flex-col space-y-1">
+          <div className="flex items-center space-x-4">
+            <div>
+              <span className="text-sm text-muted-foreground">{metrics.periodLabel} Performance:</span>
+              <span className="ml-2 font-medium">
+                {formatCurrency(metrics.endValue)}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <span className={cn(
+                "text-sm font-medium",
+                metrics.change >= 0 ? "text-green-600" : "text-red-600"
+              )}>
+                {metrics.change >= 0 ? "+" : ""}{formatCurrency(metrics.change)}
+              </span>
+              <span className={cn(
+                "ml-1 text-xs",
+                metrics.change >= 0 ? "text-green-600" : "text-red-600"
+              )}>
+                ({metrics.changePercent >= 0 ? "+" : ""}{metrics.changePercent.toFixed(2)}%)
+              </span>
+            </div>
+          </div>
         </div>
         <div className="flex space-x-1">
           {(['1D', '1W', '1M', '1Y', '5Y'] as TimePeriod[]).map((p) => (
             <button
               key={p}
-              onClick={() => setPeriod(p)}
+              onClick={() => handlePeriodChange(p)}
+              disabled={isLoading}
               className={cn(
-                "px-3 py-1 text-xs rounded-md transition-colors font-medium",
+                "px-3 py-1 text-xs rounded-md transition-all duration-200 font-medium",
+                "focus:outline-none focus:ring-2 focus:ring-primary/50",
                 period === p 
-                  ? "bg-primary text-primary-foreground" 
-                  : "bg-muted hover:bg-muted/80"
+                  ? "bg-primary text-primary-foreground shadow-sm" 
+                  : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground",
+                isLoading && period !== p && "opacity-50 cursor-not-allowed",
+                isLoading && period === p && "bg-primary/80 text-primary-foreground"
               )}
             >
-              {p}
+              {isLoading && period === p ? (
+                <div className="flex items-center space-x-1">
+                  <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin"></div>
+                  <span>{p}</span>
+                </div>
+              ) : (
+                p
+              )}
             </button>
           ))}
         </div>
       </div>
       
       <div className="h-64 w-full">
-        {filteredData.length > 0 ? (
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart
-              data={filteredData}
+              data={chartData}
               margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
             >
               <defs>
@@ -321,8 +246,10 @@ export function PerformanceChart({ data, className, currentValue }: PerformanceC
                 type="monotone" 
                 dataKey="value" 
                 stroke="hsl(var(--primary))" 
-                fillOpacity={1} 
-                fill="url(#colorValue)" 
+                strokeWidth={chartData.length === 1 ? 3 : 2}
+                fillOpacity={chartData.length === 1 ? 0.3 : 1} 
+                fill="url(#colorValue)"
+                dot={chartData.length === 1 ? { fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4 } : false}
               />
             </AreaChart>
           </ResponsiveContainer>

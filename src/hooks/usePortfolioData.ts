@@ -24,6 +24,7 @@ export function usePortfolioData() {
   const [performance, setPerformance] = useState<PerformanceData[]>([]);
   const [performanceLoading, setPerformanceLoading] = useState<boolean>(true);
   const [performanceError, setPerformanceError] = useState<string | null>(null);
+  const [currentPeriod, setCurrentPeriod] = useState<'1D' | '1W' | '1M' | '1Y' | '5Y' | 'all'>('5Y');
   
   // Asset allocation data
   const [assetAllocation, setAssetAllocation] = useState<AssetAllocation[]>([]);
@@ -66,28 +67,29 @@ export function usePortfolioData() {
     fetchSummary();
   }, []);
   
-  // Fetch performance data only if portfolio exists
-  useEffect(() => {
-    async function fetchPerformance() {
-      if (portfolioExists !== true) {
-        return;
-      }
-      
-      try {
-        setPerformanceLoading(true);
-        // Fetch all performance data at once to avoid reloading when changing periods
-        const data = await portfolioApi.getPerformance('all');
-        setPerformance(data);
-        setPerformanceError(null);
-      } catch (error) {
-        console.error('Error fetching performance data:', error);
-        setPerformanceError('Failed to load performance data');
-      } finally {
-        setPerformanceLoading(false);
-      }
+  // Function to fetch performance data for a specific period
+  const fetchPerformanceData = async (period: '1D' | '1W' | '1M' | '1Y' | '5Y' | 'all' = '5Y') => {
+    if (portfolioExists !== true) {
+      return;
     }
     
-    fetchPerformance();
+    try {
+      setPerformanceLoading(true);
+      setCurrentPeriod(period); // Update the current period
+      const data = await portfolioApi.getPerformance(period);
+      setPerformance(data);
+      setPerformanceError(null);
+    } catch (error) {
+      console.error('Error fetching performance data:', error);
+      setPerformanceError('Failed to load performance data');
+    } finally {
+      setPerformanceLoading(false);
+    }
+  };
+
+  // Initial fetch of performance data (default to 5Y view)
+  useEffect(() => {
+    fetchPerformanceData('5Y');
   }, [portfolioExists]);
   
   // Fetch asset allocation only if portfolio exists
@@ -100,8 +102,6 @@ export function usePortfolioData() {
       try {
         setAllocationLoading(true);
         const data = await portfolioApi.getAssetAllocation();
-        
-        console.log('usePortfolioData received allocation data:', data);
         
         // Transform data if needed - handle both direct array and nested object formats
         if (data) {
@@ -290,6 +290,8 @@ export function usePortfolioData() {
     performance,
     performanceLoading,
     performanceError,
+    currentPeriod,
+    fetchPerformanceData,
     assetAllocation,
     sectorAllocation,
     allocationLoading,

@@ -24,6 +24,8 @@ export default function DashboardPage() {
     summaryLoading, 
     performance, 
     performanceLoading, 
+    currentPeriod,
+    fetchPerformanceData,
     assetAllocation, 
     sectorAllocation,
     allocationLoading,
@@ -158,7 +160,10 @@ export default function DashboardPage() {
             // Render the performance chart component with current portfolio value
             <PerformanceChart 
               data={performance} 
-              currentValue={summary?.totalValue} 
+              currentValue={summary?.totalValue}
+              currentPeriod={currentPeriod}
+              onPeriodChange={fetchPerformanceData}
+              isLoading={performanceLoading}
             />
           ) : (
             // Error or no data state

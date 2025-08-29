@@ -79,16 +79,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Using centralized API configuration and enhanced fetchWithAuth
-      console.log('Fetching linked accounts from:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
       const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
-      
-      console.log('Linked accounts response:', data);
-      console.log('Response type:', typeof data);
-      console.log('Is array?', Array.isArray(data));
-      
-      if (typeof data === 'object' && data !== null) {
-        console.log('Keys:', Object.keys(data));
-      }
       
       // Handle different response structures
       let accountsToProcess = [];
@@ -104,11 +95,9 @@ export const fetchLinkedAccounts = createAsyncThunk(
         if (dataObj.accounts && Array.isArray(dataObj.accounts)) {
           // Object with accounts array
           accountsToProcess = dataObj.accounts;
-          console.log('Processing object.accounts with', dataObj.accounts.length, 'accounts');
         } else if (dataObj.connections && Array.isArray(dataObj.connections)) {
           // Object with connections array
           accountsToProcess = dataObj.connections;
-          console.log('Processing object.connections with', dataObj.connections.length, 'accounts');
         } else if (dataObj.data && Array.isArray(dataObj.data)) {
           // Object with data array (common API pattern)
           accountsToProcess = dataObj.data;
@@ -134,7 +123,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
         }
       }
       
-      console.log('Final accounts to process:', accountsToProcess);
+
       
       if (!accountsToProcess.length) {
         console.warn('No accounts found in API response');
@@ -143,7 +132,6 @@ export const fetchLinkedAccounts = createAsyncThunk(
       
       // Map backend response to our frontend model
       return accountsToProcess.map((account: any) => {
-        console.log('Processing account:', account);
         return {
           id: account.id || account.account_id || '',
           institutionId: account.institution_id || '',
@@ -305,7 +293,6 @@ export const userSlice = createSlice({
         // Ensure we have valid accounts data
         if (Array.isArray(action.payload)) {
           state.linkedAccounts = action.payload;
-          console.log('Updated linkedAccounts in Redux store:', action.payload);
         } else {
           console.error('Invalid accounts data received:', action.payload);
         }
