@@ -31,8 +31,9 @@ export const portfolioApi = {
   
   /**
    * Get portfolio performance over time
+   * @param period Time period for performance data ('1D', '1W', '1M', '1Y', '5Y', or 'all')
    */
-  getPerformance: (period: 'day' | 'week' | 'month' | 'year' | 'all' = 'month') => 
+  getPerformance: (period: '1D' | '1W' | '1M' | '1Y' | '5Y' | 'all' = '1M') => 
     fetchWithAuth<any[]>(`${PORTFOLIO_ENDPOINTS.PERFORMANCE}?period=${period}`)
       .then(response => convertSnakeToCamelCase<PerformanceData[]>(response)),
   
