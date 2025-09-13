@@ -132,6 +132,13 @@ export const fetchAssetClasses = createAsyncThunk(
       return await portfolioApi.getAssetClasses();
     } catch (error: any) {
       console.error('Asset classes fetch error:', error);
+      // For 400 errors related to missing portfolio/allocations, return empty array instead of rejecting
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
+          errorMessage.includes('API error: 400')) {
+        console.warn('Portfolio may not be set up yet, returning empty asset classes array');
+        return []; // Return empty array instead of rejecting
+      }
       return rejectWithValue(error.message || 'Failed to fetch asset classes');
     }
   }
@@ -150,6 +157,13 @@ export const fetchSectors = createAsyncThunk(
       return await portfolioApi.getSectors();
     } catch (error: any) {
       console.error('Sectors fetch error:', error);
+      // For 400 errors related to missing portfolio/allocations, return empty array instead of rejecting
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
+          errorMessage.includes('API error: 400')) {
+        console.warn('Portfolio may not be set up yet, returning empty sectors array');
+        return []; // Return empty array instead of rejecting
+      }
       return rejectWithValue(error.message || 'Failed to fetch sectors');
     }
   }
@@ -203,6 +217,13 @@ export const fetchPortfolioDrift = createAsyncThunk(
       return await fetchWithAuth(PORTFOLIO_ENDPOINTS.DRIFT);
     } catch (error: any) {
       console.error('Portfolio drift fetch error:', error);
+      // For 400 errors related to missing portfolio/allocations, return empty drift data instead of rejecting
+      const errorMessage = error.message || '';
+      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
+          errorMessage.includes('API error: 400')) {
+        console.warn('Portfolio or target allocations may not be set up yet, returning empty drift data');
+        return { asset_class: { items: [] }, sector: { items: [] }, overall: { items: [] } };
+      }
       return rejectWithValue(error.message || 'Failed to fetch portfolio drift');
     }
   }

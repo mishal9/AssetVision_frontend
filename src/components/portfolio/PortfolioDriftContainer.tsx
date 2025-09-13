@@ -91,7 +91,9 @@ const PortfolioDriftContainer: React.FC = () => {
   // Handle error state
   if (driftError) {
     // Special handling for missing target allocations
-    const isMissingAllocationsError = driftError?.includes('No target allocations defined');
+    const isMissingAllocationsError = driftError?.includes('No target allocations defined') || 
+                                      driftError?.includes('target allocations defined') ||
+                                      (driftError?.includes('400') && driftError?.includes('Bad Request'));
     
     return (
       <div className="space-y-4">
@@ -104,23 +106,21 @@ const PortfolioDriftContainer: React.FC = () => {
           <AlertTitle>{isMissingAllocationsError ? "Action Required" : "Error"}</AlertTitle>
           <AlertDescription>
             {isMissingAllocationsError
-              ? "No target allocations defined for this portfolio. Please set your target allocations to view drift analysis."
+              ? "To analyze portfolio drift, you need to define target allocations for each sector. Click the button below to set your target allocation percentages."
               : `${driftError}. Please ensure your portfolio has target allocations defined.`
             }
           </AlertDescription>
         </Alert>
         
         <div className="flex justify-center">
-          {isMissingAllocationsError && (
-            <Button 
-              variant="default" 
-              className="flex items-center gap-2"
-              onClick={() => setAllocationDialogOpen(true)}
-            >
-              <Settings className="h-4 w-4" />
-              Define Target Allocations
-            </Button>
-          )}
+          <Button 
+            variant={isMissingAllocationsError ? "default" : "outline"}
+            className="flex items-center gap-2"
+            onClick={() => setAllocationDialogOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            {isMissingAllocationsError ? "Define Target Allocations" : "Set Target Allocations"}
+          </Button>
         </div>
       </div>
     );
