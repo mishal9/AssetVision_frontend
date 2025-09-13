@@ -3,7 +3,7 @@
  * Handles all API requests to the backend
  */
 
-import { fetchWithAuth } from './api-utils';
+import { fetchWithAuth, fetchWithTimeoutOnly } from './api-utils';
 import { convertSnakeToCamelCase } from '../utils/caseConversions';
 import { AUTH_ENDPOINTS, PORTFOLIO_ENDPOINTS, RISK_ENDPOINTS } from '../config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
@@ -195,7 +195,7 @@ export const authApi = {
    */
   login: async (email: string, password: string) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetch(AUTH_ENDPOINTS.LOGIN, {
+    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -229,7 +229,7 @@ export const authApi = {
    */
   register: async (userData: any) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetch(AUTH_ENDPOINTS.REGISTER, {
+    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.REGISTER, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -262,7 +262,7 @@ export const authApi = {
    */
   refreshToken: async (refreshToken: string) => {
     // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetch(AUTH_ENDPOINTS.REFRESH, {
+    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.REFRESH, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -294,7 +294,7 @@ export const authApi = {
    */
   requestPasswordReset: async (email: string): Promise<void> => {
     // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetch(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
+    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -330,7 +330,7 @@ export const authApi = {
    * Reset password using Supabase recovery token
    */
   resetPassword: async (token: string, password: string): Promise<void> => {
-    const res = await fetch(AUTH_ENDPOINTS.RESET_PASSWORD, {
+    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.RESET_PASSWORD, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -362,7 +362,7 @@ export const authApi = {
    */
   logout: () => {
     // Use centralized AUTH_ENDPOINTS configuration
-    return fetch(AUTH_ENDPOINTS.LOGOUT, {
+    return fetchWithTimeoutOnly(AUTH_ENDPOINTS.LOGOUT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
