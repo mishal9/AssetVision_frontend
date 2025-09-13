@@ -133,7 +133,14 @@ export interface DriftData {
 
 // Backend Drift Response
 export interface DriftResponse {
-  overall: DriftData;
-  asset_class: DriftData;
-  sector: DriftData | null;
+  overall?: DriftData;
+  asset_class?: DriftData;
+  sector?: DriftData | null;
+  // Setup required response fields
+  setup_required?: boolean;
+  message?: string;
+  current_allocations?: {
+    asset_class?: Record<string, number>;
+    sector?: Record<string, number>;
+  };
 }

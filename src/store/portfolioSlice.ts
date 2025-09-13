@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { plaidApi } from '@/services/plaid-api';
 import { PORTFOLIO_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
@@ -70,6 +70,13 @@ export interface PortfolioState {
   };
   driftLoading: boolean;
   driftError: string | null;
+  // Setup required state for drift page
+  driftSetupRequired: boolean;
+  driftSetupMessage: string | null;
+  currentAllocations: {
+    asset_class?: Record<string, number>;
+    sector?: Record<string, number>;
+  };
   assetClasses: AssetClass[];
   assetClassesLoading: boolean;
   assetClassesError: string | null;
@@ -88,6 +95,9 @@ const initialState: PortfolioState = {
   driftData: {},
   driftLoading: false,
   driftError: null,
+  driftSetupRequired: false,
+  driftSetupMessage: null,
+  currentAllocations: {},
   assetClasses: [],
   assetClassesLoading: false,
   assetClassesError: null,
@@ -214,7 +224,21 @@ export const fetchPortfolioDrift = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Use fetchWithAuth to handle authentication consistently
-      return await fetchWithAuth(PORTFOLIO_ENDPOINTS.DRIFT);
+      const response = await fetchWithAuth(PORTFOLIO_ENDPOINTS.DRIFT) as any;
+      
+      // Check if this is a setup required response
+      if (response.setup_required) {
+        return {
+          setupRequired: true,
+          message: response.message,
+          currentAllocations: response.current_allocations || {},
+          asset_class: { items: [] },
+          sector: { items: [] },
+          overall: { items: [] }
+        };
+      }
+      
+      return response;
     } catch (error: any) {
       console.error('Portfolio drift fetch error:', error);
       // For 400 errors related to missing portfolio/allocations, return empty drift data instead of rejecting
@@ -222,7 +246,14 @@ export const fetchPortfolioDrift = createAsyncThunk(
       if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
           errorMessage.includes('API error: 400')) {
         console.warn('Portfolio or target allocations may not be set up yet, returning empty drift data');
-        return { asset_class: { items: [] }, sector: { items: [] }, overall: { items: [] } };
+        return { 
+          setupRequired: true,
+          message: 'Portfolio setup required',
+          currentAllocations: {},
+          asset_class: { items: [] }, 
+          sector: { items: [] }, 
+          overall: { items: [] } 
+        };
       }
       return rejectWithValue(error.message || 'Failed to fetch portfolio drift');
     }
@@ -264,8 +295,29 @@ export const portfolioSlice = createSlice({
         state.driftError = null;
       })
       .addCase(fetchPortfolioDrift.fulfilled, (state, action) => {
+        const payload = action.payload as any;
+        
+        // Handle setup required response
+        if (payload.setupRequired) {
+          state.driftSetupRequired = true;
+          state.driftSetupMessage = payload.message || null;
+          state.currentAllocations = payload.currentAllocations || {};
+          state.driftData = {
+            asset_class: payload.asset_class,
+            sector: payload.sector,
+            overall: payload.overall
+          };
+          state.driftLoading = false;
+          return;
+        }
+        
+        // Reset setup required state for normal responses
+        state.driftSetupRequired = false;
+        state.driftSetupMessage = null;
+        state.currentAllocations = {};
+        
         // Process the drift data to ensure all required fields exist
-        const processedData: any = { ...action.payload };
+        const processedData: any = { ...payload };
         
         // Ensure proper data structure for each category
         ['asset_class', 'sector', 'overall'].forEach(category => {
