@@ -100,7 +100,8 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
           {alert.conditionType === ConditionType.SECTOR_DRIFT && (
             <div className="mt-2 text-xs">
               <span className="font-medium">Sectors: </span>
-              {(conditionConfig.sectorId as string) ? 'Specific sector' : 'All sectors'}
+              {(conditionConfig as any).sectorName || 
+               ((conditionConfig.sectorId as string) ? 'Specific sector' : 'All sectors')}
               {Array.isArray(conditionConfig.excludedSectors) && (conditionConfig.excludedSectors as string[]).length > 0 && 
                 ` (${(conditionConfig.excludedSectors as string[]).length} excluded)`
               }
@@ -110,7 +111,8 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
           {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (
             <div className="mt-2 text-xs">
               <span className="font-medium">Asset Classes: </span>
-              {(conditionConfig.assetClassId as string) ? 'Specific asset class' : 'All asset classes'}
+              {(conditionConfig as any).assetClassName || 
+               ((conditionConfig.assetClassId as string) ? 'Specific asset class' : 'All asset classes')}
               {Array.isArray(conditionConfig.excludedAssetClasses) && (conditionConfig.excludedAssetClasses as string[]).length > 0 && 
                 ` (${(conditionConfig.excludedAssetClasses as string[]).length} excluded)`
               }
