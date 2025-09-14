@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertRuleInput, ConditionType } from '../../types/alerts';
 import { alertsApi } from '../../services/alerts-api';
+import { portfolioApi } from '../../services/api';
 import { DriftAlertForm } from './DriftAlertForm';
 import { 
   ArrowLeft,
@@ -52,30 +53,49 @@ export default function CreateAlertPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // In a real implementation, you'd fetch this data from your API
-        // For now, use dummy data
+        console.log('🔄 Fetching sectors and asset classes from API...');
+        
+        // Fetch real data from API
+        const [sectorsData, assetClassesData] = await Promise.allSettled([
+          portfolioApi.getSectors().catch(error => {
+            console.warn('Failed to fetch sectors:', error);
+            return [];
+          }),
+          portfolioApi.getAssetClasses().catch(error => {
+            console.warn('Failed to fetch asset classes:', error);
+            return [];
+          })
+        ]);
+        
+        // Handle sectors result
+        if (sectorsData.status === 'fulfilled' && Array.isArray(sectorsData.value)) {
+          console.log('✅ Fetched sectors:', sectorsData.value);
+          setSectors(sectorsData.value);
+        } else {
+          console.warn('⚠️ Failed to fetch sectors, using empty array');
+          setSectors([]);
+        }
+        
+        // Handle asset classes result
+        if (assetClassesData.status === 'fulfilled' && Array.isArray(assetClassesData.value)) {
+          console.log('✅ Fetched asset classes:', assetClassesData.value);
+          setAssetClasses(assetClassesData.value);
+        } else {
+          console.warn('⚠️ Failed to fetch asset classes, using empty array');
+          setAssetClasses([]);
+        }
+        
+        // For portfolios, keep dummy data for now (or fetch from API if available)
         setPortfolios([
           { id: '123e4567-e89b-12d3-a456-426614174000', name: 'Main Portfolio' },
           { id: '223e4567-e89b-12d3-a456-426614174001', name: 'Retirement Portfolio' },
         ]);
         
-        setSectors([
-          { id: 'sector1', name: 'Technology' },
-          { id: 'sector2', name: 'Healthcare' },
-          { id: 'sector3', name: 'Financials' },
-          { id: 'sector4', name: 'Consumer Discretionary' },
-          { id: 'sector5', name: 'Energy' },
-        ]);
-        
-        setAssetClasses([
-          { id: 'asset1', name: 'Equities' },
-          { id: 'asset2', name: 'Fixed Income' },
-          { id: 'asset3', name: 'Cash & Equivalents' },
-          { id: 'asset4', name: 'Real Estate' },
-          { id: 'asset5', name: 'Alternatives' },
-        ]);
       } catch (error) {
         console.error('Error fetching data:', error);
+        // Set empty arrays as fallback
+        setSectors([]);
+        setAssetClasses([]);
       }
     };
     
