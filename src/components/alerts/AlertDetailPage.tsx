@@ -155,11 +155,33 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
     ConditionType.ASSET_CLASS_DRIFT
   ].includes(alert.conditionType);
   
-  // Format alert condition type for display
-  const getAlertTypeDisplay = (type: string) => {
-    return type.replace(/_/g, ' ').split(' ').map(word => 
+  // Use display fields from API or format as fallback
+  const getAlertTypeDisplay = (alert: AlertRule) => {
+    // Use the display field from API if available, otherwise format the type
+    if ((alert as any).conditionTypeDisplay) {
+      return (alert as any).conditionTypeDisplay;
+    }
+    return alert.conditionType.replace(/_/g, ' ').split(' ').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
+  };
+  
+  const getFrequencyDisplay = (alert: AlertRule) => {
+    // Use the display field from API if available, otherwise format the frequency
+    if ((alert as any).frequencyDisplay) {
+      return (alert as any).frequencyDisplay;
+    }
+    return alert.frequency.replace(/_/g, ' ').split(' ').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+  
+  const getStatusDisplay = (alert: AlertRule) => {
+    // Use the display field from API if available, otherwise use status
+    if ((alert as any).statusDisplay) {
+      return (alert as any).statusDisplay;
+    }
+    return alert.status;
   };
   
   return (
@@ -174,9 +196,9 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
             <h1 className="text-2xl font-bold tracking-tight">{alert.name}</h1>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Badge variant={alert.isActive ? "outline" : "secondary"}>
-                {alert.isActive ? 'Active' : 'Inactive'}
+                {getStatusDisplay(alert)}
               </Badge>
-              <span className="text-sm">{getAlertTypeDisplay(alert.conditionType)}</span>
+              <span className="text-sm">{getAlertTypeDisplay(alert)}</span>
             </div>
           </div>
         </div>
@@ -207,12 +229,12 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
             <CardContent className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Alert Type</h3>
-                <p>{getAlertTypeDisplay(alert.conditionType)}</p>
+                <p>{getAlertTypeDisplay(alert)}</p>
               </div>
               
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Frequency</h3>
-                <p>{getAlertTypeDisplay(alert.frequency)}</p>
+                <p>{getFrequencyDisplay(alert)}</p>
               </div>
               
               <div>
@@ -245,17 +267,17 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
                     <p>{Number(alert.conditionConfig.thresholdPercent)}%</p>
                   </div>
                   
-                  {alert.conditionType === ConditionType.SECTOR_DRIFT && (alert.conditionConfig.sectorId as string) && (
+                  {alert.conditionType === ConditionType.SECTOR_DRIFT && (
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Specific Sector</h3>
-                      <p>Sector ID: {alert.conditionConfig.sectorId as string}</p>
+                      <p>{(alert.conditionConfig as any).sectorName || (alert.conditionConfig.sectorId as string) || 'All Sectors'}</p>
                     </div>
                   )}
                   
-                  {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (alert.conditionConfig.assetClassId as string) && (
+                  {alert.conditionType === ConditionType.ASSET_CLASS_DRIFT && (
                     <div>
                       <h3 className="text-sm font-medium text-muted-foreground">Specific Asset Class</h3>
-                      <p>Asset Class ID: {alert.conditionConfig.assetClassId as string}</p>
+                      <p>{(alert.conditionConfig as any).assetClassName || (alert.conditionConfig.assetClassId as string) || 'All Asset Classes'}</p>
                     </div>
                   )}
                 </>

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Loader2, Save, PlusCircle, MinusCircle, Trash2 } from 'lucide-react';
+import { Loader2, Save, PlusCircle, MinusCircle, Trash2, AlertTriangle } from 'lucide-react';
 import { fetchAssetClasses, saveTargetAllocations, fetchPortfolioDrift, fetchSectors, saveSectorTargetAllocations } from '@/store/portfolioSlice';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BugPlay } from "lucide-react";
@@ -24,7 +24,7 @@ interface TargetAllocationEditorProps {
 
 const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose }) => {
   const dispatch = useDispatch<AppDispatch>();
-  const { assetClasses, sectors, assetClassesLoading, sectorsLoading } = useSelector((state: RootState) => state.portfolio);
+  const { assetClasses, sectors, assetClassesLoading, sectorsLoading, sectorsError, assetClassesError } = useSelector((state: RootState) => state.portfolio);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [allocations, setAllocations] = useState<{[key: string]: number}>({});
@@ -39,20 +39,32 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
   // Generate colors for the bars
   const COLORS = '#0088FE';
   
+
   // Fetch asset classes and sectors when component loads
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Fetch latest asset classes with current target allocations
+        // Try to fetch latest asset classes with current target allocations
         if (!assetClasses.length) {
-          await dispatch(fetchAssetClasses()).unwrap();
+          try {
+            await dispatch(fetchAssetClasses()).unwrap();
+          } catch (assetError) {
+            console.warn('Failed to fetch asset classes:', assetError);
+            // Continue - user can still set allocations even if API fails
+          }
         }
-        // Fetch latest sectors with current target allocations
+        // Try to fetch latest sectors with current target allocations
         if (!sectors.length) {
-          await dispatch(fetchSectors()).unwrap();
+          try {
+            await dispatch(fetchSectors()).unwrap();
+          } catch (sectorError) {
+            console.warn('Failed to fetch sectors:', sectorError);
+            // Continue - user can still set allocations even if API fails
+          }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        // Don't block the UI - user can still proceed
       }
     };
     
@@ -332,17 +344,9 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
     );
   }
 
-  // Show error if no data is available
-  if (!assetClasses.length && !sectors.length) {
-    return (
-      <Alert>
-        <AlertTitle>No Data Available</AlertTitle>
-        <AlertDescription>
-          Unable to load asset classes or sectors. Please try refreshing the page.
-        </AlertDescription>
-      </Alert>
-    );
-  }
+  // Show warning if no data is available, but still allow user to proceed
+  const hasApiErrors = sectorsError || assetClassesError;
+  const hasNoData = !assetClasses.length && !sectors.length;
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -359,6 +363,16 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
           <Alert variant="destructive" className="mb-4">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{formError}</AlertDescription>
+          </Alert>
+        )}
+
+        {hasApiErrors && hasNoData && (
+          <Alert variant="warning" className="mb-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Limited Data Available</AlertTitle>
+            <AlertDescription>
+              Unable to load existing portfolio data. You can still set target allocations, but you may need to create sectors or asset classes manually.
+            </AlertDescription>
           </Alert>
         )}
 

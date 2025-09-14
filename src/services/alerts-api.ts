@@ -19,7 +19,7 @@ const ALERT_ENDPOINTS = {
   RULES: '/alerts/rules/',
   HISTORY: '/alerts/history/',
   STATS: '/alerts/stat/',
-  DRIFT: '/portfolios/',
+  DRIFT: '/portfolio/drift/',
   RULE_DETAIL: (id: string) => `/alerts/rules/${id}/`,
   HISTORY_DETAIL: (id: string) => `/alerts/history/${id}/`,
 };
@@ -113,7 +113,7 @@ export const alertsApi = {
       condition_config: alertRule.conditionConfig,
       action_type: alertRule.actionType,
       action_config: alertRule.actionConfig,
-      portfolio: alertRule.portfolioId,
+      portfolio: alertRule.portfolioId ? parseInt(alertRule.portfolioId) : 1, // Convert string to number, default to 1
       account: alertRule.accountId,
     };
 
@@ -134,7 +134,7 @@ export const alertsApi = {
       actionConfig: apiAlertRule.action_config,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      portfolioId: apiAlertRule.portfolio,
+      portfolioId: String(apiAlertRule.portfolio),
       accountId: apiAlertRule.account
     };
   },
@@ -224,9 +224,9 @@ export const alertsApi = {
   },
 
   // Get current drift information for a portfolio
-  getPortfolioDrift: async (portfolioId: string): Promise<PortfolioDrift> => {
-    const endpoint = `${ALERT_ENDPOINTS.DRIFT}${portfolioId}/drift`;
-    return await fetchWithAuth<PortfolioDrift>(endpoint);
+  getPortfolioDrift: async (portfolioId?: string): Promise<PortfolioDrift> => {
+    // The backend endpoint uses the active user's portfolio, so we don't need portfolioId
+    return await fetchWithAuth<PortfolioDrift>(ALERT_ENDPOINTS.DRIFT);
   },
 
   // Mark an alert history item as resolved

@@ -6,6 +6,35 @@
 import { API_BASE_URL } from '@/config/api';
 
 /**
+ * Enhanced fetch wrapper with timeout support using AbortController
+ * Use this for direct fetch calls that need timeout functionality
+ * @param url The URL to fetch
+ * @param options Fetch options
+ * @param timeoutMs Timeout in milliseconds (default: 10000ms)
+ * @returns Promise that resolves with the fetch response or rejects on timeout
+ */
+export function fetchWithTimeoutOnly(url: string, options?: RequestInit, timeoutMs: number = 10000): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  return fetch(url, {
+    ...options,
+    signal: controller.signal,
+  }).catch((error) => {
+    clearTimeout(timeoutId);
+    
+    // Handle AbortError specifically for timeouts
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+    
+    throw error;
+  }).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+/**
  * Generic fetch wrapper with authentication and error handling
  * 
  * This function handles API requests to the backend server with automatic authentication.
@@ -60,8 +89,18 @@ export async function fetchWithAuth<T>(
     mode: 'cors', // Enable CORS for all requests
   } as RequestInit;
 
+  // Add timeout using AbortController
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  
+  const configWithTimeout = {
+    ...config,
+    signal: controller.signal,
+  };
+
   try {
-    const response = await fetch(url, config);
+    const response = await fetch(url, configWithTimeout);
+    clearTimeout(timeoutId);
     
     // For 204 No Content responses
     if (response.status === 204) {
@@ -94,6 +133,13 @@ export async function fetchWithAuth<T>(
       throw new Error(`Failed to parse JSON response: ${e instanceof Error ? e.message : String(e)}`);
     }
   } catch (error) {
+    clearTimeout(timeoutId);
+    
+    // Handle AbortError specifically for timeouts
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout after 10000ms');
+    }
+    
     throw error;
   }
 }

@@ -120,7 +120,8 @@ export function DriftAlertForm({
         conditionConfig,
         actionType: values.actionType as ActionType,
         actionConfig: {}, // Default empty action config
-        frequency: values.frequency as AlertFrequency
+        frequency: values.frequency as AlertFrequency,
+        portfolioId: "1" // Default to portfolio 1 for now (API expects string)
       };
 
       await onSubmit(alertRuleData);

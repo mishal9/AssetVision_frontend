@@ -13,7 +13,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { AlertTriangle, Loader2, RefreshCw, PieChart, Settings } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
@@ -22,10 +21,16 @@ import { portfolioApi } from '@/services/api';
 
 const PortfolioDriftContainer: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { driftData, driftLoading, driftError } = useSelector((state: RootState) => state.portfolio);
+  const { 
+    driftData, 
+    driftLoading, 
+    driftError,
+    driftSetupRequired,
+    driftSetupMessage,
+    currentAllocations
+  } = useSelector((state: RootState) => state.portfolio);
   const [portfolioId, setPortfolioId] = useState<string>('');
   const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
-  const [loading, setLoading] = useState<boolean>(true);
   
   useEffect(() => {
     // Log API data for debugging
@@ -51,7 +56,6 @@ const PortfolioDriftContainer: React.FC = () => {
     // Get the active portfolio ID and fetch drift data
     async function fetchPortfolioData() {
       try {
-        setLoading(true);
         // Default to 'default' portfolio ID if the active one can't be retrieved
         let activePortfolioId = 'default';
         try {
@@ -68,10 +72,8 @@ const PortfolioDriftContainer: React.FC = () => {
         // Fetch drift data from live API
         await dispatch(fetchPortfolioDrift()).unwrap();
         console.log('Successfully fetched live portfolio drift data');
-      } catch (error: any) {
+      } catch (error) {
         console.error('Error fetching drift data:', error);
-      } finally {
-        setLoading(false);
       }
     }
     
@@ -88,10 +90,92 @@ const PortfolioDriftContainer: React.FC = () => {
     );
   }
 
+  // Handle setup required state
+  if (driftSetupRequired) {
+    return (
+      <div className="space-y-6">
+        {/* Global Dialog for target allocations */}
+        <Dialog open={allocationDialogOpen} onOpenChange={setAllocationDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Manage Target Allocations</DialogTitle>
+              <DialogDescription>
+                Define target percentages for each sector to track portfolio drift.
+              </DialogDescription>
+            </DialogHeader>
+            <TargetAllocationEditor onClose={() => setAllocationDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
+
+        <Alert>
+          <PieChart className="h-4 w-4" />
+          <AlertTitle>Portfolio Setup Required</AlertTitle>
+          <AlertDescription>
+            {driftSetupMessage || "No target allocations are defined for this portfolio. Define target allocations to analyze portfolio drift."}
+          </AlertDescription>
+        </Alert>
+
+        {/* Show current allocations if available */}
+        {currentAllocations && (currentAllocations.sector || currentAllocations.asset_class) && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Current Portfolio Allocations</h3>
+            
+            {currentAllocations.asset_class && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">Asset Classes</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {Object.entries(currentAllocations.asset_class).map(([assetClass, percentage]) => (
+                    <div key={assetClass} className="p-3 bg-muted rounded-lg">
+                      <div className="text-sm font-medium capitalize">
+                        {assetClass.replace('_', ' ')}
+                      </div>
+                      <div className="text-lg font-bold text-primary">
+                        {percentage.toFixed(1)}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {currentAllocations.sector && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">Sectors</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {Object.entries(currentAllocations.sector).map(([sector, percentage]) => (
+                    <div key={sector} className="p-3 bg-muted rounded-lg">
+                      <div className="text-sm font-medium">{sector}</div>
+                      <div className="text-lg font-bold text-primary">
+                        {percentage.toFixed(1)}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        <div className="flex justify-center">
+          <Button 
+            variant="default" 
+            className="flex items-center gap-2"
+            onClick={() => setAllocationDialogOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            <span>Define Target Allocations</span>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Handle error state
   if (driftError) {
     // Special handling for missing target allocations
-    const isMissingAllocationsError = driftError?.includes('No target allocations defined');
+    const isMissingAllocationsError = driftError?.includes('No target allocations defined') || 
+                                      driftError?.includes('target allocations defined') ||
+                                      (driftError?.includes('400') && driftError?.includes('Bad Request'));
     
     return (
       <div className="space-y-4">
@@ -104,23 +188,21 @@ const PortfolioDriftContainer: React.FC = () => {
           <AlertTitle>{isMissingAllocationsError ? "Action Required" : "Error"}</AlertTitle>
           <AlertDescription>
             {isMissingAllocationsError
-              ? "No target allocations defined for this portfolio. Please set your target allocations to view drift analysis."
+              ? "To analyze portfolio drift, you need to define target allocations for each sector. Click the button below to set your target allocation percentages."
               : `${driftError}. Please ensure your portfolio has target allocations defined.`
             }
           </AlertDescription>
         </Alert>
         
         <div className="flex justify-center">
-          {isMissingAllocationsError && (
-            <Button 
-              variant="default" 
-              className="flex items-center gap-2"
-              onClick={() => setAllocationDialogOpen(true)}
-            >
-              <Settings className="h-4 w-4" />
-              Define Target Allocations
-            </Button>
-          )}
+          <Button 
+            variant={isMissingAllocationsError ? "default" : "outline"}
+            className="flex items-center gap-2"
+            onClick={() => setAllocationDialogOpen(true)}
+          >
+            <Settings className="h-4 w-4" />
+            {isMissingAllocationsError ? "Define Target Allocations" : "Set Target Allocations"}
+          </Button>
         </div>
       </div>
     );

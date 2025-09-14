@@ -9,6 +9,7 @@
 - Use ESLint for code quality
 - Use Next.js for server-side rendering
 - Always use strongly typed interfaces and types
+- While debugging don't end up creating too many files, rather use the existing ones and add new ones only if necessary
 
 
 # Project structure
