@@ -6,9 +6,11 @@ import { StatsCard } from '@/components/dashboard/stats-card';
 import { PortfolioSetup } from '@/components/dashboard/portfolio-setup';
 import { PerformanceChart } from '@/components/dashboard/performance-chart';
 import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-chart';
-import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign } from 'lucide-react';
+import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign, Bell } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
+import { useDemoNotifications } from '@/hooks/useAlertNotifications';
+import { Button } from '@/components/ui/button';
 
 
 /**
@@ -19,6 +21,7 @@ import { portfolioApi } from '@/services/api';
 export default function DashboardPage() {
   // const router = useRouter();
   const [hasPortfolio, setHasPortfolio] = useState<boolean | null>(null);
+  const { createDemoNotifications } = useDemoNotifications();
   const { 
     summary, 
     summaryLoading, 
@@ -93,6 +96,15 @@ export default function DashboardPage() {
     <div className="min-h-full bg-background">
       <div className="flex justify-between items-center mb-1">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={createDemoNotifications}
+          className="flex items-center gap-2"
+        >
+          <Bell className="h-4 w-4" />
+          Test Notifications
+        </Button>
       </div>
 
           {/* Portfolio Summary Stats */}
