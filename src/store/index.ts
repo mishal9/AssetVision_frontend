@@ -5,6 +5,7 @@ import userReducer from './userSlice';
 import portfolioReducer from './portfolioSlice';
 import preferencesReducer from './preferencesSlice';
 import optimizationReducer from './optimizationSlice';
+import notificationsReducer from './notificationsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -13,6 +14,7 @@ export const store = configureStore({
     portfolio: portfolioReducer,
     preferences: preferencesReducer,
     optimization: optimizationReducer,
+    notifications: notificationsReducer,
   },
 });
 

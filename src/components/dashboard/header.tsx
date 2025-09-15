@@ -5,6 +5,7 @@ import { toggleTheme } from '@/store/appSlice';
 import { Moon, Sun } from 'lucide-react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import NotificationPanel from '@/components/notifications/NotificationPanel';
 
 export function Header() {
   const dispatch = useAppDispatch();
@@ -22,7 +23,8 @@ export function Header() {
   }, [theme]);
 
   return (
-    <header className="relative h-12 flex items-center justify-end">
+    <header className="relative h-12 flex items-center justify-end gap-2">
+      <NotificationPanel />
       <button
         onClick={() => dispatch(toggleTheme())}
         className="p-2 hover:bg-accent rounded-lg transition-colors"

@@ -9,6 +9,7 @@ import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-
 import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
+// Removed demo notifications import
 
 
 /**

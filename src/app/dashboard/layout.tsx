@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/dashboard/header";
 import { Sidebar } from "@/components/dashboard/sidebar";
+import { useAlertNotifications } from "@/hooks/useAlertNotifications";
 
 /**
  * Dashboard layout component
@@ -13,6 +14,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Initialize alert notifications monitoring
+  useAlertNotifications();
+
   return (
     <div className="relative flex min-h-screen">
       <Sidebar />
