@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertRule, AlertHistory, ConditionType } from '../../types/alerts';
+import { AlertRule, ConditionType } from '../../types/alerts';
 import { alertsApi } from '../../services/alerts-api';
 
 import { Button } from '../ui/button';
@@ -23,12 +23,12 @@ import {
   CheckCircle2,
   Clock,
   Edit,
-  Info,
   AlertTriangle,
   Trash2,
   ChevronRight,
   Loader2,
-  BarChart3
+  BarChart3,
+  RefreshCw
 } from 'lucide-react';
 
 import { DriftVisualization } from './DriftVisualization';
@@ -40,12 +40,11 @@ interface AlertDetailPageProps {
 export default function AlertDetailPage({ id }: AlertDetailPageProps) {
   const router = useRouter();
   const [alert, setAlert] = useState<AlertRule | null>(null);
-  const [history, setHistory] = useState<AlertHistory[]>([]);
   const [driftData, setDriftData] = useState<any | null>(null);
   const [driftDataLoading, setDriftDataLoading] = useState(false);
   const [driftDataError, setDriftDataError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  // Removed tabs state
+  const [refreshing, setRefreshing] = useState(false);
   
   // Fetch alert details on component mount
   useEffect(() => {
@@ -54,10 +53,6 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
       try {
         const alertData = await alertsApi.getAlertRule(id);
         setAlert(alertData);
-        
-        // Fetch alert history
-        const historyData = await alertsApi.getAlertHistory(id);
-        setHistory(historyData);
         
         // If it's a drift alert, fetch current drift data
         if (
@@ -121,6 +116,20 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
   
   const handleBack = () => {
     router.push('/dashboard/alerts');
+  };
+  
+  const handleRefresh = async () => {
+    if (!alert) return;
+    
+    setRefreshing(true);
+    try {
+      const updatedAlert = await alertsApi.getAlertRule(id);
+      setAlert(updatedAlert);
+    } catch (error) {
+      console.error('Error refreshing alert:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
   
   // Loading state
@@ -204,6 +213,10 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
         </div>
         
         <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
+            <RefreshCw size={16} className={`mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
           <Button variant="outline" onClick={handleToggleStatus}>
             {alert.isActive ? 'Pause' : 'Activate'}
           </Button>
@@ -286,39 +299,6 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
           </Card>
         </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest events for this alert</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {history.length === 0 ? (
-              <p className="text-center py-6 text-muted-foreground">No recent activity for this alert</p>
-            ) : (
-              <div className="space-y-4">
-                {history.slice(0, 5).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between border-b pb-3">
-                    <div className="flex items-start gap-3">
-                      {item.wasTriggered ? (
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      ) : (
-                        <Info className="h-5 w-5 text-blue-500" />
-                      )}
-                      <div>
-                        <p className="font-medium">
-                          {item.wasTriggered ? 'Alert Triggered' : 'Alert Checked'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(item.triggeredAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {/* History and Drift Analysis sections removed */}
