@@ -52,7 +52,7 @@ const transformAlertRule = (response: AlertRuleResponse): AlertRule => {
     ? response.frequency as AlertFrequency
     : AlertFrequency.IMMEDIATE; // Default to IMMEDIATE if invalid
 
-  return {
+  const transformed = {
     id: response.id,
     userId: response.user,
     name: response.name,
@@ -70,6 +70,20 @@ const transformAlertRule = (response: AlertRuleResponse): AlertRule => {
     portfolioId: response.portfolio,
     accountId: response.account,
   };
+
+  // Debug logging for specific alert rule
+  if (response.id === '514e2aa0-29cf-4187-8182-295caa957fb7') {
+    console.log('🎯 Transformed alert rule:', {
+      id: transformed.id,
+      name: transformed.name,
+      lastTriggered: transformed.lastTriggered,
+      rawLastTriggered: response.last_triggered,
+      isActive: transformed.isActive,
+      status: transformed.status
+    });
+  }
+
+  return transformed;
 };
 
 /**
@@ -98,6 +112,12 @@ export const alertsApi = {
   // Get a specific alert rule by ID
   getAlertRule: async (id: string): Promise<AlertRule> => {
     const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id));
+    
+    // Debug logging for specific alert rule
+    if (id === '514e2aa0-29cf-4187-8182-295caa957fb7') {
+      console.log('🎯 Raw API response for specific alert rule:', response);
+    }
+    
     return transformAlertRule(response);
   },
 
