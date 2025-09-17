@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '@/store';
-import { fetchPortfolioDrift } from '@/store/portfolioSlice';
+import React, { useState, useCallback, useMemo } from 'react';
+import { usePortfolioDrift } from '@/hooks/usePortfolioDrift';
 import DriftVisualization from '../alerts/DriftVisualization';
 import TargetAllocationEditor from './TargetAllocationEditor';
 import DriftAlertsSection from '../alerts/DriftAlertsSection';
@@ -17,27 +15,42 @@ import {
 import { AlertTriangle, Loader2, RefreshCw, PieChart, Settings } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { Button } from '../ui/button';
-import { portfolioApi } from '@/services/api';
 
 const PortfolioDriftContainer: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const { 
-    driftData, 
-    driftLoading, 
+  const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
+  
+  // Use optimized portfolio drift hook
+  const {
+    driftData,
+    currentAllocations,
+    assetClasses,
+    sectors,
+    driftLoading,
+    assetClassesLoading,
+    sectorsLoading,
+    isInitialized,
+    isInitializing,
     driftError,
     driftSetupRequired,
     driftSetupMessage,
-    currentAllocations
-  } = useSelector((state: RootState) => state.portfolio);
-  const [portfolioId, setPortfolioId] = useState<string>('');
-  const [allocationDialogOpen, setAllocationDialogOpen] = useState(false);
+    refresh,
+    hasData
+  } = usePortfolioDrift({
+    autoLoad: true,
+    cacheDuration: 5 * 60 * 1000, // 5 minutes
+    enablePrefetch: true
+  });
   
-  useEffect(() => {
-    // Log API data for debugging
+  // Memoized refresh handler
+  const handleRefresh = useCallback(() => {
+    refresh(true);
+  }, [refresh]);
+  
+  // Memoized debug logging
+  const debugData = useMemo(() => {
     if (driftData && !driftLoading) {
       console.log('Live API drift data:', JSON.stringify(driftData, null, 2));
       
-      // Check if we have real data
       if (driftData.asset_class?.items && driftData.asset_class.items.length > 0) {
         console.log('Asset class data:', 
           driftData.asset_class.items.map(item => `${item.name}: ${item.currentAllocation}%`)
@@ -50,38 +63,17 @@ const PortfolioDriftContainer: React.FC = () => {
         );
       }
     }
+    return driftData;
   }, [driftData, driftLoading]);
 
-  useEffect(() => {
-    // Get the active portfolio ID and fetch drift data
-    async function fetchPortfolioData() {
-      try {
-        // Default to 'default' portfolio ID if the active one can't be retrieved
-        let activePortfolioId = 'default';
-        try {
-          const fetchedId = await portfolioApi.getActivePortfolioId();
-          if (fetchedId) {
-            activePortfolioId = fetchedId;
-          }
-        } catch (error) {
-          console.warn('Could not get active portfolio ID, using default', error);
-        }
-        
-        setPortfolioId(activePortfolioId);
-        
-        // Fetch drift data from live API
-        await dispatch(fetchPortfolioDrift()).unwrap();
-        console.log('Successfully fetched live portfolio drift data');
-      } catch (error) {
-        console.error('Error fetching drift data:', error);
-      }
-    }
-    
-    fetchPortfolioData();
-  }, [dispatch]);
-
-  // Handle loading state
-  if (driftLoading) {
+  // Handle loading state - show loading if we're loading OR if we're initializing OR if we haven't initialized yet
+  if (driftLoading || isInitializing || !isInitialized) {
+    console.log('🔄 PortfolioDriftContainer: Showing loading state', {
+      driftLoading,
+      isInitializing,
+      isInitialized,
+      hasData
+    });
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -209,7 +201,7 @@ const PortfolioDriftContainer: React.FC = () => {
   }
 
   // Handle missing data
-  if (!driftData?.overall && !driftData?.asset_class && !driftData?.sector) {
+  if (!hasData) {
     return (
       <div className="space-y-4">
         <Alert>
@@ -267,19 +259,16 @@ const PortfolioDriftContainer: React.FC = () => {
             variant="outline" 
             size="sm"
             className="flex items-center gap-2"
-            onClick={() => {
-              if (portfolioId) {
-                dispatch(fetchPortfolioDrift());
-              }
-            }}
+            onClick={handleRefresh}
+            disabled={driftLoading}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className={`h-4 w-4 ${driftLoading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
           </Button>
         </div>
       </div>
 
-      <DriftVisualization 
+      <MemoizedDriftVisualization 
         data={driftData?.sector} 
         thresholdPercent={5}
         type="sector"
@@ -290,5 +279,17 @@ const PortfolioDriftContainer: React.FC = () => {
     </div>
   );
 };
+
+// Memoized DriftVisualization component to prevent unnecessary re-renders
+const MemoizedDriftVisualization = React.memo(DriftVisualization, (prevProps, nextProps) => {
+  // Only re-render if the data actually changes
+  return (
+    prevProps.data === nextProps.data &&
+    prevProps.thresholdPercent === nextProps.thresholdPercent &&
+    prevProps.type === nextProps.type
+  );
+});
+
+MemoizedDriftVisualization.displayName = 'MemoizedDriftVisualization';
 
 export default PortfolioDriftContainer;
