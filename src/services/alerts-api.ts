@@ -71,17 +71,6 @@ const transformAlertRule = (response: AlertRuleResponse): AlertRule => {
     accountId: response.account,
   };
 
-  // Debug logging for specific alert rule
-  if (response.id === '514e2aa0-29cf-4187-8182-295caa957fb7') {
-    console.log('🎯 Transformed alert rule:', {
-      id: transformed.id,
-      name: transformed.name,
-      lastTriggered: transformed.lastTriggered,
-      rawLastTriggered: response.last_triggered,
-      isActive: transformed.isActive,
-      status: transformed.status
-    });
-  }
 
   return transformed;
 };

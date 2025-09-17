@@ -26,6 +26,7 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
   onView, 
   onEdit 
 }) => {
+
   // Only handle drift-type alerts
   const isDriftAlert = [
     ConditionType.DRIFT, 
@@ -61,20 +62,46 @@ const DriftAlertCard: React.FC<DriftAlertCardProps> = ({
     }
   };
 
-  // Determine badge color based on alert status
-  const getBadgeVariant = () => {
-    if (!alert.isActive) return 'secondary';
-    return alert.lastTriggered ? 'destructive' : 'outline';
+  // Determine badge color and text based on alert status
+  const getBadgeInfo = () => {
+    // Always show the status based on isActive first
+    const isActive = Boolean(alert.isActive);
+    const hasBeenTriggered = Boolean(alert.lastTriggered);
+    
+    if (!isActive) {
+      return { variant: 'secondary' as const, text: 'Inactive', className: '' };
+    }
+    
+    // If active and recently triggered, show as "Active" with custom red styling
+    if (hasBeenTriggered) {
+      return { 
+        variant: 'destructive' as const, 
+        text: 'Active',
+        className: 'bg-red-500 text-white border-red-500'
+      };
+    }
+    
+    // If active but not triggered, show as "Active" with outline styling
+    return { variant: 'outline' as const, text: 'Active', className: '' };
   };
+
+  const badgeInfo = getBadgeInfo();
+
+
 
   return (
     <Card className="overflow-hidden transition-all hover:shadow-md">
       <CardHeader className="bg-muted/50 pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-medium">{alert.name}</CardTitle>
-          <Badge variant={getBadgeVariant()}>
-            {alert.isActive ? 'Active' : 'Inactive'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant={badgeInfo.variant}
+              className={badgeInfo.className}
+            >
+              {badgeInfo.text}
+            </Badge>
+          </div>
         </div>
         <CardDescription className="flex items-center gap-1 text-sm">
           {alertTypeLabel()}
