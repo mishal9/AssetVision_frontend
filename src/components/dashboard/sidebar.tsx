@@ -131,21 +131,25 @@ export function Sidebar() {
           <div className="relative">
             <button 
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-accent transition-colors"
+              className="w-full flex items-center space-x-3 p-2 rounded-lg hover:bg-accent transition-all duration-200 hover:shadow-md min-w-0"
               aria-haspopup="true"
               aria-expanded={isProfileMenuOpen}
             >
-              <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-                <Image 
-                  src="/profile-hero.svg" 
-                  alt="Profile Hero" 
-                  width={64} 
-                  height={64} 
-                  className="object-cover"
-                />
+              <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 flex items-center justify-center shadow-xl ring-2 ring-white/30 aspect-square hover:shadow-2xl transition-all duration-300 hover:scale-105">
+                {user?.firstName && user?.lastName ? (
+                  <span className="text-white font-bold text-lg tracking-wide">
+                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                  </span>
+                ) : user?.firstName ? (
+                  <span className="text-white font-bold text-lg tracking-wide">
+                    {user.firstName.charAt(0)}
+                  </span>
+                ) : (
+                  <User className="h-6 w-6 text-white" />
+                )}
               </div>
-              <div className="flex-1 text-left">
-                <p className="text-sm font-medium">
+              <div className="flex-1 text-left min-w-0">
+                <p className="text-sm font-semibold text-foreground truncate">
                   {user?.firstName && user?.lastName 
                     ? `${user.firstName} ${user.lastName}`
                     : user?.firstName 
@@ -153,7 +157,7 @@ export function Sidebar() {
                     : user?.username || 'User'
                   }
                 </p>
-                <p className="text-xs text-muted-foreground truncate">
+                <p className="text-xs text-muted-foreground truncate font-medium">
                   {user?.email || (isAuthenticated ? 'Loading...' : 'No email')}
                 </p>
               </div>
@@ -202,14 +206,8 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="flex items-center space-x-3 p-2">
-            <div className="h-16 w-16 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center">
-              <Image 
-                src="/profile-hero.svg" 
-                alt="Profile Hero" 
-                width={64} 
-                height={64} 
-                className="object-cover opacity-50"
-              />
+            <div className="h-12 w-12 rounded-full bg-gradient-to-br from-gray-400 via-gray-500 to-gray-600 flex items-center justify-center shadow-xl ring-2 ring-white/30 aspect-square">
+              <User className="h-6 w-6 text-white opacity-70" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-medium">Not signed in</p>

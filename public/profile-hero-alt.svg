@@ -1,0 +1,82 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#1e40af;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="faceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="suitGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#111827;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1f2937;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="tieGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#991b1b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="shirtGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f9fafb;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle with modern gradient -->
+  <circle cx="60" cy="60" r="60" fill="url(#bgGradient)"/>
+  
+  <!-- Subtle inner border -->
+  <circle cx="60" cy="60" r="58" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  
+  <!-- Face with professional proportions -->
+  <ellipse cx="60" cy="45" rx="15" ry="18" fill="url(#faceGradient)"/>
+  
+  <!-- Professional hairstyle -->
+  <path d="M 45 35 Q 42 28 48 25 Q 55 22 60 23 Q 65 22 72 25 Q 78 28 75 35 Q 73 32 70 30 Q 65 28 60 29 Q 55 28 50 30 Q 47 32 45 35" fill="#7c2d12"/>
+  
+  <!-- Eyes with professional look -->
+  <ellipse cx="54" cy="42" rx="2.5" ry="1.8" fill="#ffffff"/>
+  <ellipse cx="66" cy="42" rx="2.5" ry="1.8" fill="#ffffff"/>
+  <circle cx="54" cy="42" r="1.2" fill="#1f2937"/>
+  <circle cx="66" cy="42" r="1.2" fill="#1f2937"/>
+  <circle cx="54.3" cy="41.7" r="0.4" fill="#ffffff"/>
+  <circle cx="66.3" cy="41.7" r="0.4" fill="#ffffff"/>
+  
+  <!-- Professional eyebrows -->
+  <path d="M 51 39 Q 54 37 57 39" stroke="#7c2d12" stroke-width="1.2" fill="none"/>
+  <path d="M 63 39 Q 66 37 69 39" stroke="#7c2d12" stroke-width="1.2" fill="none"/>
+  
+  <!-- Nose -->
+  <ellipse cx="60" cy="47" rx="0.8" ry="1.5" fill="#f59e0b"/>
+  
+  <!-- Professional smile -->
+  <path d="M 55 51 Q 60 54 65 51" stroke="#1f2937" stroke-width="1.2" fill="none"/>
+  
+  <!-- Executive suit jacket -->
+  <path d="M 28 75 Q 38 70 60 75 Q 82 70 92 75 L 92 108 Q 60 113 28 108 Z" fill="url(#suitGradient)"/>
+  
+  <!-- Crisp white shirt -->
+  <path d="M 48 65 L 60 75 L 72 65" stroke="#ffffff" stroke-width="2" fill="url(#shirtGradient)"/>
+  
+  <!-- Executive tie -->
+  <polygon points="60,65 54,88 66,88" fill="url(#tieGradient)"/>
+  <rect x="58" y="65" width="4" height="23" fill="url(#tieGradient)"/>
+  
+  <!-- Tie pattern - subtle stripes -->
+  <rect x="58.2" y="70" width="3.6" height="0.8" fill="#ffffff" opacity="0.2"/>
+  <rect x="58.2" y="76" width="3.6" height="0.8" fill="#ffffff" opacity="0.2"/>
+  <rect x="58.2" y="82" width="3.6" height="0.8" fill="#ffffff" opacity="0.2"/>
+  
+  <!-- Suit lapels -->
+  <path d="M 48 65 L 42 70 L 48 75" fill="url(#suitGradient)"/>
+  <path d="M 72 65 L 78 70 L 72 75" fill="url(#suitGradient)"/>
+  
+  <!-- Subtle professional highlights -->
+  <ellipse cx="45" cy="48" rx="1.5" ry="0.8" fill="#ffffff" opacity="0.15"/>
+  <ellipse cx="75" cy="48" rx="1.5" ry="0.8" fill="#ffffff" opacity="0.15"/>
+  
+  <!-- Professional shadow under chin -->
+  <ellipse cx="60" cy="63" rx="8" ry="2" fill="rgba(0,0,0,0.1)"/>
+</svg>
