@@ -79,7 +79,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       // Using centralized API configuration and enhanced fetchWithAuth
-      const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+      const data = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS, {}, 30000);
       
       // Handle different response structures
       let accountsToProcess = [];

@@ -72,8 +72,8 @@ export const PLAID_ENDPOINTS = {
   CREATE_LINK_TOKEN: `${API_BASE_URL}/plaid/create-link-token/`,
   EXCHANGE_TOKEN: `${API_BASE_URL}/plaid/exchange-token/`,
   GET_HOLDINGS: `${API_BASE_URL}/plaid/get-holdings/`,
-  LINKED_ACCOUNTS: `${API_BASE_URL}/plaid/list-connections/`,
-  DISCONNECT_ACCOUNT: (id: string) => `${API_BASE_URL}/plaid/disconnect-account/${id}/`,
+  LINKED_ACCOUNTS: `${API_BASE_URL}/plaid/list/`,
+  DISCONNECT_ACCOUNT: (id: string) => `${API_BASE_URL}/plaid/disconnect/${id}/`,
   UPDATE_CONNECTION: (id: string) => `${API_BASE_URL}/plaid/update-connection/${id}/`,
   CREATE_PORTFOLIO: `${API_BASE_URL}/portfolio/`,
 };

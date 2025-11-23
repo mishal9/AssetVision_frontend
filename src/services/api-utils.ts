@@ -46,12 +46,14 @@ export function fetchWithTimeoutOnly(url: string, options?: RequestInit, timeout
  * @template T - The expected return type of the API call
  * @param {string} endpoint - The API endpoint to call (can be a relative path or full URL)
  * @param {RequestInit} [options={}] - Fetch API options (method, body, additional headers, etc.)
+ * @param {number} [timeoutMs=10000] - Timeout in milliseconds (default: 10000ms)
  * @returns {Promise<T>} A promise that resolves to the API response data of type T
  * @throws {Error} Throws an error if the API request fails or returns an error status
  */
 export async function fetchWithAuth<T>(
   endpoint: string, 
-  options: RequestInit = {}
+  options: RequestInit = {},
+  timeoutMs: number = 10000
 ): Promise<T> {
   // Check if the endpoint is already a full URL (starts with http:// or https://)
   const isFullUrl = endpoint.startsWith('http://') || endpoint.startsWith('https://');
@@ -91,7 +93,7 @@ export async function fetchWithAuth<T>(
 
   // Add timeout using AbortController
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   
   const configWithTimeout = {
     ...config,
@@ -137,7 +139,7 @@ export async function fetchWithAuth<T>(
     
     // Handle AbortError specifically for timeouts
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Request timeout after 10000ms');
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
     }
     
     throw error;

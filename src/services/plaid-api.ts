@@ -94,7 +94,7 @@ export const plaidApi = {
           update_mode: forUpdate,
           account_id: accountId
         }),
-      });
+      }, 30000);
       
       // Type assertion for response
       const typedResponse = response as Record<string, unknown>;
@@ -146,7 +146,7 @@ export const plaidApi = {
         },
         body: JSON.stringify(requestData),
         credentials: 'include' // Ensure cookies are sent with request
-      });
+      }, 30000);
       
       // Type assertion for response
       const typedResponse = response as Record<string, unknown>;
@@ -228,7 +228,7 @@ export const plaidApi = {
       body: JSON.stringify({ 
         connection_id: connection_id
       }),
-    });
+    }, 30000);
     
     // Type assertion for response
     interface PlaidHoldingsResponse {
@@ -288,7 +288,7 @@ export const plaidApi = {
           holdings,
           name: portfolioName || 'Imported Portfolio'
         }),
-      });
+      }, 30000);
     } catch (error) {
       console.error('Error creating portfolio from Plaid:', error);
       throw error;
@@ -303,7 +303,7 @@ export const plaidApi = {
     try {
       // Get accounts from backend
       console.log('Calling list-connections endpoint:', PLAID_ENDPOINTS.LINKED_ACCOUNTS);
-      const response = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS);
+      const response = await fetchWithAuth(PLAID_ENDPOINTS.LINKED_ACCOUNTS, {}, 30000);
       
       console.log('Plaid API - Raw response from list-connections:', response);
       console.log('Plaid API - Response type:', typeof response);
@@ -454,7 +454,7 @@ export const plaidApi = {
       await fetchWithAuth(PLAID_ENDPOINTS.DISCONNECT_ACCOUNT(accountId), {
         method: 'POST',
         body: JSON.stringify({ account_id: accountId }),
-      });
+      }, 30000);
       return { success: true };
     } catch (error) {
       console.error('Error disconnecting account:', error);
