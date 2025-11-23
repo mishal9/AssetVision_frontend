@@ -76,7 +76,6 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
 
   const [isInitialized, setIsInitialized] = useState(false);
   const [lastFetchTime, setLastFetchTime] = useState<number>(0);
-  const [portfolioId, setPortfolioId] = useState<string>('');
   const [isInitializing, setIsInitializing] = useState(false);
   const hasLoadedRef = useRef(false);
 
@@ -119,18 +118,12 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
         return;
       }
       
-      // Get portfolio ID
-      let activePortfolioId = 'default';
+      // Get portfolio ID (for future use if needed)
       try {
-        const fetchedId = await portfolioApi.getActivePortfolioId();
-        if (fetchedId) {
-          activePortfolioId = fetchedId;
-        }
-      } catch (error) {
+        await portfolioApi.getActivePortfolioId();
+      } catch {
         // Could not get active portfolio ID, using default
       }
-      
-      setPortfolioId(activePortfolioId);
       
       // Parallel data loading for optimal performance
       const promises = [
@@ -155,7 +148,7 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
       } else {
         hasLoadedRef.current = false; // Reset on error
       }
-    } catch (error) {
+    } catch {
       hasLoadedRef.current = false; // Reset on error
     } finally {
       setIsInitializing(false);

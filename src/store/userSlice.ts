@@ -105,7 +105,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
         } else {
           // Try to extract any array property
           const arrayProps = Object.entries(dataObj)
-            .filter(([_, value]) => Array.isArray(value))
+            .filter(([, value]) => Array.isArray(value))
             .map(([key, value]) => ({ key, length: (value as any[]).length }));
           
           console.log('Found array properties:', arrayProps);

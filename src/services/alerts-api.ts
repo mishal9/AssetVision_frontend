@@ -1,5 +1,4 @@
 import { fetchWithAuth } from './api-utils';
-import { convertSnakeToCamelCase } from '../utils/caseConversions';
 import { 
   AlertRule, 
   AlertHistory, 
@@ -225,8 +224,8 @@ export const alertsApi = {
   },
 
   // Get current drift information for a portfolio
-  getPortfolioDrift: async (portfolioId?: string): Promise<PortfolioDrift> => {
-    // The backend endpoint uses the active user's portfolio, so we don't need portfolioId
+  getPortfolioDrift: async (): Promise<PortfolioDrift> => {
+    // The backend endpoint uses the active user's portfolio
     return await fetchWithAuth<PortfolioDrift>(ALERT_ENDPOINTS.DRIFT);
   },
 

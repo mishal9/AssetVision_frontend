@@ -10,28 +10,19 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '../ui/card';
-import { Separator } from '../ui/separator';
 import { Badge } from '../ui/badge';
 import {
   ArrowLeft,
-  Bell,
-  Calendar,
-  CheckCircle2,
-  Clock,
   Edit,
   AlertTriangle,
   Trash2,
-  ChevronRight,
   Loader2,
-  BarChart3,
   RefreshCw
 } from 'lucide-react';
 
-import { DriftVisualization } from './DriftVisualization';
 
 interface AlertDetailPageProps {
   id: string;
@@ -40,9 +31,6 @@ interface AlertDetailPageProps {
 export default function AlertDetailPage({ id }: AlertDetailPageProps) {
   const router = useRouter();
   const [alert, setAlert] = useState<AlertRule | null>(null);
-  const [driftData, setDriftData] = useState<any | null>(null);
-  const [driftDataLoading, setDriftDataLoading] = useState(false);
-  const [driftDataError, setDriftDataError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -54,29 +42,6 @@ export default function AlertDetailPage({ id }: AlertDetailPageProps) {
         const alertData = await alertsApi.getAlertRule(id);
         setAlert(alertData);
         
-        // If it's a drift alert, fetch current drift data
-        if (
-          [ConditionType.DRIFT, ConditionType.SECTOR_DRIFT, ConditionType.ASSET_CLASS_DRIFT].includes(
-            alertData.conditionType
-          )
-        ) {
-          // For MVP, we assume user has only one portfolio
-          setDriftDataLoading(true);
-          setDriftDataError(null);
-          
-          try {
-            // Use the user's default portfolio ID or the one from the alert if available
-            // In MVP we assume user has only one portfolio, so we can pass "default" or user ID
-            const portfolioId = alertData.portfolioId || 'default';
-            const driftData = await alertsApi.getPortfolioDrift(portfolioId);
-            setDriftData(driftData);
-          } catch (error) {
-            console.error('Error fetching drift data:', error);
-            setDriftDataError('Failed to load drift data. Please try again later.');
-          } finally {
-            setDriftDataLoading(false);
-          }
-        }
       } catch (error) {
         console.error('Error fetching alert details:', error);
       } finally {

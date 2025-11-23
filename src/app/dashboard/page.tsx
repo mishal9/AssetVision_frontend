@@ -43,7 +43,7 @@ export default function DashboardPage() {
         if (isMounted) {
           setHasPortfolio(hasExistingPortfolio);
         }
-      } catch (error) {
+      } catch {
         // Error handling without console.error in production
         if (isMounted) {
           setHasPortfolio(false);
