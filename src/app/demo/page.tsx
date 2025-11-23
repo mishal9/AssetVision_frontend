@@ -8,34 +8,27 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { 
-  TrendingUp, 
   PieChart, 
   Bell, 
   Bot, 
-  DollarSign, 
   BarChart3, 
   Target, 
   Shield, 
   ArrowRight,
   PlayCircle,
-  TrendingDown,
   AlertTriangle,
   CheckCircle,
   Zap,
   Eye,
-  Users,
   Building2,
   Calculator,
   LineChart,
   Smartphone,
-  Globe,
-  Lock,
   Star,
   ChevronRight,
   ArrowUp,
   ArrowDown,
-  Loader2,
-  RefreshCw
+  Loader2
 } from 'lucide-react';
 import { formatCurrency, formatPercent } from '@/utils/formatters';
 
@@ -47,7 +40,6 @@ export default function DemoPage() {
   const router = useRouter();
   const [activeDemo, setActiveDemo] = useState<string>('overview');
   const [isLoading, setIsLoading] = useState(false);
-  const [animationStep, setAnimationStep] = useState(0);
   
   // Demo data for showcasing features
   const demoPortfolio = {
@@ -123,13 +115,6 @@ export default function DemoPage() {
     ]
   };
 
-  // Animation effect for demo progression
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setAnimationStep((prev) => (prev + 1) % 4);
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleStartDemo = async (demoType: string) => {
     setIsLoading(true);

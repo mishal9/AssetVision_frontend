@@ -31,11 +31,11 @@ export class MarketDataService {
     return MarketDataService.instance;
   }
 
-  subscribeToSymbols(_symbols: string[]) {
+  subscribeToSymbols() {
     // No-op without WebSockets
   }
 
-  unsubscribeFromSymbols(_symbols: string[]) {
+  unsubscribeFromSymbols() {
     // No-op without WebSockets
   }
 

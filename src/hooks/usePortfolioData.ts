@@ -58,7 +58,6 @@ export function usePortfolioData() {
         }
         setSummaryError('Failed to load portfolio summary');
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.error('Error fetching portfolio summary:', error);
         }
       } finally {
@@ -84,7 +83,6 @@ export function usePortfolioData() {
     } catch (error) {
       setPerformanceError('Failed to load performance data');
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error fetching performance data:', error);
       }
     } finally {
@@ -126,7 +124,6 @@ export function usePortfolioData() {
             setAssetAllocation(data.assetAllocation);
           } else {
             if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
               console.error('Invalid asset_allocation data structure:', data);
             }
             setAssetAllocation([]);
@@ -145,14 +142,12 @@ export function usePortfolioData() {
             setSectorAllocation(data.sectorAllocation);
           } else {
             if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
               console.error('Invalid sector_allocation data structure:', data);
             }
             setSectorAllocation([]);
           }
         } else {
           if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
             console.error('No allocation data received');
           }
           setAssetAllocation([]);
@@ -163,7 +158,6 @@ export function usePortfolioData() {
       } catch (error) {
         setAllocationError('Failed to load asset allocation');
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.error('Error fetching asset allocation:', error);
         }
       } finally {
@@ -189,7 +183,6 @@ export function usePortfolioData() {
       } catch (error) {
         setAlertsError('Failed to load alerts');
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.error('Error fetching alerts:', error);
         }
       } finally {
@@ -223,7 +216,6 @@ export function usePortfolioData() {
         setPortfolioExists(false);
       }
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error refreshing portfolio summary:', error);
       }
     }).finally(() => {
@@ -238,7 +230,6 @@ export function usePortfolioData() {
       }).catch(error => {
         setPerformanceError('Failed to refresh performance data');
         if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
           console.error('Error refreshing performance data:', error);
         }
       }).finally(() => {
@@ -264,7 +255,6 @@ export function usePortfolioData() {
             setAssetAllocation(data.assetAllocation);
           } else {
             if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
               console.error('Invalid asset_allocation data structure (refresh):', data);
             }
             setAssetAllocation([]);
@@ -283,14 +273,12 @@ export function usePortfolioData() {
             setSectorAllocation(data.sectorAllocation);
           } else {
             if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
               console.error('Invalid sector_allocation data structure (refresh):', data);
             }
             setSectorAllocation([]);
           }
         } else {
           if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
             console.error('No allocation data received during refresh');
           }
           setAssetAllocation([]);
@@ -301,7 +289,6 @@ export function usePortfolioData() {
     }).catch(error => {
       setAllocationError('Failed to refresh asset allocation');
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error refreshing asset allocation:', error);
       }
     }).finally(() => {
@@ -317,7 +304,6 @@ export function usePortfolioData() {
     }).catch(error => {
       setAlertsError('Failed to refresh alerts');
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error refreshing alerts:', error);
       }
     }).finally(() => {

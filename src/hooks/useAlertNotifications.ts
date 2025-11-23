@@ -4,14 +4,12 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { useAppDispatch } from '@/store';
 import { notificationService } from '@/services/notificationService';
 
 /**
  * Hook to monitor alert history and create notifications
  */
 export const useAlertNotifications = () => {
-  const dispatch = useAppDispatch();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check for new alert triggers using the efficient service
@@ -21,7 +19,6 @@ export const useAlertNotifications = () => {
     } catch (error) {
       // Error handling - could be logged to error tracking service in production
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Failed to check for new alerts:', error);
       }
     }

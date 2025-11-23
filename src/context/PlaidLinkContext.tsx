@@ -58,7 +58,6 @@ export const PlaidLinkProvider = ({ children }: { children: ReactNode }) => {
     } catch (error) {
       setError('Unable to connect to Plaid. Please try again later.');
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
         console.error('Error generating link token:', error);
       }
     } finally {
@@ -80,7 +79,6 @@ export const PlaidLinkProvider = ({ children }: { children: ReactNode }) => {
           successHandlerRef.current(publicToken, metadata);
         } catch (error) {
           if (process.env.NODE_ENV === 'development') {
-            // eslint-disable-next-line no-console
             console.error('Error in success handler:', error);
           }
         }
