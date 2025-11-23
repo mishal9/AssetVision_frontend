@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { AlertRule, ConditionType, AlertStatus } from "../../types/alerts";
 import { alertsApi } from "../../services/alerts-api";
@@ -69,8 +69,17 @@ export default function AlertsOverviewPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [error, setError] = useState<{title: string; message: string} | null>(null);
 
+  // Use ref to prevent duplicate fetches in React Strict Mode (development)
+  const hasFetchedRef = useRef(false);
+
   // Fetch alerts on component mount
   useEffect(() => {
+    // Prevent duplicate fetches in React Strict Mode
+    if (hasFetchedRef.current) {
+      return;
+    }
+    hasFetchedRef.current = true;
+    
     fetchAlerts();
   }, []);
 

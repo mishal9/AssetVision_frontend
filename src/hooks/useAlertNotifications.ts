@@ -11,6 +11,7 @@ import { notificationService } from '@/services/notificationService';
  */
 export const useAlertNotifications = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasStartedRef = useRef(false);
 
   // Check for new alert triggers using the efficient service
   const checkForNewAlerts = useCallback(async () => {
@@ -43,10 +44,18 @@ export const useAlertNotifications = () => {
 
   // Set up monitoring on mount and cleanup on unmount
   useEffect(() => {
+    // Prevent duplicate initialization in React Strict Mode
+    if (hasStartedRef.current) {
+      return;
+    }
+    hasStartedRef.current = true;
+    
     startMonitoring();
     
     return () => {
       stopMonitoring();
+      // Don't reset hasStartedRef here - it should persist across Strict Mode double-invocation
+      // Only reset when component actually unmounts (which would require a different approach)
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
