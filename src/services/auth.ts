@@ -1,5 +1,6 @@
 import { authApi } from './api';
 import { AuthResponse, UserInfoResponse } from '../types/auth';
+import { getCookie, setCookie, deleteCookie } from '../utils/cookies';
 
 /**
  * Authentication service for AlphaOptimize
@@ -159,8 +160,8 @@ class AuthService {
       // Continue with local logout even if API call fails
     } finally {
       // Clear cookies
-      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
-      document.cookie = 'refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
+      deleteCookie('auth_token');
+      deleteCookie('refresh_token');
       
       if (this.tokenRefreshTimer) {
         clearTimeout(this.tokenRefreshTimer);
@@ -184,32 +185,14 @@ class AuthService {
    * Get the current authentication token from cookies
    */
   getToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Get from cookies
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
-    if (tokenCookie) {
-      return tokenCookie.split('=')[1];
-    }
-    
-    return null;
+    return getCookie('auth_token');
   }
 
   /**
    * Get the refresh token from cookies
    */
   getRefreshToken(): string | null {
-    if (typeof window === 'undefined') return null;
-    
-    // Get from cookies
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('refresh_token='));
-    if (tokenCookie) {
-      return tokenCookie.split('=')[1];
-    }
-    
-    return null;
+    return getCookie('refresh_token');
   }
 
   /**
@@ -221,9 +204,8 @@ class AuthService {
     accessExpiresIn: number = 1800, // 30 minutes in seconds
     refreshExpiresIn: number = 604800 // 7 days in seconds
   ): void {
-    // Set cookies
-    document.cookie = `auth_token=${accessToken}; path=/; max-age=${accessExpiresIn}; SameSite=Strict`;
-    document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${refreshExpiresIn}; SameSite=Strict`;
+    setCookie('auth_token', accessToken, accessExpiresIn);
+    setCookie('refresh_token', refreshToken, refreshExpiresIn);
   }
 
   /**

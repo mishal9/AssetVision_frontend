@@ -4,35 +4,7 @@
  */
 
 import { API_BASE_URL } from '@/config/api';
-
-/**
- * Enhanced fetch wrapper with timeout support using AbortController
- * Use this for direct fetch calls that need timeout functionality
- * @param url The URL to fetch
- * @param options Fetch options
- * @param timeoutMs Timeout in milliseconds (default: 10000ms)
- * @returns Promise that resolves with the fetch response or rejects on timeout
- */
-export function fetchWithTimeoutOnly(url: string, options?: RequestInit, timeoutMs: number = 10000): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  
-  return fetch(url, {
-    ...options,
-    signal: controller.signal,
-  }).catch((error) => {
-    clearTimeout(timeoutId);
-    
-    // Handle AbortError specifically for timeouts
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeoutMs}ms`);
-    }
-    
-    throw error;
-  }).finally(() => {
-    clearTimeout(timeoutId);
-  });
-}
+import { getCookie } from '@/utils/cookies';
 
 /**
  * Generic fetch wrapper with authentication and error handling
@@ -66,16 +38,7 @@ export async function fetchWithAuth<T>(
   );
   
   // Get the JWT token from cookies
-  let token;
-  
-  // Get from cookies
-  if (typeof document !== 'undefined') {
-    const cookies = document.cookie.split(';');
-    const tokenCookie = cookies.find(cookie => cookie.trim().startsWith('auth_token='));
-    if (tokenCookie) {
-      token = tokenCookie.split('=')[1];
-    }
-  }
+  const token = getCookie('auth_token');
   
   const headers = {
     'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
-import { alertsApi as api } from './api';
 import { fetchWithAuth } from './api-utils';
+import { convertSnakeToCamelCase } from '../utils/caseConversions';
 import { 
   AlertRule, 
   AlertHistory, 
@@ -98,6 +98,11 @@ export const alertsApi = {
     return Array.isArray(response) ? response.map(transformAlertRule) : [];
   },
 
+  // Compatibility method - maps to getAlertRules
+  getAlerts: async (): Promise<AlertRule[]> => {
+    return alertsApi.getAlertRules();
+  },
+
   // Get a specific alert rule by ID
   getAlertRule: async (id: string): Promise<AlertRule> => {
     const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULE_DETAIL(id));
@@ -126,26 +131,13 @@ export const alertsApi = {
       account: alertRule.accountId,
     };
 
-    // Use the createAlert method from the alertsApi instead of post
-    const response = await api.createAlert(apiAlertRule);
-    // Since api.createAlert returns Alert, we need to fetch the full AlertRuleResponse
-    // For now, return a basic AlertRule structure
-    return {
-      id: response.id || '',
-      name: apiAlertRule.name,
-      isActive: true,
-      userId: response.userId || '',
-      status: 'active' as AlertStatus,
-      frequency: 'realtime' as AlertFrequency,
-      conditionType: apiAlertRule.condition_type,
-      conditionConfig: apiAlertRule.condition_config,
-      actionType: apiAlertRule.action_type,
-      actionConfig: apiAlertRule.action_config,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      portfolioId: String(apiAlertRule.portfolio),
-      accountId: apiAlertRule.account
-    };
+    // Create the alert using fetchWithAuth directly
+    const response = await fetchWithAuth<AlertRuleResponse>(ALERT_ENDPOINTS.RULES, {
+      method: 'POST',
+      body: JSON.stringify(apiAlertRule),
+    });
+    
+    return transformAlertRule(response);
   },
 
   // Update an existing alert rule
