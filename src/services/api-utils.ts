@@ -89,9 +89,16 @@ export async function fetchWithAuth<T>(
       // Handle parse errors or non-JSON error responses
       if (!response.ok) {
         // Only try to read the error text if we couldn't parse JSON
-        const errorText = await response.text().catch(() => response.statusText);
-        const errorMessage = `HTTP error ${response.status}: ${errorText || response.statusText}`;
-        throw new Error(errorMessage);
+        let errorText: string;
+        try {
+          errorText = await response.text();
+        } catch {
+          errorText = response.statusText;
+        }
+        if (!errorText) {
+          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        }
+        throw new Error(`HTTP error ${response.status}: ${errorText}`);
       }
       
       // JSON parsing error for a successful response

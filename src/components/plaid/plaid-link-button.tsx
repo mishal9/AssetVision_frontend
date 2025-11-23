@@ -53,14 +53,9 @@ export function PlaidLinkButton({
   const onPlaidSuccess = useCallback((publicToken: string, metadata: PlaidMetadata) => {
     // Explicitly check for the callback before calling
     if (typeof onSuccess === 'function') {
-      try {
-        onSuccess(publicToken, metadata);
-      } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          // eslint-disable-next-line no-console
-          console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
-        }
-      }
+      onSuccess(publicToken, metadata);
+    } else {
+      throw new Error('onSuccess callback is required');
     }
   }, [onSuccess]);
 

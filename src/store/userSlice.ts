@@ -126,25 +126,70 @@ export const fetchLinkedAccounts = createAsyncThunk(
 
       
       if (!accountsToProcess.length) {
-        console.warn('No accounts found in API response');
-        return [];
+        throw new Error('No accounts found in API response');
       }
       
       // Map backend response to our frontend model
-      return accountsToProcess.map((account: any) => {
+      return accountsToProcess.map((account: any, index: number) => {
+        const id = account.id ?? account.account_id;
+        if (!id) {
+          throw new Error(`Account at index ${index} is missing required field: id or account_id`);
+        }
+        
+        // Check for institution_id in both snake_case and camelCase
+        const institutionId = account.institution_id ?? account.institutionId;
+        if (!institutionId) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: institution_id or institutionId. Account data: ${JSON.stringify(account)}`);
+        }
+        
+        // Check for institution_name in both snake_case and camelCase
+        const institutionName = account.institution_name ?? account.institutionName;
+        if (!institutionName) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: institution_name or institutionName`);
+        }
+        
+        const accountName = account.name ?? account.account_name ?? account.accountName;
+        if (!accountName) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: name, account_name, or accountName`);
+        }
+        
+        const accountType = account.type ?? account.account_type ?? account.accountType;
+        if (!accountType) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: type, account_type, or accountType`);
+        }
+        
+        const lastUpdated = account.last_updated ?? account.lastUpdated;
+        if (!lastUpdated) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: last_updated or lastUpdated`);
+        }
+        
+        if (!account.status) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: status`);
+        }
+        
+        const availableBalance = account.balances?.available ?? account.available_balance ?? account.availableBalance;
+        if (availableBalance === null || availableBalance === undefined) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: balances.available, available_balance, or availableBalance`);
+        }
+        
+        const currentBalance = account.balances?.current ?? account.current_balance ?? account.currentBalance;
+        if (currentBalance === null || currentBalance === undefined) {
+          throw new Error(`Account ${id} (index ${index}) is missing required field: balances.current, current_balance, or currentBalance`);
+        }
+        
         return {
-          id: account.id || account.account_id || '',
-          institutionId: account.institution_id || '',
-          institutionName: account.institution_name || 'Unknown Institution',
-          accountName: account.name || account.account_name || 'Account',
-          accountMask: account.mask || account.account_mask || '****',
-          accountType: account.type || account.account_type || 'unknown',
-          connectionId: account.connection_id || account.connectionId,
-          lastUpdated: account.last_updated ? new Date(account.last_updated).toISOString() : new Date().toISOString(),
-          status: account.status || 'active',
+          id,
+          institutionId: institutionId,
+          institutionName: institutionName,
+          accountName: accountName,
+          accountMask: account.mask ?? account.account_mask ?? account.accountMask ?? '****',
+          accountType: accountType,
+          connectionId: account.connection_id ?? account.connectionId,
+          lastUpdated: new Date(lastUpdated).toISOString(),
+          status: account.status,
           balance: {
-            available: account.balances?.available || account.available_balance || 0,
-            current: account.balances?.current || account.current_balance || 0
+            available: availableBalance,
+            current: currentBalance
           }
         };
       });
@@ -183,19 +228,47 @@ export const linkBrokerageAccount = createAsyncThunk(
       
       // Map Plaid accounts to our internal format
       const linkedAccounts = accounts.map((account: any) => {
+        if (!account.id) {
+          throw new Error('Account ID is required');
+        }
+        if (!metadata.institution?.id) {
+          throw new Error('Institution ID is required');
+        }
+        if (!metadata.institution?.name) {
+          throw new Error('Institution name is required');
+        }
+        if (!account.name) {
+          throw new Error('Account name is required');
+        }
+        const accountType = account.type ?? account.subtype;
+        if (!accountType) {
+          throw new Error('Account type is required');
+        }
+        if (!result.connectionId) {
+          throw new Error('Connection ID is required');
+        }
+        const availableBalance = account.balances?.available;
+        if (availableBalance === null || availableBalance === undefined) {
+          throw new Error('Available balance is required');
+        }
+        const currentBalance = account.balances?.current;
+        if (currentBalance === null || currentBalance === undefined) {
+          throw new Error('Current balance is required');
+        }
+        
         return {
           id: account.id,
           institutionId: metadata.institution.id,
           institutionName: metadata.institution.name,
           accountName: account.name,
           accountMask: account.mask,
-          accountType: account.type || account.subtype || 'unknown',
-          connectionId: result.connectionId || null, // Store the backend connection ID
+          accountType: accountType,
+          connectionId: result.connectionId,
           lastUpdated: new Date().toISOString(),
           status: 'active',
           balance: {
-            available: account.balances?.available || 0,
-            current: account.balances?.current || 0
+            available: availableBalance,
+            current: currentBalance
           }
         } as LinkedAccount;
       });

@@ -118,13 +118,6 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
         return;
       }
       
-      // Get portfolio ID (for future use if needed)
-      try {
-        await portfolioApi.getActivePortfolioId();
-      } catch {
-        // Could not get active portfolio ID, using default
-      }
-      
       // Parallel data loading for optimal performance
       const promises = [
         dispatch(fetchPortfolioDrift()).unwrap()
@@ -147,9 +140,11 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
         setIsInitialized(true);
       } else {
         hasLoadedRef.current = false; // Reset on error
+        throw new Error('Failed to load portfolio drift data');
       }
-    } catch {
+    } catch (error) {
       hasLoadedRef.current = false; // Reset on error
+      throw error;
     } finally {
       setIsInitializing(false);
     }

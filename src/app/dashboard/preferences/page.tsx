@@ -109,8 +109,9 @@ export default function PreferencesPage() {
         dispatch(updateAllPreferences(preferences));
       } catch (err) {
         console.error('Failed to load preferences:', err);
-        setError('Failed to load preferences. Using default values.');
+        setError('Failed to load preferences.');
         toast.error('Failed to load your preferences');
+        throw err;
       } finally {
         setIsLoading(false);
       }
@@ -175,7 +176,10 @@ export default function PreferencesPage() {
       }));
     } else {
       // Normal handling for numeric fields
-      const numericValue = parseFloat(value) || 0;
+      const numericValue = parseFloat(value);
+      if (isNaN(numericValue)) {
+        throw new Error(`Invalid numeric value for ${field}`);
+      }
       setTaxValues(prev => ({
         ...prev,
         [field]: numericValue

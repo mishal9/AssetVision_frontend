@@ -56,46 +56,28 @@ export default function CreateAlertPage() {
         console.log('🔄 Fetching sectors and asset classes from API...');
         
         // Fetch real data from API
-        const [sectorsData, assetClassesData] = await Promise.allSettled([
-          portfolioApi.getSectors().catch(error => {
-            console.warn('Failed to fetch sectors:', error);
-            return [];
-          }),
-          portfolioApi.getAssetClasses().catch(error => {
-            console.warn('Failed to fetch asset classes:', error);
-            return [];
-          })
+        const [sectorsData, assetClassesData] = await Promise.all([
+          portfolioApi.getSectors(),
+          portfolioApi.getAssetClasses()
         ]);
         
-        // Handle sectors result
-        if (sectorsData.status === 'fulfilled' && Array.isArray(sectorsData.value)) {
-          console.log('✅ Fetched sectors:', sectorsData.value);
-          setSectors(sectorsData.value);
-        } else {
-          console.warn('⚠️ Failed to fetch sectors, using empty array');
-          setSectors([]);
+        if (!Array.isArray(sectorsData)) {
+          throw new Error('Sectors data must be an array');
+        }
+        if (!Array.isArray(assetClassesData)) {
+          throw new Error('Asset classes data must be an array');
         }
         
-        // Handle asset classes result
-        if (assetClassesData.status === 'fulfilled' && Array.isArray(assetClassesData.value)) {
-          console.log('✅ Fetched asset classes:', assetClassesData.value);
-          setAssetClasses(assetClassesData.value);
-        } else {
-          console.warn('⚠️ Failed to fetch asset classes, using empty array');
-          setAssetClasses([]);
-        }
+        console.log('✅ Fetched sectors:', sectorsData);
+        console.log('✅ Fetched asset classes:', assetClassesData);
+        setSectors(sectorsData);
+        setAssetClasses(assetClassesData);
         
-        // For portfolios, keep dummy data for now (or fetch from API if available)
-        setPortfolios([
-          { id: '123e4567-e89b-12d3-a456-426614174000', name: 'Main Portfolio' },
-          { id: '223e4567-e89b-12d3-a456-426614174001', name: 'Retirement Portfolio' },
-        ]);
-        
+        // Portfolios should be fetched from API - no hardcoded fallback
+        // TODO: Implement portfolio fetching from API
       } catch (error) {
         console.error('Error fetching data:', error);
-        // Set empty arrays as fallback
-        setSectors([]);
-        setAssetClasses([]);
+        throw error;
       }
     };
     

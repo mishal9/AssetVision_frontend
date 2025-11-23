@@ -64,19 +64,44 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
   thresholdPercent = 5,
   type = 'overall',
 }) => {
-  // Use provided data or empty structure if no data available
-  const effectiveData = data || {
-    portfolioId: '',
-    portfolioName: 'No Data',
-    lastUpdated: new Date().toISOString(),
-    totalAbsoluteDrift: 0,
-    items: []
-  };
-  
-  // Log if we're missing data to help debugging
+  // Fail hard if data is missing - don't render empty state
   if (!data) {
-    console.warn(`Missing ${type} drift data - rendering empty state`);
+    console.error(`Missing ${type} drift data - data is required`);
+    return (
+      <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
+        <p className="text-destructive font-medium">Error: Missing {type} drift data</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          The drift data is required but was not provided. Please check that your portfolio has target allocations set.
+        </p>
+      </div>
+    );
   }
+  
+  if (!data.items || !Array.isArray(data.items)) {
+    console.error(`Invalid ${type} drift data - items array is required`, data);
+    return (
+      <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
+        <p className="text-destructive font-medium">Error: Invalid {type} drift data structure</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          The drift data does not contain a valid items array. Received: {JSON.stringify(data)}
+        </p>
+      </div>
+    );
+  }
+  
+  if (data.items.length === 0) {
+    console.error(`Empty ${type} drift data - no items in array`);
+    return (
+      <div className="p-4 border border-warning rounded-lg bg-warning/10">
+        <p className="text-warning font-medium">No {type} drift data available</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          The drift data contains no items. This may indicate that no allocations are set for this category.
+        </p>
+      </div>
+    );
+  }
+  
+  const effectiveData = data;
   
   // DEBUG: Log what data we're actually using
   console.log('DriftVisualization receiving data:', { 
@@ -137,18 +162,39 @@ export const DriftVisualization: React.FC<DriftVisualizationProps> = ({
       return [];
     }
 
-    return processedItems.map((item: any) => ({
-      name: item.name,
-      target: item.targetAllocation,
-      current: item.currentAllocation,
-      drift: driftView === 'absolute' ? item.absoluteDrift : item.relativeDrift,
-      absoluteDrift: item.absoluteDrift,
-      relativeDrift: item.relativeDrift,
-      // Color based on drift direction and magnitude
-      color: item.absoluteDrift > thresholdPercent ? '#ef4444' : 
-             item.absoluteDrift < -thresholdPercent ? '#f59e0b' : 
-             '#22c55e'
-    }));
+    const mapped = processedItems.map((item: any) => {
+      // Check for both camelCase and snake_case field names
+      const currentAlloc = item.currentAllocation ?? item.current_allocation ?? 0;
+      const targetAlloc = item.targetAllocation ?? item.target_allocation ?? 0;
+      
+      // Log if we're using fallback values
+      if (item.currentAllocation === undefined && item.current_allocation === undefined) {
+        console.warn(`Item ${item.name} missing currentAllocation field. Available fields:`, Object.keys(item));
+      }
+      
+      return {
+        name: item.name,
+        target: targetAlloc,
+        current: currentAlloc,
+        currentAllocation: currentAlloc, // Keep original field for debugging
+        targetAllocation: targetAlloc, // Keep original field for debugging
+        drift: driftView === 'absolute' ? item.absoluteDrift : item.relativeDrift,
+        absoluteDrift: item.absoluteDrift,
+        relativeDrift: item.relativeDrift,
+        // Color based on drift direction and magnitude
+        color: item.absoluteDrift > thresholdPercent ? '#ef4444' : 
+               item.absoluteDrift < -thresholdPercent ? '#f59e0b' : 
+               '#22c55e'
+      };
+    });
+    
+    // Debug log the first item to see structure
+    if (mapped.length > 0) {
+      console.log('Sample chart data item:', mapped[0]);
+      console.log('All current values:', mapped.map(item => ({ name: item.name, current: item.current })));
+    }
+    
+    return mapped;
   }, [processedItems, driftView, thresholdPercent]);
 
   // Drift bar chart data (horizontal bars showing drift amounts)
@@ -417,12 +463,66 @@ const DriftCharts: React.FC<{
 
   // Prepare data for portfolio composition pie chart
   const compositionData = chartData
-    .filter(item => item.current > 0)
+    .filter(item => {
+      if (item.current === null || item.current === undefined) {
+        console.error(`Item ${item.name} has invalid current allocation:`, item.current);
+        return false;
+      }
+      return item.current > 0;
+    })
     .map((item, index) => ({
       name: item.name,
       value: item.current,
       color: sectorColors[index % sectorColors.length]
     }));
+  
+  // Fail hard if no valid composition data
+  if (compositionData.length === 0 && chartData.length > 0) {
+    // Log detailed information about the chart data to help debug
+    const currentValues = chartData.map(item => ({
+      name: item.name,
+      current: item.current,
+      currentAllocation: item.currentAllocation,
+      target: item.target,
+      targetAllocation: item.targetAllocation,
+      allFields: Object.keys(item)
+    }));
+    console.error('No valid current allocations found in chart data:', {
+      chartDataLength: chartData.length,
+      currentValues,
+      sampleItem: chartData[0]
+    });
+    
+    return (
+      <div className="space-y-6">
+        <div className="p-4 border border-destructive rounded-lg bg-destructive/10">
+          <p className="text-destructive font-medium">Error: No valid current allocations</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            All {chartData.length} items have zero or invalid current allocation values. This indicates that the portfolio has no current sector allocations.
+          </p>
+          <details className="mt-2">
+            <summary className="text-xs cursor-pointer text-muted-foreground">Debug info</summary>
+            <pre className="text-xs mt-2 overflow-auto max-h-40 bg-background p-2 rounded">
+              {JSON.stringify(currentValues, null, 2)}
+            </pre>
+          </details>
+        </div>
+      </div>
+    );
+  }
+  
+  if (compositionData.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="p-4 border border-warning rounded-lg bg-warning/10">
+          <p className="text-warning font-medium">No composition data available</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            There is no data to display in the portfolio composition chart.
+          </p>
+        </div>
+      </div>
+    );
+  }
   
   // Prepare data for target allocation pie chart
   const targetAllocationData = chartData

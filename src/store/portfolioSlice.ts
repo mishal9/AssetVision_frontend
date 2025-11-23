@@ -142,14 +142,8 @@ export const fetchAssetClasses = createAsyncThunk(
       return await portfolioApi.getAssetClasses();
     } catch (error: any) {
       console.error('Asset classes fetch error:', error);
-      // For 400 errors related to missing portfolio/allocations, return empty array instead of rejecting
-      const errorMessage = error.message || '';
-      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
-          errorMessage.includes('API error: 400')) {
-        console.warn('Portfolio may not be set up yet, returning empty asset classes array');
-        return []; // Return empty array instead of rejecting
-      }
-      return rejectWithValue(error.message || 'Failed to fetch asset classes');
+      const errorMessage = error?.message || 'Failed to fetch asset classes';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -167,14 +161,8 @@ export const fetchSectors = createAsyncThunk(
       return await portfolioApi.getSectors();
     } catch (error: any) {
       console.error('Sectors fetch error:', error);
-      // For 400 errors related to missing portfolio/allocations, return empty array instead of rejecting
-      const errorMessage = error.message || '';
-      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
-          errorMessage.includes('API error: 400')) {
-        console.warn('Portfolio may not be set up yet, returning empty sectors array');
-        return []; // Return empty array instead of rejecting
-      }
-      return rejectWithValue(error.message || 'Failed to fetch sectors');
+      const errorMessage = error?.message || 'Failed to fetch sectors';
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -228,10 +216,13 @@ export const fetchPortfolioDrift = createAsyncThunk(
       
       // Check if this is a setup required response
       if (response.setup_required) {
+        if (!response.current_allocations) {
+          throw new Error('current_allocations is required in setup_required response');
+        }
         return {
           setupRequired: true,
           message: response.message,
-          currentAllocations: response.current_allocations || {},
+          currentAllocations: response.current_allocations,
           asset_class: { items: [] },
           sector: { items: [] },
           overall: { items: [] }
@@ -241,21 +232,8 @@ export const fetchPortfolioDrift = createAsyncThunk(
       return response;
     } catch (error: any) {
       console.error('Portfolio drift fetch error:', error);
-      // For 400 errors related to missing portfolio/allocations, return empty drift data instead of rejecting
-      const errorMessage = error.message || '';
-      if (errorMessage.includes('400') || errorMessage.includes('Bad Request') || 
-          errorMessage.includes('API error: 400')) {
-        console.warn('Portfolio or target allocations may not be set up yet, returning empty drift data');
-        return { 
-          setupRequired: true,
-          message: 'Portfolio setup required',
-          currentAllocations: {},
-          asset_class: { items: [] }, 
-          sector: { items: [] }, 
-          overall: { items: [] } 
-        };
-      }
-      return rejectWithValue(error.message || 'Failed to fetch portfolio drift');
+      const errorMessage = error?.message || 'Failed to fetch portfolio drift';
+      return rejectWithValue(errorMessage);
     }
   }
 );

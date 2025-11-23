@@ -127,13 +127,23 @@ export const plaidApi = {
     }
     
     // Prepare the request data with all necessary information for the backend
+    if (!metadata?.institution?.id) {
+      throw new Error('Institution ID is required in metadata');
+    }
+    if (!metadata?.institution?.name) {
+      throw new Error('Institution name is required in metadata');
+    }
+    if (!metadata?.accounts || !Array.isArray(metadata.accounts)) {
+      throw new Error('Accounts array is required in metadata');
+    }
+    
     const requestData = {
       public_token: publicToken,
       metadata: metadata, // Add metadata from Plaid link
-      institution_id: metadata?.institution?.id,
-      institution_name: metadata?.institution?.name,
+      institution_id: metadata.institution.id,
+      institution_name: metadata.institution.name,
       // Include account details for more reliable backend storage
-      accounts: metadata?.accounts || []
+      accounts: metadata.accounts
     };
     
     try {
@@ -162,14 +172,31 @@ export const plaidApi = {
       }
       
       // Retrieve existing connections or initialize empty object
-      const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
+      const storedConnections = sessionStorage.getItem('plaid_connections');
+      if (!storedConnections) {
+        throw new Error('Session storage for plaid_connections not initialized');
+      }
+      const existingConnections = JSON.parse(storedConnections);
       
       // Add new connection with institution ID as key
-      const institutionId = metadata?.institution?.id || 'unknown_institution';
+      if (!metadata?.institution?.id) {
+        throw new Error('Institution ID is required');
+      }
+      if (!metadata?.institution?.name) {
+        throw new Error('Institution name is required');
+      }
+      if (!metadata?.accounts || !Array.isArray(metadata.accounts)) {
+        throw new Error('Accounts array is required');
+      }
+      if (!typedResponse.account_ids || !Array.isArray(typedResponse.account_ids)) {
+        throw new Error('Account IDs are required in response');
+      }
+      
+      const institutionId = metadata.institution.id;
       existingConnections[institutionId] = {
         connectionId: typedResponse.connection_id as string,
-        institutionName: metadata?.institution?.name || 'Unknown Institution',
-        accounts: metadata?.accounts || [],
+        institutionName: metadata.institution.name,
+        accounts: metadata.accounts,
         lastUpdated: new Date().toISOString()
       };
       
@@ -179,9 +206,9 @@ export const plaidApi = {
       const result = { 
         success: true, 
         institutionId: institutionId,
-        institutionName: metadata?.institution?.name || 'Unknown Institution',
+        institutionName: metadata.institution.name,
         connectionId: typedResponse.connection_id as string,
-        accountIds: (typedResponse.account_ids as string[]) || []
+        accountIds: typedResponse.account_ids as string[]
       };
       
       return result;
@@ -203,16 +230,17 @@ export const plaidApi = {
     
     // If no connection ID provided, try to get it from session storage
     if (!connection_id && institutionId) {
-      try {
-        // Use institutionId to get a specific connection
-        const existingConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-        const institutionData = existingConnections[institutionId];
-        if (institutionData && institutionData.connectionId) {
-          connection_id = institutionData.connectionId;
-        }
-      } catch (error) {
-        console.error('Error getting connection ID from storage:', error);
+      // Use institutionId to get a specific connection
+      const storedConnections = sessionStorage.getItem('plaid_connections');
+      if (!storedConnections) {
+        throw new Error('Session storage for plaid_connections not initialized');
       }
+      const existingConnections = JSON.parse(storedConnections);
+      const institutionData = existingConnections[institutionId];
+      if (!institutionData || !institutionData.connectionId) {
+        throw new Error(`Connection ID not found for institution: ${institutionId}`);
+      }
+      connection_id = institutionData.connectionId;
     }
     
     if (!connection_id) {
@@ -253,14 +281,37 @@ export const plaidApi = {
 
       
       // Convert quantity to string for the form
-      const sharesValue = String(holding.quantity || holding.shares || 0);
+      const quantity = holding.quantity ?? holding.shares;
+      if (quantity === null || quantity === undefined) {
+        throw new Error('Holding quantity/shares is required');
+      }
+      const sharesValue = String(quantity);
+      
+      const symbol = security?.ticker_symbol ?? holding.symbol;
+      if (!symbol) {
+        throw new Error('Symbol is required for holding');
+      }
+      
+      const purchasePrice = holding.cost_basis ?? holding.purchase_price;
+      if (purchasePrice === null || purchasePrice === undefined) {
+        throw new Error('Purchase price is required for holding');
+      }
+      
+      if (!holding.purchase_date) {
+        throw new Error('Purchase date is required for holding');
+      }
+      
+      const assetClass = security?.type ?? holding.asset_class;
+      if (!assetClass) {
+        throw new Error('Asset class is required for holding');
+      }
       
       return {
-        symbol: security?.ticker_symbol || holding.symbol || 'UNKNOWN',
+        symbol,
         shares: sharesValue,
-        purchasePrice: holding.cost_basis || holding.purchase_price || 0,
-        purchaseDate: holding.purchase_date || new Date().toISOString().split('T')[0],
-        assetClass: security?.type || holding.asset_class || 'stocks'
+        purchasePrice,
+        purchaseDate: holding.purchase_date,
+        assetClass
       };
     });
   },
@@ -282,11 +333,14 @@ export const plaidApi = {
       }
       
       // Create portfolio with the holdings
+      if (!portfolioName) {
+        throw new Error('Portfolio name is required');
+      }
       return fetchWithAuth<void>(PLAID_ENDPOINTS.CREATE_PORTFOLIO, {
         method: 'POST',
         body: JSON.stringify({ 
           holdings,
-          name: portfolioName || 'Imported Portfolio'
+          name: portfolioName
         }),
       }, 30000);
     } catch (error) {
@@ -361,16 +415,34 @@ export const plaidApi = {
       }
       
       // Get local accounts from session storage
-      const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-      const localAccounts = Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
-        id: data.connectionId,
-        institution_id: institutionId,
-        institution_name: data.institutionName,
-        accounts: data.accounts,
-        last_updated: data.lastUpdated,
-        status: 'active', // Assume active for session storage accounts
-        source: 'local' // Mark as local to differentiate
-      }));
+      const storedConnections = sessionStorage.getItem('plaid_connections');
+      if (!storedConnections) {
+        throw new Error('Session storage for plaid_connections not initialized');
+      }
+      const localConnections = JSON.parse(storedConnections);
+      const localAccounts = Object.entries(localConnections).map(([institutionId, data]: [string, any]) => {
+        if (!data.connectionId) {
+          throw new Error(`Connection ID missing for institution: ${institutionId}`);
+        }
+        if (!data.institutionName) {
+          throw new Error(`Institution name missing for institution: ${institutionId}`);
+        }
+        if (!data.accounts || !Array.isArray(data.accounts)) {
+          throw new Error(`Accounts missing or invalid for institution: ${institutionId}`);
+        }
+        if (!data.lastUpdated) {
+          throw new Error(`Last updated missing for institution: ${institutionId}`);
+        }
+        return {
+          id: data.connectionId,
+          institution_id: institutionId,
+          institution_name: data.institutionName,
+          accounts: data.accounts,
+          last_updated: data.lastUpdated,
+          status: 'active', // Assume active for session storage accounts
+          source: 'local' // Mark as local to differentiate
+        };
+      });
       
       // Merge accounts (prefer backend accounts if they exist)
       const mergedAccounts = [...localAccounts];
@@ -394,6 +466,27 @@ export const plaidApi = {
       
       // Add backend accounts that aren't in local storage
       backendAccounts.forEach((backendAccount: AccountData) => {
+        if (!backendAccount.institution_id) {
+          throw new Error('Institution ID is required for backend account');
+        }
+        if (!backendAccount.institution_name) {
+          throw new Error('Institution name is required for backend account');
+        }
+        if (!backendAccount.accounts || !Array.isArray(backendAccount.accounts)) {
+          throw new Error('Accounts array is required for backend account');
+        }
+        if (!backendAccount.last_updated) {
+          throw new Error('Last updated is required for backend account');
+        }
+        if (!backendAccount.status) {
+          throw new Error('Status is required for backend account');
+        }
+        
+        const accountId = backendAccount.id ?? backendAccount.connection_id;
+        if (!accountId) {
+          throw new Error('Account ID or connection ID is required for backend account');
+        }
+        
         const localIndex = mergedAccounts.findIndex(local => 
           local.institution_id === backendAccount.institution_id);
           
@@ -401,22 +494,22 @@ export const plaidApi = {
           // Replace local with backend version
           mergedAccounts[localIndex] = { 
             ...backendAccount, 
-            id: backendAccount.id || backendAccount.connection_id || 'unknown',
-            institution_name: backendAccount.institution_name || 'Unknown Institution',
-            accounts: backendAccount.accounts || [],
-            last_updated: backendAccount.last_updated || new Date().toISOString(),
-            status: backendAccount.status || 'active',
+            id: accountId,
+            institution_name: backendAccount.institution_name,
+            accounts: backendAccount.accounts,
+            last_updated: backendAccount.last_updated,
+            status: backendAccount.status,
             source: 'backend'
           } as MergedAccount;
         } else {
           // Add new backend account
           mergedAccounts.push({ 
             ...backendAccount, 
-            id: backendAccount.id || backendAccount.connection_id || 'unknown',
-            institution_name: backendAccount.institution_name || 'Unknown Institution',
-            accounts: backendAccount.accounts || [],
-            last_updated: backendAccount.last_updated || new Date().toISOString(),
-            status: backendAccount.status || 'active',
+            id: accountId,
+            institution_name: backendAccount.institution_name,
+            accounts: backendAccount.accounts,
+            last_updated: backendAccount.last_updated,
+            status: backendAccount.status,
             source: 'backend'
           } as MergedAccount);
         }
@@ -425,23 +518,7 @@ export const plaidApi = {
       return mergedAccounts;
     } catch (error) {
       console.error('Error fetching linked accounts:', error);
-      
-      // Fallback to local accounts if backend request fails
-      try {
-        const localConnections = JSON.parse(sessionStorage.getItem('plaid_connections') || '{}');
-        return Object.entries(localConnections).map(([institutionId, data]: [string, any]) => ({
-          id: data.connectionId,
-          institution_id: institutionId,
-          institution_name: data.institutionName,
-          accounts: data.accounts,
-          last_updated: data.lastUpdated,
-          status: 'active',
-          source: 'local'
-        }));
-      } catch (fallbackError) {
-        console.error('Error getting fallback accounts:', fallbackError);
-        return [];
-      }
+      throw error;
     }
   },
   
@@ -468,14 +545,13 @@ export const plaidApi = {
    * @param institutionId Optional institution ID for the account
    */
   updateAccountConnection: async (accountId: string, institutionId?: string) => {
-    try {
-      // First get a link token for update mode
-      const linkToken = await plaidApi.createLinkToken('default_user_id', true, accountId);
-      return { success: true, linkToken, institutionId };
-    } catch (error) {
-      console.error('Error preparing account update:', error);
-      throw error;
+    if (!accountId) {
+      throw new Error('Account ID is required');
     }
+    // First get a link token for update mode
+    // Note: userId should be provided by the caller or extracted from auth context
+    const linkToken = await plaidApi.createLinkToken(undefined, true, accountId);
+    return { success: true, linkToken, institutionId };
   },
   
   /**
@@ -522,7 +598,7 @@ export const plaidApi = {
       return Object.values(institutions);
     } catch (error) {
       console.error('Error getting linked institutions:', error);
-      return [];
+      throw error;
     }
   },
 };

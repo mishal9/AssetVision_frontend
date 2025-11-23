@@ -268,11 +268,21 @@ const PortfolioDriftContainer: React.FC = () => {
         </div>
       </div>
 
-      <MemoizedDriftVisualization 
-        data={driftData?.sector} 
-        thresholdPercent={5}
-        type="sector"
-      />
+      {driftData?.sector ? (
+        <MemoizedDriftVisualization 
+          data={driftData.sector} 
+          thresholdPercent={5}
+          type="sector"
+        />
+      ) : (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>No Sector Drift Data</AlertTitle>
+          <AlertDescription>
+            Sector drift data is not available. This may indicate that the portfolio has no sector allocations or target allocations are not set.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Drift Alerts section */}
       <DriftAlertsSection />

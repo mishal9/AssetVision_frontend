@@ -62,8 +62,7 @@ export const portfolioApi = {
   hasPortfolio: () => 
     fetchWithAuth<{ has_portfolio: boolean }>(PORTFOLIO_ENDPOINTS.HAS_PORTFOLIO)
       .then(response => convertSnakeToCamelCase<{ hasPortfolio: boolean }>(response))
-      .then(response => response.hasPortfolio)
-      .catch(() => false),
+      .then(response => response.hasPortfolio),
     
   /**
    * Get tax loss harvesting opportunities
@@ -135,10 +134,11 @@ export const portfolioApi = {
       .then(response => {
         // The summary endpoint doesn't directly return an ID field
         // So we extract from the response structure if available
-        const portfolioId = response.portfolio_id || '';
-        return portfolioId;
-      })
-      .catch(() => ''),
+        if (!response.portfolio_id) {
+          throw new Error('Portfolio ID not found in response');
+        }
+        return response.portfolio_id;
+      }),
 };
 
 
@@ -246,26 +246,54 @@ export const preferencesApi = {
       .then(response => {
         // Convert decimal percentages to whole numbers (e.g., 0.24 to 24)
         const convertPercentage = (value: string | number | null | undefined): number => {
-          if (value === null || value === undefined) return 0;
-          return Number(value) * 100 || 0;
+          if (value === null || value === undefined) {
+            throw new Error('Percentage value is required');
+          }
+          const converted = Number(value) * 100;
+          if (isNaN(converted)) {
+            throw new Error('Invalid percentage value');
+          }
+          return converted;
         };
 
         // The API returns a flat structure, so we need to map it to our nested structure
+        if (!response.market_region) {
+          throw new Error('market_region is required');
+        }
+        if (!response.risk_free_rate) {
+          throw new Error('risk_free_rate is required');
+        }
+        if (!response.inflation_series) {
+          throw new Error('inflation_series is required');
+        }
+        if (!response.default_benchmark) {
+          throw new Error('default_benchmark is required');
+        }
+        if (response.approximate_pre_tax_annual_income === null || response.approximate_pre_tax_annual_income === undefined) {
+          throw new Error('approximate_pre_tax_annual_income is required');
+        }
+        if (!response.state_of_residence) {
+          throw new Error('state_of_residence is required');
+        }
+        if (!response.tax_filing_status) {
+          throw new Error('tax_filing_status is required');
+        }
+
         return {
           marketRegion: {
-            marketRegion: response.market_region || '',
-            riskFreeRate: response.risk_free_rate || '',
-            inflationSeries: response.inflation_series || '',
-            default_benchmark: response.default_benchmark || ''
+            marketRegion: response.market_region,
+            riskFreeRate: response.risk_free_rate,
+            inflationSeries: response.inflation_series,
+            default_benchmark: response.default_benchmark
           },
           tax: {
             federalIncomeTax: convertPercentage(response.federal_income_tax),
             stateIncomeTax: convertPercentage(response.state_income_tax),
-            pretaxAnnualIncome: Number(response.approximate_pre_tax_annual_income) || 0,
+            pretaxAnnualIncome: Number(response.approximate_pre_tax_annual_income),
             // Use exact state code from API (e.g., 'CA', 'NY')
-            stateOfResidence: response.state_of_residence || '',
+            stateOfResidence: response.state_of_residence,
             // Normalize tax filing status (convert from uppercase to title case if needed)
-            taxFilingStatus: response.tax_filing_status || '',
+            taxFilingStatus: response.tax_filing_status,
             longTermCapitalGainsTax: convertPercentage(response.long_term_capital_gains_tax),
             shortTermCapitalGainsTax: convertPercentage(response.short_term_capital_gains_tax)
           }
@@ -286,8 +314,14 @@ export const preferencesApi = {
   updatePreferences: (preferences: {marketRegion: MarketRegionSettings, tax: TaxSettings}) => {
     // Helper to convert percentage values back to decimal for API (e.g., 24 to 0.24)
     const convertToDecimalPercentage = (value: number | null | undefined): number => {
-      if (value === null || value === undefined) return 0;
-      return Number(value) / 100 || 0;
+      if (value === null || value === undefined) {
+        throw new Error('Percentage value is required');
+      }
+      const converted = Number(value) / 100;
+      if (isNaN(converted)) {
+        throw new Error('Invalid percentage value');
+      }
+      return converted;
     };
     
     // Convert from camelCase to snake_case for the API and format values correctly
@@ -326,16 +360,20 @@ export const chatApi = {
   sendMessage: (
     messages: { role: 'user' | 'assistant'; content: string }[], 
     context: { page?: string; section?: string; portfolioId?: string; assetId?: string }
-  ) => 
-    fetchWithAuth<{ response: string }>('/ai/chat/', {
+  ) => {
+    if (messages.length === 0) {
+      throw new Error('At least one message is required');
+    }
+    return fetchWithAuth<{ response: string }>('/ai/chat/', {
       method: 'POST',
       body: JSON.stringify({ 
-        message: messages.length > 0 ? messages[messages.length - 1].content : '',
+        message: messages[messages.length - 1].content,
         messages: messages, 
         context 
       }),
     })
-      .then(response => response.response),
+      .then(response => response.response);
+  },
   
   /**
    * Get AI-generated insights for a specific portfolio
@@ -381,7 +419,7 @@ export const riskApi = {
         include_mu: true,
         include_covariance: true,
         include_frontier: true,
-        frontier_steps: data?.frontier_steps ?? 10,
+        frontier_steps: data?.frontier_steps,
       }),
     }).then(response => convertSnakeToCamelCase<any>(response)),
 };
