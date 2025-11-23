@@ -7,8 +7,9 @@ import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import { AppDispatch, RootState } from '@/store';
-import { fetchPortfolioDrift, fetchAssetClasses, fetchSectors } from '@/store/portfolioSlice';
+import { fetchPortfolioDrift, fetchAssetClasses, fetchSectors, AssetClass, Sector } from '@/store/portfolioSlice';
 import { portfolioApi } from '@/services/api';
+import { DriftResponse } from '@/types/portfolio';
 
 interface UsePortfolioDriftOptions {
   autoLoad?: boolean;
@@ -16,12 +17,18 @@ interface UsePortfolioDriftOptions {
   enablePrefetch?: boolean;
 }
 
+import { DriftResponse } from '@/types/portfolio';
+import { AssetClass, Sector } from '@/store/portfolioSlice';
+
 interface UsePortfolioDriftReturn {
   // Data
-  driftData: any;
-  currentAllocations: any;
-  assetClasses: any[];
-  sectors: any[];
+  driftData: DriftResponse | null;
+  currentAllocations: {
+    asset_class?: Record<string, number>;
+    sector?: Record<string, number>;
+  };
+  assetClasses: AssetClass[];
+  sectors: Sector[];
   
   // Loading states
   driftLoading: boolean;
@@ -93,13 +100,11 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
     
     // Prevent duplicate loading
     if (hasLoadedRef.current && !forceRefresh) {
-      console.log('Data already loaded, skipping duplicate load');
       return;
     }
     
     // Check cache using driftData directly instead of hasData to avoid circular dependency
     if (shouldUseCache && isInitialized && (driftData?.overall || driftData?.asset_class || driftData?.sector)) {
-      console.log('Using cached portfolio drift data');
       return;
     }
     
@@ -122,7 +127,7 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
           activePortfolioId = fetchedId;
         }
       } catch (error) {
-        console.warn('Could not get active portfolio ID, using default', error);
+        // Could not get active portfolio ID, using default
       }
       
       setPortfolioId(activePortfolioId);
@@ -147,13 +152,10 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
       if (driftResult.status === 'fulfilled') {
         setLastFetchTime(now);
         setIsInitialized(true);
-        console.log('Successfully loaded portfolio drift data');
       } else {
-        console.error('Error loading drift data:', driftResult.reason);
         hasLoadedRef.current = false; // Reset on error
       }
     } catch (error) {
-      console.error('Error in portfolio drift data loading:', error);
       hasLoadedRef.current = false; // Reset on error
     } finally {
       setIsInitializing(false);
@@ -162,8 +164,6 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
     dispatch,
     router,
     lastFetchTime,
-    isInitialized,
-    driftData,
     cacheDuration,
     enablePrefetch
   ]);
@@ -176,10 +176,10 @@ export function usePortfolioDrift(options: UsePortfolioDriftOptions = {}): UsePo
   // Auto-load on mount
   useEffect(() => {
     if (autoLoad) {
-      console.log('🔄 usePortfolioDrift: Auto-loading data...');
       loadData();
     }
-  }, [autoLoad, loadData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLoad]);
 
   // Return hook interface
   return {

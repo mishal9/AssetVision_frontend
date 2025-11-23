@@ -4,9 +4,15 @@ import { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Building2, AlertCircle } from 'lucide-react';
 import { usePlaidLinkContext } from '@/context/PlaidLinkContext';
+import { PlaidLinkOnSuccessMetadata } from 'react-plaid-link';
+
+/**
+ * Plaid Link metadata structure - using library's type
+ */
+type PlaidMetadata = PlaidLinkOnSuccessMetadata;
 
 interface PlaidLinkButtonProps {
-  onSuccess: (publicToken: string, metadata: any) => void;
+  onSuccess: (publicToken: string, metadata: PlaidMetadata) => void;
   onExit?: () => void;
   isLoading?: boolean;
   className?: string;
@@ -44,13 +50,16 @@ export function PlaidLinkButton({
   } = usePlaidLinkContext();
 
   // Customize the onSuccess handler
-  const onPlaidSuccess = useCallback((publicToken: string, metadata: any) => {
+  const onPlaidSuccess = useCallback((publicToken: string, metadata: PlaidMetadata) => {
     // Explicitly check for the callback before calling
     if (typeof onSuccess === 'function') {
       try {
         onSuccess(publicToken, metadata);
       } catch (error) {
-        console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('PlaidLinkButton: Error in parent onSuccess callback:', error);
+        }
       }
     }
   }, [onSuccess]);

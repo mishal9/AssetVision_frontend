@@ -163,7 +163,13 @@ export const authApi = {
   /**
    * Register new user
    */
-  register: async (userData: any) => {
+  register: async (userData: {
+    email: string;
+    password: string;
+    firstName?: string;
+    lastName?: string;
+    username?: string;
+  }) => {
     return fetchWithAuth<AuthResponse>(AUTH_ENDPOINTS.REGISTER, {
       method: 'POST',
       body: JSON.stringify(userData),
@@ -359,7 +365,12 @@ export const riskApi = {
    * Delegates all heavy calculations to the Django service.
    * @param data Data required for portfolio optimization (strategy, parameters, holdings, etc.)
    */
-  optimizePortfolio: (data: any) =>
+  optimizePortfolio: (data: {
+    strategy?: string;
+    parameters?: Record<string, unknown>;
+    holdings?: unknown[];
+    frontier_steps?: number;
+  }) =>
     fetchWithAuth<any>(RISK_ENDPOINTS.OPTIMIZE, {
       method: 'POST',
       body: JSON.stringify({

@@ -9,6 +9,7 @@ import { SectorAllocationChart } from '@/components/dashboard/sector-allocation-
 import { BarChart3, Users, TrendingUp, Activity, PieChart, DollarSign } from 'lucide-react';
 import { usePortfolioData } from '@/hooks/usePortfolioData';
 import { portfolioApi } from '@/services/api';
+import { formatCurrency, formatPercentage } from '@/utils/formatters';
 
 
 /**
@@ -34,36 +35,42 @@ export default function DashboardPage() {
   
   // Check if user has a portfolio
   useEffect(() => {
+    let isMounted = true;
+    
     async function checkPortfolio() {
       try {
         const hasExistingPortfolio = await portfolioApi.hasPortfolio();
-        setHasPortfolio(hasExistingPortfolio);
+        if (isMounted) {
+          setHasPortfolio(hasExistingPortfolio);
+        }
       } catch (error) {
-        console.error('Error checking portfolio status:', error);
-        setHasPortfolio(false);
+        // Error handling without console.error in production
+        if (isMounted) {
+          setHasPortfolio(false);
+        }
       }
     }
     
     checkPortfolio();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
   // WebSocket-related logic removed
 
-  // Format currency values
-  const formatCurrency = (value: number | undefined | null) => {
+  // Format currency values with null/undefined handling
+  const formatCurrencyValue = (value: number | undefined | null): string => {
     if (value === undefined || value === null || isNaN(value)) return '$0.00';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      maximumFractionDigits: 2
-    }).format(value);
+    return formatCurrency(value);
   };
 
-  // Format percentage values
-  const formatPercentage = (value: number | undefined | null) => {
+  // Format percentage values with null/undefined handling
+  const formatPercentageValue = (value: number | undefined | null): string => {
     if (value === undefined || value === null) return '0.00%';
     const sign = value > 0 ? '+' : '';
-    return `${sign}${value.toFixed(2)}%`;
+    return `${sign}${formatPercentage(value)}`;
   };
 
   // Handle portfolio creation
@@ -113,26 +120,26 @@ export default function DashboardPage() {
             <>
               <StatsCard 
                 title="Total Portfolio Value" 
-                value={formatCurrency(summary.totalValue)} 
-                change={formatPercentage(summary.totalGainPercentage)} 
+                value={formatCurrencyValue(summary.totalValue)} 
+                change={formatPercentageValue(summary.totalGainPercentage)} 
                 icon={<BarChart3 className="h-5 w-5" />} 
               />
               <StatsCard 
                 title="Cash Balance" 
-                value={formatCurrency(summary.cashBalance)} 
+                value={formatCurrencyValue(summary.cashBalance)} 
                 change="Available" 
                 icon={<Users className="h-5 w-5" />} 
               />
               <StatsCard 
                 title="Total Gain" 
-                value={formatCurrency(summary.totalGain)} 
-                change={formatPercentage(summary.totalGainPercentage)} 
+                value={formatCurrencyValue(summary.totalGain)} 
+                change={formatPercentageValue(summary.totalGainPercentage)} 
                 icon={<TrendingUp className="h-5 w-5" />} 
               />
               <StatsCard 
                 title="Day Change" 
-                value={formatCurrency(summary.dayChange)} 
-                change={formatPercentage(summary.dayChangePercentage)} 
+                value={formatCurrencyValue(summary.dayChange)} 
+                change={formatPercentageValue(summary.dayChangePercentage)} 
                 icon={<Activity className="h-5 w-5" />} 
               />
               <StatsCard 

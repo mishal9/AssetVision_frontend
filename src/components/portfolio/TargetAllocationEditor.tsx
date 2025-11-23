@@ -49,8 +49,11 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
           try {
             await dispatch(fetchAssetClasses()).unwrap();
           } catch (assetError) {
-            console.warn('Failed to fetch asset classes:', assetError);
-            // Continue - user can still set allocations even if API fails
+            // Failed to fetch asset classes - user can still set allocations
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.warn('Failed to fetch asset classes:', assetError);
+            }
           }
         }
         // Try to fetch latest sectors with current target allocations
@@ -58,13 +61,19 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
           try {
             await dispatch(fetchSectors()).unwrap();
           } catch (sectorError) {
-            console.warn('Failed to fetch sectors:', sectorError);
-            // Continue - user can still set allocations even if API fails
+            // Failed to fetch sectors - user can still set allocations
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.warn('Failed to fetch sectors:', sectorError);
+            }
           }
         }
       } catch (error) {
-        console.error('Failed to fetch data:', error);
         // Don't block the UI - user can still proceed
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to fetch data:', error);
+        }
       }
     };
     
@@ -77,6 +86,7 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
       initializeFromExistingAllocations();
       setAssetClassesInitialized(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetClasses, assetClassesInitialized]);
   
   // Initialize sectors separately
@@ -85,6 +95,7 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
       initializeFromExistingSectorAllocations();
       setSectorsInitialized(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectors, sectorsInitialized]);
 
   /**
@@ -107,7 +118,6 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
     
     setAllocations(initialAllocations);
     calculateTotalAllocation(initialAllocations);
-    console.log('Initialized allocations from API:', initialAllocations);
   };
   
   /**
@@ -129,7 +139,6 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
     
     setSectorAllocations(initialAllocations);
     calculateTotalSectorAllocation(initialAllocations);
-    console.log('Initialized sector allocations from API:', initialAllocations);
   };
 
   const calculateTotalAllocation = (allocations: {[key: string]: number}) => {
@@ -265,8 +274,6 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
           target_percentage: targetPercentage
         }));
         
-        console.log('Saving allocations:', allocationData);
-        
         // Call the Redux action
         await dispatch(saveTargetAllocations(allocationData)).unwrap();
         
@@ -276,8 +283,11 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
         // Close the dialog
         onClose?.();
       } catch (error) {
-        console.error('Failed to save allocations:', error);
         setFormError('Failed to save allocations. Please try again.');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to save allocations:', error);
+        }
       } finally {
         setIsSaving(false);
       }
@@ -298,8 +308,6 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
           target_percentage: targetPercentage
         }));
         
-        console.log('Saving sector allocations:', allocationData);
-        
         // Call the Redux action
         await dispatch(saveSectorTargetAllocations(allocationData)).unwrap();
         
@@ -309,8 +317,11 @@ const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({ onClose
         // Close the dialog
         onClose?.();
       } catch (error) {
-        console.error('Failed to save sector allocations:', error);
         setFormError('Failed to save sector allocations. Please try again.');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Failed to save sector allocations:', error);
+        }
       } finally {
         setIsSaving(false);
       }
