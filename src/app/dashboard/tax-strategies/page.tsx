@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TaxLossOpportunity, TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
@@ -37,7 +37,17 @@ export default function TaxStrategiesPage() {
   const [efficiencyError, setEfficiencyError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("taxLoss");
 
+  // Use ref to prevent duplicate fetches in React Strict Mode (development)
+  // React Strict Mode intentionally runs effects twice to detect side effects
+  const hasFetchedRef = useRef(false);
+
   useEffect(() => {
+    // Prevent duplicate fetches in React Strict Mode
+    if (hasFetchedRef.current) {
+      return;
+    }
+    hasFetchedRef.current = true;
+
     const fetchTaxLossHarvesting = async () => {
       try {
         setLoading(true);
