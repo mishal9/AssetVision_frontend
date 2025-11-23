@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { portfolioApi } from '@/services/api';
 import { PortfolioSummary, PerformanceData, AssetAllocation } from '@/types/portfolio';
-import { alertsApi } from '@/services/alerts-api';
-import { AlertRule } from '@/types/alerts';
 
 /**
  * Custom hook for fetching portfolio data
@@ -31,11 +29,6 @@ export function usePortfolioData() {
   const [sectorAllocation, setSectorAllocation] = useState<AssetAllocation[]>([]);
   const [allocationLoading, setAllocationLoading] = useState<boolean>(true);
   const [allocationError, setAllocationError] = useState<string | null>(null);
-  
-  // Alerts data
-  const [alerts, setAlerts] = useState<AlertRule[]>([]);
-  const [alertsLoading, setAlertsLoading] = useState<boolean>(true);
-  const [alertsError, setAlertsError] = useState<string | null>(null);
   
   // Fetch portfolio summary and check if portfolio exists
   useEffect(() => {
@@ -168,36 +161,10 @@ export function usePortfolioData() {
     fetchAllocation();
   }, [portfolioExists]);
   
-
-  
-  // Fetch alerts only if portfolio exists
-  useEffect(() => {
-    async function fetchAlerts() {
-      // Still fetch alerts even without portfolio, as there might be system alerts
-      // But we could add a check here if alerts are strictly portfolio-related
-      try {
-        setAlertsLoading(true);
-        const data = await alertsApi.getAlertRules();
-        setAlerts(data);
-        setAlertsError(null);
-      } catch (error) {
-        setAlertsError('Failed to load alerts');
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Error fetching alerts:', error);
-        }
-      } finally {
-        setAlertsLoading(false);
-      }
-    }
-    
-    fetchAlerts();
-  }, []);
-  
   // Function to refresh all data
   const refreshData = () => {
     // Reset loading states
     setSummaryLoading(true);
-    setAlertsLoading(true);
     
     // Always check portfolio summary first
     portfolioApi.getPortfolioSummary().then(data => {
@@ -295,20 +262,6 @@ export function usePortfolioData() {
       setAllocationLoading(false);
     });
     }
-    
-
-    
-    alertsApi.getAlertRules().then(data => {
-      setAlerts(data);
-      setAlertsError(null);
-    }).catch(error => {
-      setAlertsError('Failed to refresh alerts');
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error refreshing alerts:', error);
-      }
-    }).finally(() => {
-      setAlertsLoading(false);
-    });
   };
   
   return {
@@ -324,11 +277,8 @@ export function usePortfolioData() {
     sectorAllocation,
     allocationLoading,
     allocationError,
-    alerts,
-    alertsLoading,
-    alertsError,
     refreshData,
-    isLoading: summaryLoading || performanceLoading || allocationLoading || alertsLoading,
-    hasError: !!summaryError || !!performanceError || !!allocationError || !!alertsError
+    isLoading: summaryLoading || performanceLoading || allocationLoading,
+    hasError: !!summaryError || !!performanceError || !!allocationError
   };
 }
