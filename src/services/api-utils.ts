@@ -83,7 +83,22 @@ export async function fetchWithAuth<T>(
       }
       
       // Handle error responses with JSON bodies
-      const errorMessage = data.error || data.message || `API error: ${response.status}`;
+      // Don't expose sensitive error details to prevent information leakage
+      let errorMessage: string;
+      if (response.status === 401) {
+        errorMessage = 'Authentication failed. Please log in again.';
+      } else if (response.status === 403) {
+        errorMessage = 'You do not have permission to perform this action.';
+      } else if (response.status === 404) {
+        errorMessage = 'The requested resource was not found.';
+      } else if (response.status >= 500) {
+        errorMessage = 'A server error occurred. Please try again later.';
+      } else {
+        // For client errors (4xx), use generic message to avoid leaking sensitive info
+        errorMessage = data.error || data.message || `Request failed with status ${response.status}`;
+        // Sanitize error message to prevent XSS
+        errorMessage = errorMessage.replace(/<[^>]*>/g, '').substring(0, 200);
+      }
       throw new Error(errorMessage);
     } catch (e) {
       // Handle parse errors or non-JSON error responses
@@ -95,10 +110,21 @@ export async function fetchWithAuth<T>(
         } catch {
           errorText = response.statusText;
         }
-        if (!errorText) {
-          throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+        // Sanitize error text to prevent XSS and information leakage
+        const sanitizedErrorText = errorText 
+          ? errorText.replace(/<[^>]*>/g, '').substring(0, 200)
+          : response.statusText;
+        
+        // Use generic messages for security-sensitive status codes
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please log in again.');
+        } else if (response.status === 403) {
+          throw new Error('You do not have permission to perform this action.');
+        } else if (response.status >= 500) {
+          throw new Error('A server error occurred. Please try again later.');
         }
-        throw new Error(`HTTP error ${response.status}: ${errorText}`);
+        
+        throw new Error(`HTTP error ${response.status}: ${sanitizedErrorText}`);
       }
       
       // JSON parsing error for a successful response
