@@ -1,9 +1,10 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import { authService } from '@/services/auth';
 // import { type UserInfoResponse } from '@/services/api';
 import { plaidApi } from '@/services/plaid-api';
 import { PLAID_ENDPOINTS } from '@/config/api';
 import { fetchWithAuth } from '@/services/api-utils';
+import type { RootState } from './index';
 
 /**
  * Linked account interface representing a connected brokerage account
@@ -404,3 +405,13 @@ export const userSlice = createSlice({
 
 export const { setUser, clearUser, updateAccountStatus, removeLinkedAccount } = userSlice.actions;
 export default userSlice.reducer;
+
+// Selectors
+export const selectIsAuthenticated = (state: RootState) => state.user.isAuthenticated;
+export const selectUser = (state: RootState) => state.user.user;
+
+// Memoized selector to prevent unnecessary re-renders
+export const selectUserState = createSelector(
+  [selectIsAuthenticated, selectUser],
+  (isAuthenticated, user) => ({ isAuthenticated, user })
+);

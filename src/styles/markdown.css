@@ -48,7 +48,7 @@
 }
 
 .markdown-content blockquote {
-  @apply border-l-4 border-muted-foreground/30 pl-3 italic my-2;
+  @apply border-l-4 border-gray-400/30 pl-3 italic my-2;
 }
 
 .markdown-content table {
@@ -56,7 +56,7 @@
 }
 
 .markdown-content th, .markdown-content td {
-  @apply border border-muted-foreground/20 px-2 py-1 text-xs;
+  @apply border border-gray-400/20 px-2 py-1 text-xs;
 }
 
 /* Ensure the content doesn't overflow its container */

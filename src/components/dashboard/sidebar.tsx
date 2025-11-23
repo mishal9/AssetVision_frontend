@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/utils';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { clearUser, fetchUserInfo } from '@/store/userSlice';
+import { clearUser, fetchUserInfo, selectUserState } from '@/store/userSlice';
 import { authService } from '@/services/auth';
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
@@ -30,10 +30,7 @@ export function Sidebar() {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   
-  const { isAuthenticated, user } = useAppSelector((state) => ({
-    isAuthenticated: state.user.isAuthenticated,
-    user: state.user.user,
-  }));
+  const { isAuthenticated, user } = useAppSelector(selectUserState);
 
   // Fetch user info when component mounts if we don't have it
   useEffect(() => {

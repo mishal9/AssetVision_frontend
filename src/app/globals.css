@@ -1,9 +1,9 @@
+/* Import markdown styles for AI chat - must be before @tailwind */
+@import '../styles/markdown.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import markdown styles for AI chat */
-@import '../styles/markdown.css';
 
 /* Demo page animations */
 @keyframes fade-in {

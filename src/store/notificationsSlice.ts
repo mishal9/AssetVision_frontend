@@ -2,8 +2,9 @@
  * Redux slice for managing notifications
  */
 
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction, createSelector } from '@reduxjs/toolkit';
 import { Notification, NotificationFilters, NotificationStats, NotificationType, NotificationPriority } from '../types/notifications';
+import type { RootState } from './index';
 
 interface NotificationsState {
   notifications: Notification[];
@@ -186,32 +187,36 @@ export const {
 
 export default notificationsSlice.reducer;
 
-// Selectors
-export const selectAllNotifications = (state: { notifications: NotificationsState }) => 
+// Base selectors
+export const selectAllNotifications = (state: RootState) => 
   state.notifications.notifications;
 
-export const selectUnreadNotifications = (state: { notifications: NotificationsState }) => 
-  state.notifications.notifications.filter(n => !n.isRead);
-
-export const selectNotificationStats = (state: { notifications: NotificationsState }) => 
+export const selectNotificationStats = (state: RootState) => 
   state.notifications.stats;
 
-export const selectNotificationFilters = (state: { notifications: NotificationsState }) => 
+export const selectNotificationFilters = (state: RootState) => 
   state.notifications.filters;
 
-export const selectIsPanelOpen = (state: { notifications: NotificationsState }) => 
+export const selectIsPanelOpen = (state: RootState) => 
   state.notifications.panelOpen;
 
-export const selectFilteredNotifications = (state: { notifications: NotificationsState }) => {
-  const { notifications, filters } = state.notifications;
-  
-  return notifications.filter(notification => {
-    if (filters.type && notification.type !== filters.type) return false;
-    if (filters.priority && notification.priority !== filters.priority) return false;
-    if (filters.isRead !== undefined && notification.isRead !== filters.isRead) return false;
-    if (filters.dateFrom && notification.timestamp < filters.dateFrom) return false;
-    if (filters.dateTo && notification.timestamp > filters.dateTo) return false;
-    
-    return true;
-  });
-};
+// Memoized selectors using createSelector to prevent unnecessary re-renders
+export const selectUnreadNotifications = createSelector(
+  [selectAllNotifications],
+  (notifications) => notifications.filter(n => !n.isRead)
+);
+
+export const selectFilteredNotifications = createSelector(
+  [selectAllNotifications, selectNotificationFilters],
+  (notifications, filters) => {
+    return notifications.filter(notification => {
+      if (filters.type && notification.type !== filters.type) return false;
+      if (filters.priority && notification.priority !== filters.priority) return false;
+      if (filters.isRead !== undefined && notification.isRead !== filters.isRead) return false;
+      if (filters.dateFrom && notification.timestamp < filters.dateFrom) return false;
+      if (filters.dateTo && notification.timestamp > filters.dateTo) return false;
+      
+      return true;
+    });
+  }
+);

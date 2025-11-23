@@ -1,4 +1,5 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
+import type { RootState } from './index';
 
 interface AppState {
   theme: 'light' | 'dark';
@@ -20,3 +21,12 @@ export const appSlice = createSlice({
 
 export const { toggleTheme } = appSlice.actions;
 export default appSlice.reducer;
+
+// Selectors
+export const selectTheme = (state: RootState) => state.app.theme;
+
+// Memoized selector to prevent unnecessary re-renders
+export const selectAppState = createSelector(
+  [selectTheme],
+  (theme) => ({ theme })
+);

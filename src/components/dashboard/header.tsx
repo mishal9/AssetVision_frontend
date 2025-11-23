@@ -1,7 +1,7 @@
 'use client';
 
 import { useAppDispatch, useAppSelector } from '@/store';
-import { toggleTheme } from '@/store/appSlice';
+import { toggleTheme, selectAppState } from '@/store/appSlice';
 import { Moon, Sun } from 'lucide-react';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,9 +10,7 @@ import NotificationPanel from '@/components/notifications/NotificationPanel';
 export function Header() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { theme } = useAppSelector((state) => ({
-    theme: state.app.theme,
-  }));
+  const { theme } = useAppSelector(selectAppState);
 
   useEffect(() => {
     if (theme === 'dark') {
