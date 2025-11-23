@@ -3,16 +3,13 @@
  * Handles all API requests to the backend
  */
 
-import { fetchWithAuth, fetchWithTimeoutOnly } from './api-utils';
+import { fetchWithAuth } from './api-utils';
 import { convertSnakeToCamelCase } from '../utils/caseConversions';
 import { AUTH_ENDPOINTS, PORTFOLIO_ENDPOINTS, RISK_ENDPOINTS } from '../config/api';
 import { PortfolioSummary, PortfolioSummaryResponse, PerformanceData, AllocationResponse, HoldingInput, DriftResponse } from '@/types/portfolio';
-import { Alert, AlertResponse, AlertInput } from '@/types/alerts';
 import { 
   AuthResponse,
-  AuthResponseData,
-  UserInfoResponse,
-  UserInfoResponseData
+  UserInfoResponse
 } from '../types/auth';
 import { MarketRegionSettings, TaxSettings } from '../store/preferencesSlice';
 import { TaxLossResponse, TaxEfficiencyResponse } from '@/types/tax';
@@ -144,48 +141,11 @@ export const portfolioApi = {
       .catch(() => ''),
 };
 
-/**
- * Alerts API methods
- */
-export const alertsApi = {
-  /**
-   * Get all user alerts
-   */
-  getAlerts: () => 
-    fetchWithAuth<AlertResponse[]>('/alerts/rules/')
-      .then(response => convertSnakeToCamelCase<Alert[]>(response)),
-  
-  /**
-   * Create a new alert
-   */
-  createAlert: (alertData: any) => 
-    fetchWithAuth<AlertResponse>('/alerts/rules/', {
-      method: 'POST',
-      body: JSON.stringify(alertData),
-    })
-      .then(response => convertSnakeToCamelCase<Alert>(response)),
-  
-  /**
-   * Update an existing alert
-   */
-  updateAlert: (alertId: string, alertData: Partial<AlertInput>) => 
-    fetchWithAuth<AlertResponse>(`/alerts/rules/${alertId}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(alertData),
-    })
-      .then(response => convertSnakeToCamelCase<Alert>(response)),
-  
-  /**
-   * Delete an alert
-   */
-  deleteAlert: (alertId: string) => 
-    fetchWithAuth<void>(`/alerts/rules/${alertId}/`, {
-      method: 'DELETE',
-    }),
-};
 
 /**
  * Auth API methods
+ * Note: Login, register, and refresh don't require auth tokens, so fetchWithAuth
+ * will work correctly (it only adds auth header if token exists)
  */
 export const authApi = {
   /**
@@ -194,160 +154,54 @@ export const authApi = {
    * @param password User password
    */
   login: async (email: string, password: string) => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.LOGIN, {
+    return fetchWithAuth<AuthResponse>(AUTH_ENDPOINTS.LOGIN, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
       body: JSON.stringify({ email, password }),
-      credentials: 'include', // Include cookies
-      mode: 'cors', // Enable CORS
-    });
-
-    // Safely parse body once
-    const contentType = res.headers.get('content-type') || '';
-    const parsed = contentType.includes('application/json')
-      ? await res.json()
-      : await res.text();
-
-    if (!res.ok) {
-      const message = typeof parsed === 'string'
-        ? parsed || 'Login failed'
-        : parsed?.error || parsed?.detail || parsed?.message || 'Login failed';
-      const err: any = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
-
-    return convertSnakeToCamelCase<AuthResponse>(parsed);
+    }).then(response => convertSnakeToCamelCase<AuthResponse>(response));
   },
   
   /**
    * Register new user
    */
   register: async (userData: any) => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.REGISTER, {
+    return fetchWithAuth<AuthResponse>(AUTH_ENDPOINTS.REGISTER, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
       body: JSON.stringify(userData),
-      credentials: 'include', // Include cookies
-      mode: 'cors', // Enable CORS
-    });
-
-    const contentType = res.headers.get('content-type') || '';
-    const parsed = contentType.includes('application/json')
-      ? await res.json()
-      : await res.text();
-
-    if (!res.ok) {
-      const message = typeof parsed === 'string'
-        ? parsed || 'Registration failed'
-        : parsed?.error || parsed?.detail || parsed?.message || 'Registration failed';
-      const err: any = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
-
-    return convertSnakeToCamelCase<AuthResponse>(parsed);
+    }).then(response => convertSnakeToCamelCase<AuthResponse>(response));
   },
   
   /**
    * Refresh authentication token
    */
   refreshToken: async (refreshToken: string) => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.REFRESH, {
+    return fetchWithAuth<any>(AUTH_ENDPOINTS.REFRESH, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify({ refresh: refreshToken }),
-      credentials: 'include', // Include cookies
-      mode: 'cors', // Enable CORS
-    });
-
-    const contentType = res.headers.get('content-type') || '';
-    const parsed = contentType.includes('application/json')
-      ? await res.json()
-      : await res.text();
-
-    if (!res.ok) {
-      const message = typeof parsed === 'string'
-        ? parsed || 'Token refresh failed'
-        : parsed?.error || parsed?.detail || parsed?.message || 'Token refresh failed';
-      const err: any = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
-
-    return convertSnakeToCamelCase<any>(parsed);
+    }).then(response => convertSnakeToCamelCase<any>(response));
   },
     
   /**
    * Request password reset
    */
   requestPasswordReset: async (email: string): Promise<void> => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
+    await fetchWithAuth<void>(AUTH_ENDPOINTS.FORGOT_PASSWORD, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
       body: JSON.stringify({ 
         email,
         // Provide redirect_to so Supabase recovery link returns to frontend reset page
         redirect_to: (typeof window !== 'undefined') ? `${window.location.origin}/reset-password` : undefined,
       }),
-      credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
     });
-
-    if (!res.ok) {
-      const contentType = res.headers.get('content-type') || '';
-      const parsed = contentType.includes('application/json')
-        ? await res.json()
-        : await res.text();
-
-      const message = typeof parsed === 'string'
-        ? parsed || 'Password reset request failed'
-        : parsed?.error || parsed?.detail || parsed?.message || 'Password reset request failed';
-      const err: any = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
-
-    // Success: backend may return 200/204 with or without body. Nothing to return here.
   },
 
   /**
    * Reset password using Supabase recovery token
    */
   resetPassword: async (token: string, password: string): Promise<void> => {
-    const res = await fetchWithTimeoutOnly(AUTH_ENDPOINTS.RESET_PASSWORD, {
+    await fetchWithAuth<void>(AUTH_ENDPOINTS.RESET_PASSWORD, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
       body: JSON.stringify({ token, password }),
-      credentials: 'include',
-      mode: 'cors',
     });
-    if (!res.ok) {
-      const contentType = res.headers.get('content-type') || '';
-      const parsed = contentType.includes('application/json') ? await res.json() : await res.text();
-      const message = typeof parsed === 'string' ? parsed || 'Password reset failed' : parsed?.error || parsed?.detail || parsed?.message || 'Password reset failed';
-      const err: any = new Error(message);
-      err.status = res.status;
-      throw err;
-    }
   },
     
   /**
@@ -361,14 +215,8 @@ export const authApi = {
    * Logout user
    */
   logout: () => {
-    // Use centralized AUTH_ENDPOINTS configuration
-    return fetchWithTimeoutOnly(AUTH_ENDPOINTS.LOGOUT, {
+    return fetchWithAuth<void>(AUTH_ENDPOINTS.LOGOUT, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies
-      mode: 'cors' // Enable CORS
     });
   },
 };

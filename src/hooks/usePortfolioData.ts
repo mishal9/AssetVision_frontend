@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { portfolioApi } from '@/services/api';
 import { PortfolioSummary, PerformanceData, AssetAllocation } from '@/types/portfolio';
-import { alertsApi } from '@/services/api';
-import { Alert } from '@/types/alerts';
+import { alertsApi } from '@/services/alerts-api';
+import { AlertRule } from '@/types/alerts';
 
 /**
  * Custom hook for fetching portfolio data
@@ -33,7 +33,7 @@ export function usePortfolioData() {
   const [allocationError, setAllocationError] = useState<string | null>(null);
   
   // Alerts data
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alerts, setAlerts] = useState<AlertRule[]>([]);
   const [alertsLoading, setAlertsLoading] = useState<boolean>(true);
   const [alertsError, setAlertsError] = useState<string | null>(null);
   
@@ -163,7 +163,7 @@ export function usePortfolioData() {
       // But we could add a check here if alerts are strictly portfolio-related
       try {
         setAlertsLoading(true);
-        const data = await alertsApi.getAlerts();
+        const data = await alertsApi.getAlertRules();
         setAlerts(data);
         setAlertsError(null);
       } catch (error) {
@@ -272,7 +272,7 @@ export function usePortfolioData() {
     
 
     
-    alertsApi.getAlerts().then(data => {
+    alertsApi.getAlertRules().then(data => {
       setAlerts(data);
       setAlertsError(null);
     }).catch(error => {
