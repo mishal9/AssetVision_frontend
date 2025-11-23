@@ -22,7 +22,22 @@ interface SectorAllocationChartProps {
 /**
  * Custom tooltip component for the sector allocation chart
  */
-const CustomTooltip = ({ active, payload }: any) => {
+interface TooltipPayload {
+  name: string;
+  value: number;
+  payload: {
+    category: string;
+    percentage: number;
+    value: number;
+  };
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+}
+
+const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -48,7 +63,16 @@ const CustomTooltip = ({ active, payload }: any) => {
 /**
  * Custom legend component for the sector allocation chart
  */
-const CustomLegend = ({ payload }: any) => {
+interface LegendPayload {
+  value: string;
+  color: string;
+}
+
+interface CustomLegendProps {
+  payload?: LegendPayload[];
+}
+
+const CustomLegend = ({ payload }: CustomLegendProps) => {
   return null; // Disable the built-in legend as we'll use our custom list below
 };
 

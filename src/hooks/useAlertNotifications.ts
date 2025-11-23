@@ -3,7 +3,7 @@
  * Periodically checks for new alert history and creates notifications
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useAppDispatch } from '@/store';
 import { notificationService } from '@/services/notificationService';
 
@@ -15,13 +15,17 @@ export const useAlertNotifications = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check for new alert triggers using the efficient service
-  const checkForNewAlerts = async () => {
+  const checkForNewAlerts = useCallback(async () => {
     try {
       await notificationService.checkForNewAlerts();
     } catch (error) {
-      console.error('Failed to check for new alerts:', error);
+      // Error handling - could be logged to error tracking service in production
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Failed to check for new alerts:', error);
+      }
     }
-  };
+  }, []);
 
   // Start monitoring
   const startMonitoring = () => {
@@ -47,6 +51,7 @@ export const useAlertNotifications = () => {
     return () => {
       stopMonitoring();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Manual refresh function for immediate checking

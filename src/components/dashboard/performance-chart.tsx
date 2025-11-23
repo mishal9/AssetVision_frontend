@@ -31,13 +31,32 @@ interface PerformanceChartProps {
 }
 
 /**
+ * Tooltip payload item from recharts
+ */
+interface TooltipPayload {
+  value: number;
+  [key: string]: unknown;
+}
+
+/**
+ * Custom tooltip props for the performance chart
+ */
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayload[];
+  label?: string;
+}
+
+/**
  * Custom tooltip component for the performance chart
  */
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-card border border-border p-3 rounded-md shadow-sm">
-        <p className="text-sm font-medium">{new Date(label).toLocaleDateString()}</p>
+        <p className="text-sm font-medium">
+          {label ? new Date(label).toLocaleDateString() : ''}
+        </p>
         <p className="text-sm text-primary">
           {new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -79,8 +98,8 @@ export function PerformanceChart({ data, className, currentValue, currentPeriod,
     }
   };
   
-  // Format currency values
-  const formatCurrency = (value: number) => {
+  // Format currency values for chart display
+  const formatCurrencyValue = (value: number): string => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -143,7 +162,7 @@ export function PerformanceChart({ data, className, currentValue, currentPeriod,
             <div>
               <span className="text-sm text-muted-foreground">{metrics.periodLabel} Performance:</span>
               <span className="ml-2 font-medium">
-                {formatCurrency(metrics.endValue)}
+                {formatCurrencyValue(metrics.endValue)}
               </span>
             </div>
             <div className="flex items-center">
@@ -151,7 +170,7 @@ export function PerformanceChart({ data, className, currentValue, currentPeriod,
                 "text-sm font-medium",
                 metrics.change >= 0 ? "text-green-600" : "text-red-600"
               )}>
-                {metrics.change >= 0 ? "+" : ""}{formatCurrency(metrics.change)}
+                {metrics.change >= 0 ? "+" : ""}{formatCurrencyValue(metrics.change)}
               </span>
               <span className={cn(
                 "ml-1 text-xs",
@@ -237,7 +256,7 @@ export function PerformanceChart({ data, className, currentValue, currentPeriod,
               />
               <YAxis 
                 domain={[minValue, maxValue]}
-                tickFormatter={formatCurrency}
+                tickFormatter={formatCurrencyValue}
                 width={80}
                 className="text-xs text-muted-foreground"
               />

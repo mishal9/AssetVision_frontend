@@ -47,18 +47,20 @@ export function usePortfolioData() {
         setSummaryError(null);
         setPortfolioExists(true);
       } catch (error: unknown) {
-        console.error('Error fetching portfolio summary:', error);
         // Check for 404 specifically to determine portfolio doesn't exist
-        // Define a type for API errors
-        type ApiError = {
+        interface ApiError {
           status?: number;
           message?: string;
-        };
+        }
         const errorObj = error as ApiError;
         if (errorObj?.status === 404 || errorObj?.message?.includes('404')) {
           setPortfolioExists(false);
         }
         setSummaryError('Failed to load portfolio summary');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Error fetching portfolio summary:', error);
+        }
       } finally {
         setSummaryLoading(false);
       }
@@ -80,8 +82,11 @@ export function usePortfolioData() {
       setPerformance(data);
       setPerformanceError(null);
     } catch (error) {
-      console.error('Error fetching performance data:', error);
       setPerformanceError('Failed to load performance data');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error fetching performance data:', error);
+      }
     } finally {
       setPerformanceLoading(false);
     }
@@ -89,7 +94,10 @@ export function usePortfolioData() {
 
   // Initial fetch of performance data (default to 5Y view)
   useEffect(() => {
-    fetchPerformanceData('5Y');
+    if (portfolioExists === true) {
+      fetchPerformanceData('5Y');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [portfolioExists]);
   
   // Fetch asset allocation only if portfolio exists
@@ -117,7 +125,10 @@ export function usePortfolioData() {
             // Handle case where data itself is the allocation response
             setAssetAllocation(data.assetAllocation);
           } else {
-            console.error('Invalid asset_allocation data structure:', data);
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('Invalid asset_allocation data structure:', data);
+            }
             setAssetAllocation([]);
           }
           
@@ -133,19 +144,28 @@ export function usePortfolioData() {
             // Handle case where data itself is the allocation response
             setSectorAllocation(data.sectorAllocation);
           } else {
-            console.error('Invalid sector_allocation data structure:', data);
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('Invalid sector_allocation data structure:', data);
+            }
             setSectorAllocation([]);
           }
         } else {
-          console.error('No allocation data received');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('No allocation data received');
+          }
           setAssetAllocation([]);
           setSectorAllocation([]);
         }
         
         setAllocationError(null);
       } catch (error) {
-        console.error('Error fetching asset allocation:', error);
         setAllocationError('Failed to load asset allocation');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Error fetching asset allocation:', error);
+        }
       } finally {
         setAllocationLoading(false);
       }
@@ -167,8 +187,11 @@ export function usePortfolioData() {
         setAlerts(data);
         setAlertsError(null);
       } catch (error) {
-        console.error('Error fetching alerts:', error);
         setAlertsError('Failed to load alerts');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Error fetching alerts:', error);
+        }
       } finally {
         setAlertsLoading(false);
       }
@@ -193,12 +216,15 @@ export function usePortfolioData() {
       setPerformanceLoading(true);
       setAllocationLoading(true);
     }).catch(error => {
-      console.error('Error refreshing portfolio summary:', error);
       setSummaryError('Failed to refresh portfolio summary');
       
       // Check if portfolio doesn't exist
       if (error?.status === 404 || error?.message?.includes('404')) {
         setPortfolioExists(false);
+      }
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error refreshing portfolio summary:', error);
       }
     }).finally(() => {
       setSummaryLoading(false);
@@ -210,8 +236,11 @@ export function usePortfolioData() {
         setPerformance(data);
         setPerformanceError(null);
       }).catch(error => {
-        console.error('Error refreshing performance data:', error);
         setPerformanceError('Failed to refresh performance data');
+        if (process.env.NODE_ENV === 'development') {
+          // eslint-disable-next-line no-console
+          console.error('Error refreshing performance data:', error);
+        }
       }).finally(() => {
         setPerformanceLoading(false);
       });
@@ -220,8 +249,6 @@ export function usePortfolioData() {
     // Only fetch allocation data if portfolio exists
     if (portfolioExists === true) {
       portfolioApi.getAssetAllocation().then(data => {
-        console.log('refreshData received allocation data:', data);
-        
         // Transform data if needed - handle both direct array and nested object formats
         if (data) {
           // Handle asset allocation
@@ -236,7 +263,10 @@ export function usePortfolioData() {
             // Handle case where data itself is the allocation response
             setAssetAllocation(data.assetAllocation);
           } else {
-            console.error('Invalid asset_allocation data structure (refresh):', data);
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('Invalid asset_allocation data structure (refresh):', data);
+            }
             setAssetAllocation([]);
           }
           
@@ -252,19 +282,28 @@ export function usePortfolioData() {
             // Handle case where data itself is the allocation response
             setSectorAllocation(data.sectorAllocation);
           } else {
-            console.error('Invalid sector_allocation data structure (refresh):', data);
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.error('Invalid sector_allocation data structure (refresh):', data);
+            }
             setSectorAllocation([]);
           }
         } else {
-          console.error('No allocation data received during refresh');
+          if (process.env.NODE_ENV === 'development') {
+            // eslint-disable-next-line no-console
+            console.error('No allocation data received during refresh');
+          }
           setAssetAllocation([]);
           setSectorAllocation([]);
         }
         
         setAllocationError(null);
     }).catch(error => {
-      console.error('Error refreshing asset allocation:', error);
       setAllocationError('Failed to refresh asset allocation');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error refreshing asset allocation:', error);
+      }
     }).finally(() => {
       setAllocationLoading(false);
     });
@@ -276,8 +315,11 @@ export function usePortfolioData() {
       setAlerts(data);
       setAlertsError(null);
     }).catch(error => {
-      console.error('Error refreshing alerts:', error);
       setAlertsError('Failed to refresh alerts');
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error refreshing alerts:', error);
+      }
     }).finally(() => {
       setAlertsLoading(false);
     });

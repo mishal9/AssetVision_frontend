@@ -97,7 +97,8 @@ export function DriftAlertForm({
     setSubmitting(true);
     try {
       // Create condition config based on condition type
-      let conditionConfig: Record<string, any> = {
+      // Using Record<string, ConfigValue> to match AlertRuleInput type
+      const conditionConfig: Record<string, string | number> = {
         thresholdPercent: values.thresholdPercent,
         driftType: values.driftType,
       };
