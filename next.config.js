@@ -72,7 +72,6 @@ const nextConfig = {
 // For development with Docker Compose
 if (process.env.NODE_ENV === 'development') {
   console.log('Running in development mode');
-  console.log('NEXT_PUBLIC_WS_URL:', nextConfig.env.NEXT_PUBLIC_WS_URL);
 }
 
 module.exports = nextConfig;
