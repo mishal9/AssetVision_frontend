@@ -198,28 +198,34 @@ export function LinkedAccounts({}: LinkedAccountsProps) {
                   <div className="mb-2 font-semibold">
                     Total Balance: <span className="text-primary">${portfolio.totalBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="px-2 py-1 text-left">Symbol</th>
-                          <th className="px-2 py-1 text-left">Shares</th>
-                          <th className="px-2 py-1 text-left">Purchase Price</th>
-                          <th className="px-2 py-1 text-left">Asset Class</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {portfolio.holdings.map((h, i) => (
-                          <tr key={i} className="border-b last:border-0">
-                            <td className="px-2 py-1">{h.symbol}</td>
-                            <td className="px-2 py-1">{h.shares}</td>
-                            <td className="px-2 py-1">${h.purchasePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                            <td className="px-2 py-1">{h.assetClass}</td>
+                  {portfolio.holdings.length === 0 ? (
+                    <div className="text-center py-4 text-muted-foreground">
+                      No holdings found for this account.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="px-2 py-1 text-left">Symbol</th>
+                            <th className="px-2 py-1 text-left">Shares</th>
+                            <th className="px-2 py-1 text-left">Purchase Price</th>
+                            <th className="px-2 py-1 text-left">Asset Class</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {portfolio.holdings.map((h, i) => (
+                            <tr key={i} className="border-b last:border-0">
+                              <td className="px-2 py-1">{h.symbol}</td>
+                              <td className="px-2 py-1">{h.shares}</td>
+                              <td className="px-2 py-1">${h.purchasePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                              <td className="px-2 py-1">{h.assetClass}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
             </DialogDescription>

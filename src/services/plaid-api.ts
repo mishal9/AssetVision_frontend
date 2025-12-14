@@ -271,8 +271,13 @@ export const plaidApi = {
       throw new Error('Invalid holdings data format received from server');
     }
     
+    if (typedResponse.holdings.length === 0) {
+      console.warn('No holdings returned from server for connectionId:', connectionId);
+      return [];
+    }
+    
     // Map the holdings to the expected format
-    return typedResponse.holdings.map((holding: any) => {
+    return typedResponse.holdings.map((holding: any, index: number) => {
       // Find the corresponding security to get the symbol
       const security = typedResponse.securities?.find(
         (s: any) => s.security_id === holding.security_id
@@ -282,7 +287,7 @@ export const plaidApi = {
       
       // Convert quantity to string for the form
       const quantity = holding.quantity ?? holding.shares;
-      if (quantity === null || quantity === undefined) {
+      if (quantity == null) {
         throw new Error('Holding quantity/shares is required');
       }
       const sharesValue = String(quantity);
@@ -292,13 +297,15 @@ export const plaidApi = {
         throw new Error('Symbol is required for holding');
       }
       
-      const purchasePrice = holding.cost_basis ?? holding.purchase_price;
-      if (purchasePrice === null || purchasePrice === undefined) {
+      // purchase_price is the average cost per share (calculated in backend)
+      // cost_basis is the total cost basis
+      const purchasePrice = holding.purchase_price;
+      if (purchasePrice == null) {
         throw new Error('Purchase price is required for holding');
       }
       
-      if (!holding.purchase_date) {
-        throw new Error('Purchase date is required for holding');
+      if (!holding.purchase_date && !holding.purchaseDate) {
+        throw new Error(`Purchase date is required for holding ${symbol || 'unknown'} at index ${index}. Holding data: ${JSON.stringify(holding)}`);
       }
       
       const assetClass = security?.type ?? holding.asset_class;
@@ -310,8 +317,10 @@ export const plaidApi = {
         symbol,
         shares: sharesValue,
         purchasePrice,
-        purchaseDate: holding.purchase_date,
-        assetClass
+        purchaseDate: holding.purchase_date ?? holding.purchaseDate,
+        assetClass,
+        // Include cost_basis for total value calculation
+        costBasis: holding.cost_basis
       };
     });
   },

@@ -93,12 +93,32 @@ export const fetchLinkedAccounts = createAsyncThunk(
         // Use type assertion to access properties on the object
         const dataObj = data as Record<string, unknown>;
         
-        if (dataObj.accounts && Array.isArray(dataObj.accounts)) {
+        if (dataObj.connections && Array.isArray(dataObj.connections)) {
+          // Object with connections array - need to flatten accounts from connections
+          const connections = dataObj.connections as any[];
+          console.log('Processing connections array with', connections.length, 'connections');
+          
+          // Flatten accounts from connections, inheriting connection-level fields
+          accountsToProcess = connections.flatMap((connection: any) => {
+            const connectionAccounts = connection.accounts || [];
+            return connectionAccounts.map((account: any) => ({
+              ...account,
+              // Inherit connection-level fields
+              institution_name: connection.institution_name || account.institution_name,
+              institutionId: connection.id?.toString() || connection.connectionId?.toString() || account.institutionId,
+              institution_id: connection.id?.toString() || connection.connectionId?.toString() || account.institution_id,
+              last_updated: connection.last_updated || account.last_updated,
+              connectionId: connection.connectionId || connection.id || account.connectionId,
+              connection_id: connection.connectionId || connection.id || account.connection_id,
+              status: connection.status || account.status || 'active',
+              // Ensure balances are set (may be missing, will be handled later)
+              balances: account.balances || connection.balances,
+            }));
+          });
+          console.log('Flattened to', accountsToProcess.length, 'accounts from connections');
+        } else if (dataObj.accounts && Array.isArray(dataObj.accounts)) {
           // Object with accounts array
           accountsToProcess = dataObj.accounts;
-        } else if (dataObj.connections && Array.isArray(dataObj.connections)) {
-          // Object with connections array
-          accountsToProcess = dataObj.connections;
         } else if (dataObj.data && Array.isArray(dataObj.data)) {
           // Object with data array (common API pattern)
           accountsToProcess = dataObj.data;
@@ -164,19 +184,11 @@ export const fetchLinkedAccounts = createAsyncThunk(
           throw new Error(`Account ${id} (index ${index}) is missing required field: last_updated or lastUpdated`);
         }
         
-        if (!account.status) {
-          throw new Error(`Account ${id} (index ${index}) is missing required field: status`);
-        }
+        const status = account.status || 'active';
         
-        const availableBalance = account.balances?.available ?? account.available_balance ?? account.availableBalance;
-        if (availableBalance === null || availableBalance === undefined) {
-          throw new Error(`Account ${id} (index ${index}) is missing required field: balances.available, available_balance, or availableBalance`);
-        }
-        
-        const currentBalance = account.balances?.current ?? account.current_balance ?? account.currentBalance;
-        if (currentBalance === null || currentBalance === undefined) {
-          throw new Error(`Account ${id} (index ${index}) is missing required field: balances.current, current_balance, or currentBalance`);
-        }
+        // Balance fields are optional - provide defaults if missing
+        const availableBalance = account.balances?.available ?? account.available_balance ?? account.availableBalance ?? 0;
+        const currentBalance = account.balances?.current ?? account.current_balance ?? account.currentBalance ?? 0;
         
         return {
           id,
@@ -187,7 +199,7 @@ export const fetchLinkedAccounts = createAsyncThunk(
           accountType: accountType,
           connectionId: account.connection_id ?? account.connectionId,
           lastUpdated: new Date(lastUpdated).toISOString(),
-          status: account.status,
+          status: status,
           balance: {
             available: availableBalance,
             current: currentBalance

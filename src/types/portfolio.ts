@@ -103,6 +103,7 @@ export interface HoldingInput {
   purchasePrice: number;
   purchaseDate: string;
   assetClass?: string;
+  costBasis?: number; // Total cost basis (for accurate total value calculation)
 }
 
 /**

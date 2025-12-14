@@ -117,10 +117,29 @@ export const fetchHoldingsAndBalance = createAsyncThunk(
   async (connectionId: string, { rejectWithValue }) => {
     try {
       const holdings = await plaidApi.getInvestmentHoldings(connectionId);
-      // Calculate total balance by summing (shares * purchasePrice) for each holding
+      // Calculate total balance:
+      // - For CASH: use quantity directly (cash value = quantity)
+      // - For other holdings: use cost_basis (total) if available and reasonable, otherwise shares * purchasePrice
       const totalBalance = holdings.reduce((sum, h) => {
+        if (h.symbol === 'CASH') {
+          return sum + parseFloat(h.shares || '0');
+        }
+        
         const shares = parseFloat(h.shares || '0');
-        return sum + (shares * (h.purchasePrice || 0));
+        const purchasePrice = h.purchasePrice || 0;
+        const expectedValue = shares * purchasePrice;
+        const costBasis = (h as any).costBasis || (h as any).cost_basis;
+        
+        // Use cost_basis if available and reasonable (at least 90% of expected value to account for rounding)
+        if (costBasis != null) {
+          const costBasisValue = parseFloat(costBasis);
+          if (costBasisValue > 0 && costBasisValue >= expectedValue * 0.9) {
+            return sum + costBasisValue;
+          }
+        }
+        
+        // Fallback to shares * purchasePrice if cost_basis is missing or seems incorrect
+        return sum + expectedValue;
       }, 0);
       return { holdings, totalBalance };
     } catch (error: any) {
